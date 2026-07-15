@@ -1,0 +1,3 @@
+REQ ID,Process,Requirement (HE),Priority,Class,Disposition,Solution sketch,Evidence (matrix/blueprint/demo),Components,Effort,Owner,Dev-consult,Risk/Limitations,Decision,Phase,Actual effort,Variance note
+REQ-001,Lead intake,"ליד מהאתר נכנס אוטומטית למערכת",Must,Config,,"web2lead endpoint + mapping of site form fields to Accounts","matrix: Website form → lead (web2lead)","web2lead; Accounts fields",S,Implementer,No,"verify site form fields vs schema",In scope,1,,
+REQ-006,Documents,"עריכת מסמכי Word בתוך המערכת",Nice,Gap,Workaround,"not supported; workaround: PDF quote templates or external editing","known limitations: in-product Word editing","—",,,No,"workaround accepted by customer",Workaround,,,

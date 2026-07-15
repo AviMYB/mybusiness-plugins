@@ -1,0 +1,14 @@
+﻿{
+    "name":  "mybusiness",
+    "owner":  {
+                  "email":  "support@mybusiness-crm.com",
+                  "name":  "MyBusiness CRM"
+              },
+    "plugins":  [
+                    {
+                        "description":  "MyBusiness CRM implementation toolkit: product knowledge base + no-code implementation skills.",
+                        "name":  "mybusiness-implementor",
+                        "source":  "./plugins/mybusiness-implementor"
+                    }
+                ]
+}

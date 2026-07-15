@@ -1,0 +1,332 @@
+# Parse REST API
+
+> **Purpose**: Canonical reference for the MyBusiness CRM Parse REST API — authentication, CRUD, queries, batch, users, files, aggregates, and product-specific conventions — for developers/implementers integrating external systems.
+> **Last updated**: 2026-06-10 · **Status**: draft
+
+---
+
+## 1. Base URL & mount path
+
+| Item | Value |
+|---|---|
+| Production API base | `https://api.mbapps.co.il/parse` |
+| Class endpoints | `https://api.mbapps.co.il/parse/classes/<TableName>` |
+| Login | `https://api.mbapps.co.il/parse/login` |
+| Users | `https://api.mbapps.co.il/parse/users` |
+| Batch | `https://api.mbapps.co.il/parse/batch` |
+| Aggregate | `https://api.mbapps.co.il/parse/aggregate/<TableName>` |
+| Schemas | `https://api.mbapps.co.il/parse/schemas` |
+| Files | `https://api.mbapps.co.il/parse/files/<fileName>` |
+| Cloud functions (product pattern) | `https://api.mbapps.co.il/functions/{appId}/{functionName}` — **note: outside `/parse`**, see [04-cloud-functions.md](04-cloud-functions.md) |
+| Standard Parse cloud functions | `https://api.mbapps.co.il/parse/functions/<name>` (standard Parse path; the product's own functions use the pattern above) |
+
+The backend is **Parse Server** (the platform vendor Simbla aliases the SDK as `Simbla`; `Simbla` ≡ `Parse`). Upstream Simbla cloud uses `https://apps.simbla.com/parse`; MyBusiness white-label deployments use `https://api.mbapps.co.il/parse`.
+
+Each customer is a separate Parse "application" identified by its **Application ID** and protected by its **Master Key**.
+
+## 2. Authentication
+
+### 2.1 Headers (as used in the official example script)
+
+`parse_api_example.py` — the script handed to customers — sends exactly:
+
+```http
+X-Parse-Application-Id: <APP_ID>
+X-Parse-Master-Key: <MASTER_KEY>
+Content-Type: application/json
+```
+
+The Master Key bypasses all ACL/CLP checks — full read/write on every table. Keep it server-side only; never embed it in browser code.
+
+### 2.2 Session-token auth (per-user permissions)
+
+Per Simbla docs (`rest-api/the auth reference`), the second method is username/password login:
+
+```http
+POST https://api.mbapps.co.il/parse/login
+X-Parse-Application-Id: <APP_ID>
+Content-Type: application/json
+
+{"username": "user@company.co.il", "password": "********"}
+```
+
+Response (200):
+
+```json
+{
+  "username": "user@company.co.il",
+  "objectId": "g7y9tkhB7O",
+  "createdAt": "2022-01-01T12:23:45.678Z",
+  "updatedAt": "2022-01-01T12:23:45.678Z",
+  "sessionToken": "r:xxxxxxxxxxxxxxxxxxxxxxxxx"
+}
+```
+
+Then add to every subsequent request:
+
+```http
+X-Parse-Session-Token: r:xxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+Access with a session token is constrained by the user's roles and table CLP (Class-Level Permissions). Logout: `POST /parse/logout` with `X-Parse-Application-Id` + `X-Parse-Session-Token` headers.
+
+### 2.3 API key (`X-Parse-API-Key`)
+
+Some deployed platform functions send an `X-Parse-API-Key` header as an alternative to the Master Key (e.g., for reading `/parse/schemas/<table>` and registering triggers). Per Simbla docs, an "API-K" can be generated in the database → Settings tab → "add key" and grants full privileges to the holder. ⚠️ UNVERIFIED: the exact privilege scope of `X-Parse-API-Key` on the MyBusiness deployment (full vs. scoped) — treat as Master-Key-equivalent until verified.
+
+### 2.4 Credentials file convention
+
+Customer integration folders in this workspace store credentials in `.env` files with these key names (values never committed):
+
+```
+X_PARSE_APPLICATION_ID=...
+X_PARSE_MASTER_KEY=...
+MB_USER_EMAIL=...
+MB_USER_PASSWORD=...
+```
+
+### 2.5 Note on `X-Parse-REST-API-Key`
+
+Generic Parse documentation shows `X-Parse-REST-API-Key`. The MyBusiness production examples and all deployed server-side code use **Application-Id + Master-Key (or session token)** instead; no REST-API-Key is used in any observed product code.
+
+## 3. Request & response format
+
+- POST/PUT bodies are JSON; `Content-Type: application/json` is required.
+- Success → HTTP 2xx. Failure → 4xx with a JSON body always containing `code` + `error`:
+
+```json
+{ "code": 105, "error": "invalid field name: bl!ng" }
+```
+
+- `code 209` = invalid session token. Standard Parse error codes apply (see `ParseDocs\18-error-codes`).
+- CORS is supported (Parse default), so browser `XMLHttpRequest`/`fetch` works with these headers.
+
+## 4. CRUD on classes
+
+Examples below use real product tables (`Accounts`, `Tasks`, `Activities`, `Sales`) exactly as in `parse_api_example.py`.
+
+### 4.1 Create — `POST /parse/classes/<Table>`
+
+```http
+POST https://api.mbapps.co.il/parse/classes/Accounts
+{ "Name": "ישראל ישראלי", "Phone": "0501234567", "Email": "israel@example.com",
+  "Source": "אתר", "Status": "ליד חדש" }
+```
+
+Response `201 Created`:
+
+```json
+{ "objectId": "xK9mP2qRsT", "createdAt": "2025-01-10T08:30:00.000Z" }
+```
+
+`objectId` is a 10-character string generated by the server.
+
+### 4.2 Retrieve one — `GET /parse/classes/<Table>/<objectId>`
+
+Returns the full object incl. `createdAt`, `updatedAt`, `objectId`. Add `include=<pointerField>` query param to expand pointer children inline (e.g., `include=AccountId`).
+
+### 4.3 Update — `PUT /parse/classes/<Table>/<objectId>`
+
+Send only the fields to change; unsent fields are untouched.
+
+```http
+PUT https://api.mbapps.co.il/parse/classes/Accounts/xK9mP2qRsT
+{ "LastAction": "ביקש שיחה חוזרת", "LastActionDate": {"__type":"Date","iso":"2025-03-24T10:00:00.000Z"} }
+```
+
+Response: `{ "updatedAt": "..." }`.
+
+Atomic counter increment (`Update-Data` MCP and REST both support):
+
+```json
+{ "StockCount": { "__op": "Increment", "amount": -5 } }
+```
+
+Delete a field's value: `{ "FieldName": { "__op": "Delete" } }`.
+
+### 4.4 Delete — `DELETE /parse/classes/<Table>/<objectId>`
+
+Irreversible. Returns `{}` on success.
+
+### 4.5 Linked-record creation (the canonical integration flow)
+
+The official example script's flow — find-or-create an Account, then create a linked record:
+
+```python
+# Pointer format — link a Task to an Account
+body = {
+  "Title": "התקשר ללקוח",
+  "DueDate":   {"__type": "Date", "iso": "2025-01-15T10:30:00.000Z"},
+  "Status":    "פתוח",
+  "AccountId": {"__type": "Pointer", "className": "Accounts", "objectId": "xK9mP2qRsT"}
+}
+requests.post(f"{API_URL}/classes/Tasks", headers=HEADERS, json=body)
+```
+
+The same pattern creates `Activities` (meetings: `Subject`, `Type`, `StartDate`, `Status`, `AccountId`) and `Sales` (`Name`, `Stage`, `Amount`, `CloseDate`, `AccountId`).
+
+## 5. Data types
+
+| Type | JSON shape | Notes |
+|---|---|---|
+| Pointer | `{"__type":"Pointer","className":"Accounts","objectId":"xK9mP2qRsT"}` | Link between tables. Field naming convention: `<X>Id` (e.g. `AccountId`, `OwnerId`, `StatusId`) |
+| Date | `{"__type":"Date","iso":"2025-01-15T10:30:00.000Z"}` | UTC ISO-8601, milliseconds required in canonical form |
+| File | `{"__type":"File","name":"photo.jpg","url":"https://..."}` | See [06-files-and-storage.md](06-files-and-storage.md) |
+| GeoPoint | `{"__type":"GeoPoint","latitude":32.0853,"longitude":34.7818}` | |
+| String / Number / Boolean / Array / Object | native JSON | |
+
+System fields on **every** record: `objectId`, `createdAt`, `updatedAt`, `ACL`, plus product-added `createdBy` and `updatedBy` (Pointers to `_User`).
+
+System tables: `_User` (users), `_Role` (roles), `_Session`, `_Timeline` (audit log — query by `objectIdValue` + `objectClass`), `_Dictionary` (field label translations: `tblName`, `field`, `value`), `_syslogTriggers`, `_syslogEvents`, `_syslogWA` (WhatsApp log), `Config` (per-app integration settings; **restricted from MCP**, master-key REST only).
+
+## 6. Queries — `GET /parse/classes/<Table>` with URL params
+
+| Param | Meaning | Example |
+|---|---|---|
+| `where` | JSON-encoded then URL-encoded filter | `where={"Phone":"0501234567"}` |
+| `keys` | comma-separated projection | `keys=Name,Phone,Email` |
+| `include` | expand pointer fields | `include=AccountId,OwnerId` |
+| `order` | sort field; `-` prefix = descending; comma-separate for multi | `order=-createdAt` |
+| `limit` | max results (Parse default 100, max 1000 per request) | `limit=5` |
+| `skip` | pagination offset | `skip=100` |
+| `count` | `count=1` adds total count to response (`limit=0` for count-only) | |
+| `distinct` | distinct values of a field (master key) | |
+| `readPreference` | replica choice (`PRIMARY`…`NEAREST`) | rarely needed |
+
+Response shape: `{ "results": [ {...}, ... ] }` (+ `"count": N` when requested).
+
+### 6.1 `where` operators
+
+| Operator | Meaning | Example |
+|---|---|---|
+| (bare value) | equals | `{"Status":"Active"}` |
+| `$lt` `$lte` `$gt` `$gte` | comparisons | `{"Amount":{"$gt":1000}}` |
+| `$ne` | not equal | `{"Status":{"$ne":"Closed"}}` |
+| `$in` / `$nin` | in / not in list | `{"Status":{"$in":["Open","Pending"]}}` |
+| `$exists` | field is set | `{"Email":{"$exists":true}}` |
+| `$regex` | regex match | `{"Name":{"$regex":"^א"}}` |
+| `$select` / `$dontSelect` | match against sub-query result | |
+| `$all` | array contains all | |
+| `$text` | full-text search on indexed fields | |
+| `$or` (top level) | OR of sub-queries | `{"$or":[{"Phone":"050..."},{"Email":"x@y"}]}` |
+
+Pointer equality filter:
+
+```json
+{ "AccountId": {"__type":"Pointer","className":"Accounts","objectId":"xK9mP2qRsT"} }
+```
+
+Date comparison filter:
+
+```json
+{ "createdAt": {"$gt": {"__type":"Date","iso":"2026-01-01T00:00:00.000Z"}} }
+```
+
+### 6.2 Product example — duplicate check by phone (from the example script)
+
+```python
+where = json.dumps({"Phone": phone})
+requests.get(f"{API_URL}/classes/Accounts", headers=HEADERS,
+             params={"where": where, "limit": 5})
+# 0 results → create; >1 results → duplicate warning, manual review recommended
+```
+
+⚠️ Product caveat: in practice the canonical phone field on `Accounts` is **`PhoneNumber`** (used by web2lead/web2table duplicate detection and CDR matching); `Phone` appears in the example script. Always confirm the actual field via Get-Schema — installations vary. Israeli phone values exist in multiple formats (`05X…`, `972…`, `+972…`, dashed); deployed duplicate-detection code queries all variants explicitly (see [03-web2lead-web2table.md](03-web2lead-web2table.md) §duplicate detection).
+
+## 7. Batch operations — `POST /parse/batch`
+
+Up to **50 operations per call** on this platform (Simbla doc `rest-api/batch-operations.md`; generic Parse default is 20 — the product documents 50).
+
+```json
+{
+  "requests": [
+    { "method": "POST", "path": "/parse/classes/Accounts", "body": { "Name": "לקוח א" } },
+    { "method": "PUT",  "path": "/parse/classes/Accounts/xK9mP2qRsT", "body": { "Status": "פעיל" } },
+    { "method": "DELETE", "path": "/parse/classes/Accounts/Cpl9lrueY5" }
+  ]
+}
+```
+
+Response is an array in the same order; each element has `success` (normal REST response) **or** `error` (`{code, error}`). N batched requests still count as N requests for rate purposes. Batched writes still fire product triggers per record (use the MCP `Create-Many` tool with `skipTriggers`/`skipTimeline` when trigger suppression is needed — REST batch has no such flag).
+
+## 8. Users API
+
+| Operation | Endpoint | Notes |
+|---|---|---|
+| Sign up | `POST /parse/users` body `{username, password, ...}` | Returns `objectId` + `sessionToken`. Product rule: `username` must be an email; password policy `(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}` (min 8, 1 lower, 1 upper, 1 digit) |
+| Log in | `POST /parse/login` body `{username, password}` | Returns `sessionToken` |
+| Current user | `GET /parse/users/me` + `X-Parse-Session-Token` | 209 if token invalid |
+| Update user | `PUT /parse/users/<objectId>` | Own session or master key |
+| Password reset | `POST /parse/requestPasswordReset` body `{email}` | Sends reset email |
+| Log out | `POST /parse/logout` + session token | Revokes session |
+
+Product user fields observed on `_User`: `name`, `phone`, `extension`, `job`, `active`, `status`, `profile_image`, `last_success_login`, `emailVerified`, `isPortalUser`. Prefer the MCP `Create-or-Update-User` tool for user management — it enforces product invariants (package/seat logic). Direct REST user creation does not assign a license package.
+
+## 9. Files API
+
+Summary here; full detail in [06-files-and-storage.md](06-files-and-storage.md).
+
+- Upload: `POST /parse/files/<name>` with the file bytes as body and the file's `Content-Type` header. 10 MB limit (Parse default). Response: `{"url": "...", "name": "<unique>-<name>"}`.
+- Associate with a record: set a `File` field to `{"__type":"File","name":"<returned name>","url":"<returned url>"}`.
+- Product file URLs live under `api.mbapps.co.il` (pattern `…/parse/files/<APP_ID>/<FILE_NAME>` and `…/file/...`).
+
+## 10. Aggregate queries — `GET /parse/aggregate/<Table>` (master key required)
+
+MongoDB-pipeline-style aggregation. URL params: `group`, `match`, `project`, `distinct`, `limit`, `skip`, `sort`. `_id` is replaced by `objectId` in parse-server semantics.
+
+```bash
+curl -G "https://api.mbapps.co.il/parse/aggregate/Sales" \
+  -H "X-Parse-Application-Id: $APP_ID" -H "X-Parse-Master-Key: $MASTER_KEY" \
+  --data-urlencode 'group={"objectId":"$Stage","total":{"$sum":"$Amount"}}'
+```
+
+### 10.1 Internal full-pipeline variant — `classes-aggregate/<Table>`
+
+Some deployed platform functions run full Mongo pipelines via the JS SDK internal request:
+
+```js
+let rows = (await Simbla._request('GET', "classes-aggregate/" + cls,
+            { aggregate: pipe }, { useMasterKey: true })).results;
+// pipe = [{ $match: …}, { $project: { month: {$month:"$DateOfBirth"}, … } }, { $limit: 30000 }]
+```
+
+⚠️ `classes-aggregate` is an internal endpoint observed in production code; not in public docs — use `/parse/aggregate/<Table>` for supported integrations. The MCP `Aggregate-Data` tool is the supported high-level wrapper (groupby **must be a String**, dot-notation pointer paths like `OwnerId._User.name` supported).
+
+## 11. Schemas API — `GET /parse/schemas[/<Table>]` (master key / API key)
+
+Returns table definitions: field names, types, `targetClass` for Pointers. On this product the per-table schema response **also carries a `triggers` array** (automation definitions are stored with the schema). Schema mutations (create table / add field) should go through the MCP tools (`Create-Table`, `Add-Field-to-Table`) or the deployed `addTable`/`addFieldToTable` cloud functions, which also write Hebrew labels to `_Dictionary` and set CLP — raw REST schema writes skip those product layers.
+
+## 12. Cloud-function invocation
+
+Two patterns exist:
+
+1. **Standard Parse**: `POST /parse/functions/<name>` with auth headers (ParseDocs 14-cloud-code). ⚠️ UNVERIFIED on this deployment — product functions are not registered this way.
+2. **Product pattern (the Parse Server backend)**: `POST https://api.mbapps.co.il/functions/{appId}/{functionName}` with header `X-Parse-Application-Id: {appId}`; the platform injects `applicationId` and `masterKey` into the function's `req.body` server-side. This is how `web2lead`, `web2table`, `mychat`, etc. are called. Full reference: [04-cloud-functions.md](04-cloud-functions.md).
+
+## 13. Account-level operations (vendor-side)
+
+Account-level operations — package/seat management, storage status, and app registration/provisioning — are **not** exposed on the Parse API. They are handled by a vendor-side ops layer and are not part of the customer-facing integration surface.
+
+## 14. Product conventions checklist
+
+- Hebrew data values, English field/table names (CamelCase: `FirstName`, `PhoneNumber`).
+- Pointer fields end with `Id` and target lookup tables (`LeadStatusId` → `LeadStatuses`).
+- Central table: `Accounts` (leads AND customers; `IsAccount: false` = lead, `true` = customer).
+- Dates always UTC ISO with `__type: Date` wrapper (REST) — but web2lead/web2table take flat ISO strings (different layer, see [03-web2lead-web2table.md](03-web2lead-web2table.md)).
+- Multi-select pointer fields use the name pattern `array_<purpose>_Pointer_<TargetTable>` and store an Array of objectId strings.
+- Writes via master key fire triggers (`data change` automations) unless suppressed via MCP `Create-Many` flags.
+- 196 tables / ~2,592 fields / 766 pointer relationships in the standard template; per-customer schema varies — always fetch the schema first.
+
+## Limitations & gotchas
+
+- **Master key = god mode.** All ACL/CLP bypassed; storage in browser/client code is a critical incident.
+- **`limit` defaults**: REST returns 100 by default (max 1000); the MCP `Get-Data` tool defaults to 5 (max 2000). Don't conflate the two layers when estimating result sizes.
+- **`where` must be URL-encoded JSON** in GET requests; failing to encode produces opaque 400s. Libraries like Python `requests` handle it via `params`.
+- **Duplicate phones**: the platform does not enforce uniqueness on `PhoneNumber`/`Email`; integrations must do find-before-create (the example script returns the first match and warns on >1).
+- **Field-name drift**: `Phone` vs `PhoneNumber`, custom fields per customer — never hard-code a field list without a schema fetch.
+- **Trigger storms**: REST updates fire `data change` triggers; bulk REST writes can cascade automations (trigger chains are capped at 3 levels, but each record still fires). Coordinate bulk loads with trigger owners or use MCP `Create-Many` with `skipTriggers: true` (master key only).
+- **Aggregate requires master key**; aggregate `groupby` paths through Pointers use dot notation but only via the MCP tool / dynamic-table layer, not raw Mongo pipelines.
+- **`Config` table is restricted** from the MCP layer; reading/writing it (e.g. `AcceptWebLeads`, `pbx`, `twilio-settings`, `Payment`) requires master-key REST.
+- **Batch size 50** (product-documented); larger arrays must be chunked client-side. Batch responses can be per-item partial failures — always check each element.
+- **No rate limits documented** for api.mbapps.co.il. ⚠️ UNVERIFIED — assume reasonable throttling and batch/chunk accordingly.
+- **Account/reseller operations live on a separate vendor-side host** with a different key — Parse master keys do not work there.
