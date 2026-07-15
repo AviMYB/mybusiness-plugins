@@ -71,7 +71,7 @@ Onboarding a new employee is always three sequential steps. Do not skip any of t
 Create-or-Update-User({
   name: "דוד כהן",
   username: "david.cohen@acme.co.il",     // username IS the login email
-  password: "Sales2026!",                  // ≥8 chars, 1 upper, 1 lower, 1 digit
+  password: "<example-passw0rd>",          // example only — policy: ≥8 chars, 1 upper, 1 lower, 1 digit
   job: "מנהל מכירות",
   phone: "0501111001",
   active: true

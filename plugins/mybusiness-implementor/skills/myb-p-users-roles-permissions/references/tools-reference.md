@@ -97,7 +97,7 @@ One tool for both create and update. **Omit `objectId` to create; include `objec
 **Patterns:**
 - Partial update: pass `objectId` + only the field(s) to change. Other fields retain their existing value.
 - Deactivation: `{ objectId, active: false }`.
-- Password reset (admin): `{ objectId, password: "NewPass2026!" }`.
+- Password reset (admin): `{ objectId, password: "<new-passw0rd>" }` (example only — meets the policy above).
 
 ---
 
