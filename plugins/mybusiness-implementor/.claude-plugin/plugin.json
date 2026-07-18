@@ -1,7 +1,7 @@
 {
   "name": "mybusiness-implementor",
-  "description": "MyBusiness CRM implementation toolkit: product knowledge base + no-code implementation skills (entities, pages, table views, dashboards, reports, triggers, form rules, users & permissions, terminology, price quotes, data import, web2lead, multi-select & cascading fields, SLA, settings pages, fit-gap analysis). Hebrew-first Israeli CRM on the Simbla platform.",
-  "version": "1.0.0",
+  "description": "MyBusiness CRM implementation toolkit: product knowledge base + no-code implementation skills (entities, pages, table views, dashboards, reports, triggers, form rules, users & permissions, terminology, price quotes, data import, web2lead, multi-select & cascading fields, SLA, settings pages, fit-gap analysis). Hebrew-first Israeli CRM.",
+  "version": "1.0.1",
   "author": {
     "name": "MyBusiness CRM",
     "email": "support@mybusiness-crm.com",
