@@ -38,7 +38,7 @@ Then start a new session. The skills load automatically and trigger on relevant 
 
 - **Claude Code** (CLI, desktop, or IDE extension).
 - **A MyBusiness CRM tenant** you are authorized to configure.
-- **A MyBusiness MCP server connection** (`https://mcp.mbapps.co.il/`) configured for that tenant — one connection serves one tenant. Contact [support@mybusiness-crm.com](mailto:support@mybusiness-crm.com) for connection credentials and setup. The full MCP tools catalog ships inside the plugin at `plugins/mybusiness-implementor/skills/myb-p-kb/references/40-integrations-api/02-mcp-tools-catalog.md`.
+- **A MyBusiness MCP server connection** (`https://mcp.mbapps.co.il/`) configured for that tenant — one connection serves one tenant. The full MCP tools catalog ships inside the plugin at `plugins/mybusiness-implementor/skills/myb-p-kb/references/40-integrations-api/02-mcp-tools-catalog.md`.
 
 The knowledge-base skill (`myb-p-kb`) works without an MCP connection; the implementation skills need one to do real work.
 
