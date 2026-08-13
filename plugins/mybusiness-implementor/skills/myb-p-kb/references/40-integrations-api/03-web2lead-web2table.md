@@ -1,7 +1,7 @@
 # Web2Lead / Web2Table — External Form → CRM Intake
 
 > **Purpose**: Complete mechanics of capturing external HTML forms (landing pages, registration forms, partner systems) into MyBusiness CRM via the `web2lead` and `web2table` cloud functions — endpoints, field naming, pointer handling, duplicate detection, config gates, and production-ready code.
-> **Last updated**: 2026-06-10 · **Status**: draft
+> **Last updated**: 2026-08-10 (§11 anonymous-write security model added — CAPTCHA gate, CLP bypass, create-only) · **Status**: draft
 
 ---
 
@@ -285,9 +285,25 @@ In `web2table`, prefix per bucket: `account_array_interests_Pointer_Interests`, 
 - **Server-side validation performed**: phone 7–14 digits / email sanity (only when `ValidatePhoneOrEmail` is on), schema-existence of every field, pointer id length. Everything else is the form's responsibility.
 - **appId exposure** in browser JS is intentional and safe — it is not a credential. Reassure customers who panic about it.
 
+## 11. The anonymous-write security model (why these endpoints are the only door)
+
+Verified empirically on a live tenant (2026-08-09) while building an anonymous public rating page. Three facts that together decide the architecture of any "unauthenticated visitor writes to the CRM" feature:
+
+1. **Direct anonymous Parse REST writes are CAPTCHA-gated — opening the CLP does not help.** A `POST /parse/classes/<Table>` with only `X-Parse-Application-Id` (no session, no master key) is rejected with `{"code":119,"error":"This action is not allowed without a valid CAPTCHA"}` **even after** the class-level permission is set to `create: {"*": true}`. The CAPTCHA gate sits in front of the CLP check, so widening the CLP buys nothing and only widens exposure. Anyone who "fixes" an anonymous 403/119 by opening a CLP has made the tenant less safe without making the write work.
+2. **`web2table` runs elevated and bypasses CLP.** It successfully created rows in a table whose CLP was `create: role:Admin`. Consequence: **keep the target table's CLP closed.** The endpoint is the approved anonymous write path precisely because it is a server-side function with its own validation — the table does not need public permissions, and giving it any is pure downside.
+3. **`web2table` is create-only.** It has no update semantics: passing `objectId` / `table_objectId` does not address an existing row — every call inserts. There is no anonymous update path at all (an anonymous `PUT` on an existing row is likewise rejected). So "let the customer update an existing record from a public link" cannot be built directly; it must be **staging-table + projection trigger**: the public page creates a row in a dedicated intake table, and a data-change trigger on that table projects the values onto the real business object (`update-object` with `connection: "source.<PointerField>"`). This also keeps the business table closed to anonymous writes, which was verified rejected.
+
+Corollaries an implementer should carry into design:
+- The intake link must carry `phone` (§4 — hard-required), which means a customer phone number travels in a URL and lands in server logs. That is a privacy decision to surface with the customer, not to hide; the alternative is an opaque per-record token column looked up server-side.
+- Because every call inserts, a two-step interaction (rate now, comment a moment later) produces **two intake rows** for one response. That is correct behavior, not a bug — the intake table is the raw journal and the business object holds the resolved answer. Document it, or someone will "fix" it later.
+- Any trigger that reacts to the *first* call will run **before** the second call's data exists. Don't compose a message/task body out of a field that arrives in the later call — point the reader at the record instead (see [../30-customization/06-triggers-and-automations.md](../30-customization/06-triggers-and-automations.md)).
+
 ## Limitations & gotchas (observed frequency order)
 
 - **Wrapped Pointer objects** instead of bare objectIds → 200 OK, field silently null.
+- **Trying to reach the API anonymously without `web2lead`/`web2table`** → `code 119` CAPTCHA rejection; widening the CLP does not lift it (§11).
+- **Opening a target table's CLP "so web2table can write"** → unnecessary (it bypasses CLP) and a real exposure increase (§11).
+- **Expecting `web2table` to update an existing row** → it always inserts; use staging-table + projection trigger (§11).
 - **`account_Phone`/`account_Email` instead of unprefixed `phone`/`email`** in web2table → duplicate detection misses; contact duplicated.
 - **Missing `table`** on web2table → 422.
 - **Mixing endpoint dialects**: web2lead takes flat Accounts field names; web2table takes `account_`/`table_` prefixes. Never both in one body.

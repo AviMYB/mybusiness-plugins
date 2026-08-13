@@ -1,4 +1,4 @@
-# MyChat — Multi-Channel Conversations Module
+﻿# MyChat — Multi-Channel Conversations Module
 
 > **Purpose:** Reference for MyChat (apps/mychat/): WhatsApp + Email conversations, the Channels table (incl. the critical `Identity` gotcha), chatbots, conversation assignment/permissions, and templates.
 > **Last updated:** 2026-06-10 · **Status:** draft
@@ -18,7 +18,7 @@ MyChat is the omnichannel conversation hub: incoming and outgoing **WhatsApp** a
 | Conversation status | סטטוס שיחה | `ConversationStatuses` | Configurable; defaults (live + guide 7542): `חדשה`, `ממתינה`, `בטיפול`, `סגורה`; each points to a `StateId` |
 | Conversation state | — | `ConversationStates` | Underlying state machine behind statuses (open/closed semantics) ⚠️ exact values UNVERIFIED on demo |
 | Rep status | סטטוס נציג | `UserStatuses` | Availability of reps; defaults (live): `מחובר` (green, state=true), `בהפסקה` (orange), `נא לא להפריע` (red), `לא מחובר` (grey) |
-| Assignment group | — | `UsersAssignments` | `Name`, `Users` (Array), `ActiveStatuses` (Array), `LastAssignmentUserId` — referenced by `Channels.UsersAssignmentId`; structure implies rotation/round-robin auto-assignment per channel ⚠️ rotation behavior UNVERIFIED |
+| Assignment group | — | `UsersAssignments` | `Name`, `Users` (Array), `ActiveStatuses` (Array), `LastAssignmentUserId` — referenced by `Channels.UsersAssignmentId`. Round-robin rotation over `Users` in array order, `LastAssignmentUserId` as cursor — **verified** on the CRM consumer of the same table (see [30/06 §13](../30-customization/06-triggers-and-automations.md)). ⚠️ The MyChat-specific binding (per-channel assignment on inbound conversations) is still UNVERIFIED |
 | Chatbot | צ'אטבוט | `ChatBots` (14 fields) | `Name`, `Active`, `ChannelId`, `Conditions`, **`Nodes` + `Edges`** (the flow graph), `DefaultMessages`, `ExecutionCount` |
 | Chatbot log | — | `ChatBotLogs` | Per-conversation bot run: `ConversationId`, `ChatBotId`, `Logs` (Array), `Data`, `AIQueryCount` |
 | AI conversation | — | `AIConversations` | `ConversationId`, `system` (Array), `messages` (Array) — AI-agent transcript |
@@ -113,7 +113,7 @@ Bot-created records: pick target table (e.g., Accounts, Cases, Sales), map field
 | Rep statuses | settings → הגדרת סטטוסים לנציגים | Name, active flag, color (colored dot next to rep in assignment lists) |
 | Conversation statuses | settings → הגדרת סטטוס לשיחות | Editable list on top of the 4 defaults |
 | Business hours | settings → שעות פעילות (guide 7962) | Multiple named schedules (per department), per-day ranges or "מחלקה סגורה כל היום"; consumed by bot routing-by-hours |
-| Assignment groups | `settings-users-assignment` page; `UsersAssignments` table | Users array + active-statuses filter + LastAssignmentUserId; bound per channel via `Channels.UsersAssignmentId` ⚠️ auto-assignment semantics UNVERIFIED |
+| Assignment groups | `settings-users-assignment` page; `UsersAssignments` table | Users array + active-statuses filter + LastAssignmentUserId; bound per channel via `Channels.UsersAssignmentId`. Same table as the CRM User-Assignments engine ([30/06 §13](../30-customization/06-triggers-and-automations.md)) — **never delete or repurpose rows another consumer created**. ⚠️ MyChat-specific auto-assignment semantics still UNVERIFIED |
 | Chatbots | `chatbots` page | Create from scratch / from template (lead, sales, service templates) / clone existing; per-channel binding; activate via `Active` |
 | AI knowledge sources | settings or inside bot step (guide 7880) | URL sources or PDF uploads; reusable across bots; AI conversations capped at 50 messages |
 

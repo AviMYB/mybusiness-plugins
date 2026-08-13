@@ -2,7 +2,7 @@
 
 # MyBusiness CRM — Build and Extend a CRM with AI
 
-![Claude Code plugin](https://img.shields.io/badge/Claude_Code-plugin-d97757) ![version](https://img.shields.io/badge/version-1.0.1-007ec6) ![skills](https://img.shields.io/badge/skills-20-007ec6) ![ISO 27001](https://img.shields.io/badge/security-ISO_27001-2ea44f)
+![Claude Code plugin](https://img.shields.io/badge/Claude_Code-plugin-d97757) ![version](https://img.shields.io/badge/version-1.1.0-007ec6) ![skills](https://img.shields.io/badge/skills-22-007ec6) ![ISO 27001](https://img.shields.io/badge/security-ISO_27001-2ea44f)
 
 The official [Claude Code](https://claude.com/claude-code) plugin marketplace for **[MyBusiness CRM](https://www.mybusiness.co.il)** — a Hebrew-first, Israeli business-management platform: CRM core (leads, accounts, sales, cases, tasks) plus the MyBooks (billing), MyCampaigns (marketing), MyChat (WhatsApp), MyCollege (courses) and TimeSheet modules.
 
@@ -32,16 +32,20 @@ Here the AI **does not write a system from scratch — it configures one on top 
 
 ## What's inside
 
+- **The connection to your system, built in** — installing the plugin registers the official MyBusiness MCP server for you. No file to write: paste the Application Id and an API key you generate yourself, and you are connected.
+- **Two packaging formats in one folder** — a Claude Code plugin *and* an [Agent Plugins 1.0](https://agent-plugins.org/specification) package, so the same skills work in ChatGPT/Codex, Cursor, GitHub Copilot, VS Code and Kiro.
 - **A product knowledge base** (`myb-p-kb`) — product capabilities, data model, known limitations, and the implementation methodology. Ask "can MyBusiness do X?" and get an answer from documentation, not guesswork.
-- **19 hands-on implementation skills** that plan and execute real configuration work on a live tenant through the official MyBusiness MCP server:
+- **21 hands-on implementation skills** that plan and execute real configuration work on a live tenant through the official MyBusiness MCP server:
 
 | Area | Skills |
 |---|---|
+| Getting connected | `myb-p-getting-started` (account, first login, Application Id + API key, verification, other clients) |
 | Knowledge & analysis | `myb-p-kb` · `myb-p-fit-gap` (requirements fit-gap analysis) |
 | Data model | `myb-p-create-entity` · `myb-p-multi-select-field` · `myb-p-parent-child-fields` · `myb-p-timestamp-field` · `myb-p-rename-terms` |
 | Pages & UI | `myb-p-page-builder` · `myb-p-page-tables` · `myb-p-create-settings-page` · `myb-p-dashboards` · `myb-p-create-update-reports` |
 | Automation | `myb-p-trigger-setup` · `myb-p-form-rules` · `myb-p-sla-configuration` |
 | Data & integrations | `myb-p-data-import` · `myb-p-web2lead-web2table` |
+| Service quality | `myb-p-csat-survey` (post-case satisfaction survey) |
 | Billing & quotes | `myb-p-mybooks-setup` · `myb-p-price-quote-template` |
 | Users & access | `myb-p-users-roles-permissions` |
 
@@ -50,15 +54,38 @@ Skills trigger in **both Hebrew and English**.
 ## Getting started
 
 1. **Don't have a system yet?** Open a [trial account — 14 days free](https://sub.mybusiness.co.il/landingreg/).
-2. **Connect Claude Code to your system** through the [MyBusiness MCP server](https://www.mybusiness.co.il/mcp-server/). One connection serves one tenant.
-3. **Install the plugin** in Claude Code:
+2. **Install the plugin** in Claude Code:
 
 ```
 /plugin marketplace add AviMYB/mybusiness-plugins
 /plugin install mybusiness-implementor@mybusiness
 ```
 
-4. **Start a new session** and ask, for example: "Set up a supplier-management module with a list page and a dashboard." The skills load and trigger automatically.
+3. **Connect it to your system.** The plugin already carries the MCP server; it needs two values that you
+   generate yourself, in your CRM:
+
+   | Value | Where |
+   |---|---|
+   | **Application Id** | the arrow next to your user name → *Development environment* → **Databases** → your database → **Settings** → *Copy* |
+   | **API key** | the same Settings screen → **API Keys** → *Add Key* → **Save** → copy |
+
+   ```
+   /plugin configure mybusiness-implementor@mybusiness      →  paste both values
+   /reload-plugins
+   ```
+
+   That key has full access to the database and bypasses every permission — treat it like a password, and press
+   **Revoke** on its row when it is no longer needed. Claude Code stores it in your operating system's
+   credential store, not in a file.
+
+   Step-by-step with screenshots:
+   [account & first login](plugins/mybusiness-implementor/skills/myb-p-getting-started/references/01-account-and-first-login.md) ·
+   [**get the Application Id and the API key**](plugins/mybusiness-implementor/skills/myb-p-getting-started/references/03-connect-with-application-credentials.md) ·
+   [verify & troubleshoot](plugins/mybusiness-implementor/skills/myb-p-getting-started/references/04-verify-and-troubleshoot.md) ·
+   [other AI clients](plugins/mybusiness-implementor/skills/myb-p-getting-started/references/05-other-ai-clients.md) ·
+   [signing in as a user instead](plugins/mybusiness-implementor/skills/myb-p-getting-started/references/02-connect-with-user-login.md)
+
+4. **Start a new session** and ask, for example: "Set up a supplier-management module with a list page and a dashboard." The skills load and trigger automatically. If anything is unclear, just say "connect me to my system" — the `myb-p-getting-started` skill walks you through it and proves the connection.
 
 > The implementation skills write to the live tenant they are connected to. Run your first experiments on a demo or sandbox tenant, and review the plan the AI presents before approving writes on a production system.
 
@@ -71,10 +98,22 @@ Skills trigger in **both Hebrew and English**.
 ## What's in this repository
 
 ```
-.claude-plugin/marketplace.json      the marketplace manifest
-plugins/mybusiness-implementor/      the plugin: 20 skills, each a folder with
-                                     SKILL.md + references/
+.claude-plugin/marketplace.json      the Claude Code marketplace manifest
+plugins/mybusiness-implementor/
+├── plugin.json                      Agent Plugins 1.0 manifest   ← other clients
+├── mcp.json                         Agent Plugins MCP config     ← other clients
+├── .claude-plugin/plugin.json       Claude Code manifest (+ its two configuration fields)
+├── .mcp.json                        Claude Code MCP config
+└── skills/                          22 skills, each a folder with SKILL.md + references/
 ```
+
+**One folder, two packaging formats.** The same plugin is both a Claude Code plugin and an
+[Agent Plugins 1.0](https://agent-plugins.org/specification) package — the open standard published on
+2026-08-06 by OpenAI together with AWS, Cursor, GitHub, VS Code and Vercel — so ChatGPT/Codex, Cursor, GitHub
+Copilot, VS Code and Kiro can install the very same folder. The skills are not duplicated; each client reads
+the manifest it knows and ignores the other. In those clients the two connection values are pasted into
+`mcp.json` instead of the plugin configuration —
+[details and the security note](plugins/mybusiness-implementor/skills/myb-p-getting-started/references/05-other-ai-clients.md).
 
 This repository is a generated release artifact — issues and feedback are welcome, but content changes land through the internal source repository and arrive here with the next release.
 

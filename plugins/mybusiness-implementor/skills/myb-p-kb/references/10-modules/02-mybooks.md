@@ -1,7 +1,7 @@
 # MyBooks Module — apps/mybooks (Billing & Israeli Accounting)
 
 > **Purpose:** Deep reference for the MyBooks billing module — document types and lifecycle, linked documents, collection (גבייה), payments & clearing, payment pages, retainers, inventory, reports, Israeli tax compliance (מבנה אחיד, חשבונית ישראל), settings, and its relation to CRM Core — for implementers running pre-implementation discovery.
-> **Last updated:** 2026-06-10 · **Status:** draft
+> **Last updated:** 2026-08-02 (line-level subscription period & discount — §4.1) · **Status:** draft
 
 ## 1. What this module is
 
@@ -17,7 +17,7 @@
 | Document type | סוג מסמך | `AccountingDocsType` | 13/2 | The 7 document types + last-number counter (`NumLast`), default header/notes per type (Heb/En) |
 | Produced document (header) | מסמך שהופק | `AccountingHeaders` | 40/5 | Final, numbered, immutable document. `DocTypeId`, `AccountId`, `DocumentNumber`, totals/VAT, `File` (PDF), `TemplateId`, allocation-number fields (§9) |
 | Draft document | טיוטה | `AccountingHeadersDraft` | 38/4 | Editable pre-production version (`Language`, totals, `DocTypeId`, `AccountId`) |
-| Invoice line | שורת מסמך | `AccountingInvoiceLines` (+`...Draft`) | 15/5 | Product rows: `HeaderId`, `ProductId`, Quantity, Price, `CurrencyId`/Rate, RowTotal |
+| Invoice line | שורת מסמך | `AccountingInvoiceLines` (+`...Draft`) | 15/5 | Product rows: `HeaderId`, `ProductId`, Quantity, Price, `CurrencyId`/Rate, RowTotal + line period & line discount (§4.1) |
 | Receipt/payment line | שורת תקבול | `AccountingReceiptLines` (+`...Draft`) | 29/7 | Payment rows: `PaymentRowType`→PaymentType (מזומן/צ'ק/אשראי/העברה/PayPal), cheque/bank/credit-card fields, `ClearingBool`, `NumberOfPayments`, `IsChequeOpen` |
 | Invoice balance | יתרת חשבונית | `AccountingInvoiceBalance` | 15/5 | Open/closed state per invoice: `Balance`, `IsClosed`, `ClosedAt/By`, `DueDate` |
 | Balance allocation row | שיוך תקבול | `AccountingInvoiceBalanceRows` | 10/5 | Links receipt/credit-invoice amounts to invoices (`InvoiceId`, `RecieptId`, `CreditInvoiceId`, `Sum`) |
@@ -74,6 +74,38 @@ flowchart LR
 - **Drafts** (guide טיוטות): listed under לשונית "טיוטות" on the Documents page; filter by type/date; editable, re-savable, producible, or deletable.
 - **Produced documents** (guide מסמכים-שהופקו): לשונית "מסמכים"; view PDF, resend by email (defaults to the customer's email, overridable), export the table to Excel. Produced documents are not edited — corrections go through חשבונית מס זיכוי.
 - **Numbering** (guide הגדרות-מסמכים): last document number per type is editable **upward only** — "לא ניתן להוריד אותו נמוך יותר ממספר המסמך האחרון שהופק".
+
+
+### 4.1 Line-level subscription period & discount (2026-08)
+
+Four fields on `AccountingInvoiceLines` (and its `…Draft` twin) extend a document line beyond the classic product/quantity/price triple. Live-verified 2026-08-02.
+
+| Field | Type | Meaning |
+|---|---|---|
+| `SubscriptionStartDate` | Date | Period the charge covers — from |
+| `SubscriptionEndDate` | Date | Period the charge covers — to |
+| `DiscountValue` | Number | Discount on **this line** |
+| `DiscountType` | String | `"%"` or the line-currency symbol (`₪` / `$` / `€`) |
+
+Purpose: subscription billing, revenue spreading and revenue recognition (the period), and discounting one product on a multi-line invoice without touching the document-level discount.
+
+**Line total arithmetic** (client-side, `InvoiceDraft_*.js` → `calcSum`):
+
+```
+RowTotal = (Price × Quantity − discount) × CurrencyRate
+  where discount = DiscountValue, or (DiscountValue ÷ 100) × Price × Quantity when DiscountType = "%"
+```
+
+- The discount is deducted **once per line**, not per unit — quantity 2 × 1,200 with a 100 ₪ discount gives 2,300.
+- It is applied **before** the exchange-rate multiplication, so an amount discount is expressed in the line's own currency.
+- On `חשבונית מס זיכוי` the whole line total is then negated, discount included.
+- **There is no clamping.** 150 % yields a negative line; a negative discount acts as a surcharge (see [80/02](../80-capability-matrix/02-known-limitations.md) §14).
+
+**Header totals do not expose line discounts.** `ComputeTotalSum` sums the already-discounted `RowTotal`s, so `AccountingHeaders.TotalBeforeDiscount` is a **post-line-discount** figure and `DiscountValue` on the header reflects only the document-level discount plus agorot rounding.
+
+**Retainers use a different period model.** `RetainerRows` carries `DiscountValue` + `DiscountType` but expresses the period as `SubscriptionMonthCount` (a month count), not dates. ⚠️ UNVERIFIED whether the retainer charge job converts that count into `SubscriptionStartDate`/`SubscriptionEndDate` on the invoice lines it produces, and whether a retainer-row discount reaches the produced document — verifying needs a clearing-enabled tenant.
+
+**Rollout state (2026-08-02):** the DB fields and the page JS are deployed to new tenants, but the vanilla **page column definitions and PDF templates are not** — so on a fresh tenant neither feature is reachable or visible. The page JS is written defensively (`if (input.length > 0)`), so it no-ops silently rather than erroring. Enabling it on a tenant means adding the columns to each document page and to the document templates.
 
 ## 5. Linked documents (מסמכים מקושרים) & continuation chain
 

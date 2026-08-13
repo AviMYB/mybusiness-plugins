@@ -45,6 +45,25 @@ Files referenced in tool results as `resource_link` use the URI scheme
 `file-storage:///api.mbapps.co.il/parse/files/APP_ID/FILE_NAME/TABLE_NAME/OBJECT_ID/PROPERTY_NAME`
 fetched via the MCP resource template **`get-file`** (`resources/templates/list`). Prefer it over the `Get-File-Content` tool. See [06-files-and-storage.md](06-files-and-storage.md).
 
+### 0.4 Authentication modes — how a client connects
+
+The endpoint accepts two credential shapes:
+
+| Mode | What the client sends | Identity on the server | Permission model |
+|---|---|---|---|
+| **Application Id + API key** | `X-Parse-Application-Id` + **`X-Parse-API-Key`** — both from the app's Settings screen | none — the connection acts as the pseudo-user `Master` | none — this level bypasses every table permission |
+| **User authentication (OAuth 2.1)** | `Authorization: Bearer <token>` obtained through the server's own OAuth flow | the CRM user who signed in | that user's role **plus** their per-user MCP Permissions (Read / Create / Update); MCP can never exceed the base role |
+
+- Both values of the first mode are self-service: **Databases → &lt;the app&gt; → Settings** — `Application Id` (copy button) and the **API Keys** table (`Add Key` → **Save**, which is what persists it → reload to see the `Created Date`). `Revoke` withdraws a key immediately. ⚠️ The row's **`Name` is not saved** — it returns empty after Save while the key and date persist.
+- ⚠️ **The API key is not a scoped credential.** It reaches every table and every record — including `_User` — and writes are recorded as `Master`, exactly like a master key. What it does give you is **per-key revocation** without disturbing anything else. Use the sign-in mode where you need a real permission boundary.
+- The key is valid **only** under that header name (case-insensitive). Placed in `X-Parse-Master-Key` it is treated as a wrong credential. Parse REST is the mirror image and accepts the same key as `X-Parse-API-Key`.
+- ⚠️ **A wrong credential never surfaces as an HTTP error**: the call returns 200 and the *tool* answers `Permission denied for action find on class …`. Only a *missing* credential yields `Authorization header is required`, and `Usage-Guide` succeeds either way — so diagnose from a data tool's answer, not from the status code or a connection indicator.
+- `initialize` and `tools/list` succeed **unauthenticated**; only `tools/call` enforces auth — a client can therefore look connected and still fail on its first real call.
+- MCP use is subject to the subscription plan in addition to the user's table-level rights (stated on the MCP Permissions tab).
+- OAuth discovery is standard: RFC 9728 `/.well-known/oauth-protected-resource` + RFC 8414 `/.well-known/oauth-authorization-server`; `/authorize` sends the user to the CRM login screen, which is what binds the connection to one tenant; PKCE S256 and `refresh_token` are supported, scopes `mcp:tools mcp:resources`.
+- ⚠️ **Known limitation**: clients whose OAuth callback is a local address (`http://localhost:<port>/callback`) — desktop/CLI MCP clients such as Claude Code, Cursor and Claude Desktop — cannot currently complete the OAuth flow; the request is rejected before it reaches the server. Browser-hosted clients are unaffected. Until this is opened, connect desktop/CLI clients with an Application Id + API key.
+- Per-user MCP permissions are granted in **Settings → user settings → the user → MCP Permissions tab → apply**, and the tab notes that MCP use also depends on the subscription plan. Users have **no** MCP access by default.
+
 ---
 
 ## 1. Meta / guide

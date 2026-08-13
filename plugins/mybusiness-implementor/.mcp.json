@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "MyBusiness": {
+      "type": "http",
+      "url": "https://mcp.mbapps.co.il/",
+      "headers": {
+        "X-Parse-Application-Id": "${user_config.application_id}",
+        "X-Parse-API-Key": "${user_config.api_key}"
+      }
+    }
+  }
+}

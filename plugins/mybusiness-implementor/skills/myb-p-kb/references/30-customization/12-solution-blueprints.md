@@ -18,6 +18,7 @@
 | 9 | Vertical terminology adaptation | S–M | `myb-p-rename-terms` |
 | 10 | Status-change automation pack | S | `myb-p-trigger-setup` |
 | 11 | Customer-facing portal | **L–XL** | no skill yet — [13-customer-portals.md](13-customer-portals.md) is the source (proven across multiple production portal builds) |
+| 12 | Post-case satisfaction survey (CSAT) | M | `myb-p-csat-survey` (2026-08-10) |
 
 ---
 
@@ -158,6 +159,22 @@ Cross-refs: triggers `06-…`; reports `05-…` (sibling).
 **Solution shape:** one `Set-Trigger` (`events:["update"]`, `onSetFields:["StatusId"]`, Pointer criteria, `oneachupdate:false` for once-per-record) + N `Set-Trigger-Action` calls on the same triggerId, picked from the 8 action types (`06-…` §5). Canonical combos (all verified live in the playground): owner notification + manager email; follow-up Task with `DueDate = updatedAt + 1440`; account flag via `source.AccountId`; webhook with `{{{objectId}}}` in the URL; WhatsApp template message.
 
 **Components:** `Set-Trigger`, `Set-Trigger-Action`, `Get-SMTP-Accounts`/EmailTemplate lookup (email), Channels Identity + approved template (WhatsApp). Budget S — triggers fire on API writes too (`06-…` §9), so an MCP write is a valid end-to-end test; verify recipients/conditions carefully **before** any bulk operation, and reserve time for `_syslogTriggers`/`_Timeline` debugging (`06-…` §10).
+
+---
+
+## 12. Post-case satisfaction survey — סקר שביעות רצון (effort: M)
+
+**Problem.** "When we close a case, ask the customer how it went" — CSAT / smiley rating / NPS-style feedback, measured per agent and per period.
+
+**The constraint that shapes everything (verified 2026-08-09, [../40-integrations-api/03-web2lead-web2table.md](../40-integrations-api/03-web2lead-web2table.md) §11):** the responder is anonymous, and anonymous callers cannot write to the business object. Direct Parse REST is CAPTCHA-gated regardless of CLP, and `web2table` — the one approved anonymous path — creates but never updates. So the rating cannot land on the case directly.
+
+**Solution shape (4 layers):** closing email carries **one link per rating value**, each pre-loaded with the case id, the phone (`web2table` hard-requires it) and the rating → a **public page** calls `web2table` on first load and records the answer without any further click → a **projection trigger** on the intake table writes the rating/comment/date onto the case via `update-object` + `connection:"source.CaseId"` → a **response trigger** turns a negative rating into a task or notification for the process owner. The intake table (`SatisfactionSurveys` is the product's documented shape — [../20-data-model/03-module-tables.md](../20-data-model/03-module-tables.md)) stays CLP-closed throughout.
+
+**The design rule:** the rating must be captured by the **click in the email itself**. Any design where the recipient must land on a form and press Submit collapses the response rate — this is the difference between a live metric and a dead one.
+
+**Components:** `Create-Table` + `Add-Field-to-Table` (intake table, rating as **Number** so reports can average it), `Create-Table-View-Page` + `Edit-Page-CSS-JS` (public page), EmailTemplate edit (UI/`Update-Data`), 3× `Set-Trigger`/`Set-Trigger-Action`, `Create-or-Update-Report`. Budget M. The two organizational halves — a negative rating creating actual work, and the metric entering a report the manager already reads — are what decide whether the survey survives; they cost minutes and are skipped constantly.
+
+**The manager's reporting layer** (six specs in the skill's `references/reports.md`): detail · average per agent · trend by month × agent · rating distribution · negative-rating work queue · **response rate**. Two scoping notes: always ship the response *count* beside the average (an average over two responses is noise, and acting on it in a feedback conversation burns the mechanism), and response rate needs a `CsatSentAt` stamp written by a second action on the send trigger — **it cannot be backfilled**, so it is a build-time decision, not a month-two one. A tool-side *scheduled* report additionally needs a report-generator UI save to activate ([05-dashboards-and-reports.md](05-dashboards-and-reports.md)).
 
 ---
 

@@ -1,8 +1,8 @@
-# Capability Matrix — מטריצת יכולות
+﻿# Capability Matrix — מטריצת יכולות
 
 > **Purpose:** The single lookup table for fit-gap classification: what the product does natively, what is configurable, what requires custom work, and what it cannot do today. Every row is evidence-backed by this package's section docs.
 > **Audience:** Implementers/AI agents in fit-gap (phase 3) and spec authoring (phase 4); sales for qualification.
-> **Last updated:** 2026-06-23 (MyCollege 2026-06 rework) · **Status:** draft — **living document: update on every fit-gap that discovers something new.**
+> **Last updated:** 2026-08-02 (MyBooks line-level period & discount; MyBooks document templates) · **Status:** draft — **living document: update on every fit-gap that discovers something new.**
 
 **Levels:** `Native` works out of the box · `Config` no-code via UI/MCP · `Custom-JS` page JS/CSS · `Custom-Server` server function (Jira) · `External` outside service (Make/Zapier/GCP) · `Gap` not acceptably solvable today. Mixed values mean "base level + caveat in Notes". ⚠️ = verify before promising (see source doc).
 
@@ -87,6 +87,9 @@
 | Actions: email/SMS/WhatsApp/notification/create/update/http/server-code | Config | 8 types verified | [30/06](../30-customization/06-triggers-and-automations.md) |
 | Dynamic placeholders in messages (`{{{Field}}}`, pointer paths, date format) | Native | | [30/06](../30-customization/06-triggers-and-automations.md) |
 | Trigger fire on API / master-key writes | Native | **Live-verified 2026-06-10**: `Create-Data`, `Update-Data`, `Create-Many` all fire create/update triggers; opt-out only via `Create-Many(skipTriggers, skipTimeline)` (master-key); REST `/batch` and single-record tools have no skip flag | [30/06](../30-customization/06-triggers-and-automations.md) |
+| **Round-robin auto-assignment of incoming records** (הגדרות הקצאות משתמשים) | Native (installed per tenant ⚠️) | Productised engine: rule row in `UsersAssignments` + companion trigger; per-record rotation, optional per-user cap with its own criteria, cursor reset. **Setup trap:** the "הקצאה כאשר" checkboxes ARE the trigger's `events` — untick both and it silently never fires | [30/06 §13](../30-customization/06-triggers-and-automations.md) |
+| Even distribution under concurrent load | Native | `useQueue: true` on the engine's http action serialises the calls — measured perfect even split across three 10-way bursts; without it the split skews badly | [30/06 §13](../30-customization/06-triggers-and-automations.md) |
+| Retroactive assignment of records created while a rule was misconfigured | **Gap** | No back-fill sweep — such records stay unassigned and need manual handling | [30/06 §13](../30-customization/06-triggers-and-automations.md) |
 | Trigger chains | Config (limit) | max 3 levels; use one-time flags for idempotency | [30/06](../30-customization/06-triggers-and-automations.md) |
 | Trigger delete via MCP | **Gap** | deactivate only; delete in UI | [30/06](../30-customization/06-triggers-and-automations.md) |
 | Business-day/SLA-aware computations | Custom-Server | productized `SLA-*-v2` functions + blueprint; native SLA engine known-buggy | [30/12](../30-customization/12-solution-blueprints.md) |
@@ -123,6 +126,7 @@
 | Quote → email/SMS send, remote e-signature, auto status | Native | PriceQuoteSign flow | [10/01](../10-modules/01-crm-core.md) |
 | JS logic inside templates | **Gap** | `<script>` breaks rendering | [30/10](../30-customization/10-price-quotes-documents.md) |
 | Fillable inputs in MCP-created templates | **Gap** ⚠️ | UI-created templates only (escalated bug) | [30/10](../30-customization/10-price-quotes-documents.md) |
+| MyBooks document PDF templates (invoice / receipt / invoice-receipt, HE+EN) | Config | **separate engine** from quotes — `{{{triple}}}` braces + `relatedData` block repeats; edits serve live, no publish | [30/10](../30-customization/10-price-quotes-documents.md) §8 |
 | Hebrew Word/PDF document generation beyond quotes | Custom-Server | hebdoc* function family | [40/04](../40-integrations-api/04-cloud-functions.md) |
 
 ## 10. Billing — MyBooks
@@ -137,6 +141,11 @@
 | Inventory (doc-driven movements, min-stock alert) | Native | alert fires once; no backdating | [10/02](../10-modules/02-mybooks.md) |
 | מבנה אחיד export; Hashavshevet export | Native ⚠️ | | [10/02](../10-modules/02-mybooks.md) |
 | חשבונית ישראל allocation numbers | Native | requires VAT registration; refusal fallbacks exist | [10/02](../10-modules/02-mybooks.md) |
+| Per-line subscription period (מתאריך / עד תאריך) on a document line | Config ⚠️ | fields + page JS ship with every tenant; the line-table columns **and** the PDF templates are a per-tenant enablement — without both the feature is unreachable | [10/02](../10-modules/02-mybooks.md) §4.1 |
+| Per-line discount (% or amount) on a document line | Config ⚠️ | same enablement; deducted once per line and before the currency-rate multiplication | [10/02](../10-modules/02-mybooks.md) §4.1 |
+| Validation of the per-line discount | **Gap** | >100%, amounts exceeding the line, and negatives are all accepted onto an immutable tax document | [02](02-known-limitations.md) §14 |
+| Line discounts shown in the document totals block | **Gap** | `TotalBeforeDiscount` is already net of them; the summary `הנחה` row shows only the document-level discount | [10/02](../10-modules/02-mybooks.md) §4.1 |
+| Retainer line period expressed as start/end dates | **Gap** ⚠️ | `RetainerRows` models it as `SubscriptionMonthCount`; whether the charge job converts it on the produced invoice is UNVERIFIED | [20/03](../20-data-model/03-module-tables.md) |
 | Installments / US gateways / refunds / complex billing | Custom-Server | customer-forked charge-function families | verified in production implementations |
 | NGO donation receipts (allocation, cancellation) | **Gap** | MBBOOK tickets open | verified in production implementations |
 | External accounting sync (חשבשבת/Comax/tax files) | Custom-Server | comax-*, tax-export-file | [40/04](../40-integrations-api/04-cloud-functions.md) |

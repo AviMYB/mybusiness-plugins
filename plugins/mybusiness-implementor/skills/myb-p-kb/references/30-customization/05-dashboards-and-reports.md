@@ -1,7 +1,7 @@
 # Dashboards & Reports — Counters, Charts, Tabs, Dynamic Queries, Pivots, Scheduling
 
 > **Purpose:** Spec-ready reference for analytical surfaces: dashboard pages (דשבורד — KPI counters, Chart.js charts, embedded tables, date filters, Dashboard Menu integration, the clone-and-repoint pattern) and the reports engine (`_DynamicQueries` — flat/aggregated/pivot/compound reports, calculated fields, scheduled email delivery). Includes the dashboard tooling-gap register with live 2026-06 status.
-> **Last updated:** 2026-06-10 · **Status:** draft
+> **Last updated:** 2026-07-21 · **Status:** draft
 
 ---
 
@@ -236,12 +236,15 @@ Rules: every referenced report (base + up to 3 secondary) **must be aggregated**
 
 `occurrence`: `[]` daily · `[0..6]` weekly days (0=Sunday) · `[1,15]` month days. Live-verified on the demo (4 scheduled reports). **Known bug:** creating with scheduling can throw `Simbla is not defined` in some environments (and when `ScheduleSendTo` is empty) — create the report without scheduling first, then add the schedule via the CRM UI; always provide a recipient.
 
+**Activation requires a UI save (live-verified 2026-07-21):** the schedule depends on a front-end component that is only initialized when the report is saved from the report generator UI. A scheduled report created or updated tool-side (`Create-or-Update-Report` / direct `_DynamicQueries` write) never sends — even with correct `PageId`/`FormName`/recipients — until a user opens that specific report in the report generator and clicks Save. Always hand the user this activation step and treat the schedule as inactive until the save is confirmed.
+
 ## B8. Build workflow (reports)
 
 1. `Get-Schema(class)` + **`Get-Optional-Fields(class)`** — copy exact `field`/`aggrField`/`type`/`text`.
 2. `Get-all-Users` + `Get-Roles` → permission targets (typical roles: Admin, Sales, CRM, Support, Lead Admin, Report Admin).
 3. `Create-or-Update-Report` (entity-page queries: fetch `FormName` from an existing query on that page).
 4. Verify with `Get-Reports(pageId?)` — or `Get-Data("_DynamicQueries", where…)`.
+5. **Scheduled reports only:** hand the user the activation step — open the report in the report generator and Save; a tool-side write alone never activates the schedule (B7).
 
 ## Limitations & gotchas
 

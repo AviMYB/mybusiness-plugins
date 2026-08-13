@@ -22,7 +22,7 @@ All product facts live in `references/` (generated from the canonical docs — d
 | Form rules | `references/30-customization/07-form-rules.md` |
 | Users, roles, CLP permissions | `references/30-customization/08-users-roles-permissions.md` |
 | Terminology renaming | `references/30-customization/09-terminology-localization.md` |
-| Quote/PDF templates | `references/30-customization/10-price-quotes-documents.md` |
+| Quote PDF templates (`{{ }}`, `data-repeat`, signature block) **and** MyBooks accounting-document templates (invoice/receipt — a separate engine in the same table: `{{{ }}}` + `relatedData` repeats, §8) | `references/30-customization/10-price-quotes-documents.md` |
 | Field patterns (multi-select, parent-child, timestamp) | `references/30-customization/11-field-patterns.md` |
 | Proven solution blueprints (SLA, import, web2lead, entity, automation pack) | `references/30-customization/12-solution-blueprints.md` |
 | Customer-facing portals | `references/30-customization/13-customer-portals.md` |

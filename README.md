@@ -8,7 +8,7 @@
 
 <div dir="ltr">
 
-![Claude Code plugin](https://img.shields.io/badge/Claude_Code-plugin-d97757) ![version](https://img.shields.io/badge/version-1.0.1-007ec6) ![skills](https://img.shields.io/badge/skills-20-007ec6) ![ISO 27001](https://img.shields.io/badge/security-ISO_27001-2ea44f)
+![Claude Code plugin](https://img.shields.io/badge/Claude_Code-plugin-d97757) ![version](https://img.shields.io/badge/version-1.1.0-007ec6) ![skills](https://img.shields.io/badge/skills-22-007ec6) ![ISO 27001](https://img.shields.io/badge/security-ISO_27001-2ea44f)
 
 </div>
 
@@ -42,24 +42,27 @@
 
 ## מה בתוך התוסף
 
+- **החיבור למערכת שלכם — כבר בפנים.** התקנת התוסף רושמת גם את שרת ה-MCP הרשמי של MyBusiness. אין קובץ לכתוב: מדביקים Application Id ומפתח API שאתם מפיקים בעצמכם — ומחוברים.
+- **שני פורמטים באותה תיקייה** — גם תוסף של Claude Code וגם חבילת [Agent Plugins 1.0](https://agent-plugins.org/specification), כך שאותם סקילים עובדים גם ב-ChatGPT/Codex, Cursor, GitHub Copilot, VS Code ו-Kiro.
 - **בסיס ידע מוצרי** (`myb-p-kb`) — יכולות המוצר, מודל הנתונים, מגבלות ידועות ומתודולוגיית הטמעה. שואלים "האם המערכת יודעת X?" ומקבלים תשובה מהתיעוד — לא ניחוש.
-- **19 סקילים ביצועיים** שמתכננים ומבצעים עבודה אמיתית על המערכת דרך שרת ה-MCP הרשמי:
+- **21 סקילים ביצועיים** שמתכננים ומבצעים עבודה אמיתית על המערכת דרך שרת ה-MCP הרשמי:
 
 | תחום | סקילים |
 |---|---|
+| חיבור והתחלה | `myb-p-getting-started` (פתיחת חשבון, התחברות ראשונה, Application Id ומפתח API, אימות, ולקוחות AI אחרים) |
 | ידע וניתוח | `myb-p-kb` · `myb-p-fit-gap` (ניתוח התאמה לדרישות) |
 | מודל נתונים | `myb-p-create-entity` (ישות חדשה מקצה לקצה) · `myb-p-multi-select-field` · `myb-p-parent-child-fields` · `myb-p-timestamp-field` · `myb-p-rename-terms` (התאמת מונחים לעסק) |
 | דפים וממשק | `myb-p-page-builder` (דפי כרטיס) · `myb-p-page-tables` (טבלאות) · `myb-p-create-settings-page` · `myb-p-dashboards` · `myb-p-create-update-reports` |
 | אוטומציה | `myb-p-trigger-setup` (טריגרים) · `myb-p-form-rules` · `myb-p-sla-configuration` |
 | נתונים ואינטגרציות | `myb-p-data-import` (יבוא נתונים) · `myb-p-web2lead-web2table` (טפסים מהאתר) |
+| איכות שירות | `myb-p-csat-survey` (סקר שביעות רצון בסגירת פנייה) |
 | חיובים והצעות מחיר | `myb-p-mybooks-setup` · `myb-p-price-quote-template` |
 | משתמשים והרשאות | `myb-p-users-roles-permissions` |
 
 ## איך מתחילים
 
 1. **אין לכם עדיין מערכת?** פתחו [חשבון ניסיון — 14 יום חינם](https://sub.mybusiness.co.il/landingreg/).
-2. **חברו את Claude Code למערכת** דרך [שרת ה-MCP של MyBusiness](https://www.mybusiness.co.il/mcp-server/). חיבור אחד משרת מערכת אחת.
-3. **התקינו את התוסף** בתוך Claude Code:
+2. **התקינו את התוסף** בתוך Claude Code:
 
 </div>
 
@@ -74,7 +77,36 @@
 
 <div dir="rtl">
 
-4. **פתחו שיחה חדשה** ובקשו, למשל: "תקים לי מודול ניהול ספקים עם דף רשימה ודשבורד". הסקילים נטענים ומופעלים אוטומטית, בעברית ובאנגלית.
+3. **חברו אותו למערכת שלכם.** שרת ה-MCP כבר מגיע עם התוסף; הוא צריך שני ערכים שאתם מפיקים בעצמכם, בתוך המערכת שלכם:
+
+| הערך | מאיפה |
+|---|---|
+| **Application Id** | החץ ליד שם המשתמש ← *סביבת פיתוח* ← **Databases** ← בסיס הנתונים שלכם ← טאב **Settings** ← *Copy* |
+| **מפתח API** | באותו מסך Settings ← **API Keys** ← *Add Key* ← **Save** ← מעתיקים |
+
+</div>
+
+<div dir="ltr">
+
+```
+/plugin configure mybusiness-implementor@mybusiness      ←  מדביקים את שני הערכים
+/reload-plugins
+```
+
+</div>
+
+<div dir="rtl">
+
+המפתח נותן גישה מלאה לבסיס הנתונים ועוקף את כל ההרשאות — מתייחסים אליו כמו לסיסמה, ולוחצים **Revoke** בשורה שלו כשכבר לא צריך אותו. ב-Claude Code הוא נשמר בכספת של מערכת ההפעלה, לא בקובץ.
+
+מדריכים מפורטים עם צילומי מסך:
+[פתיחת חשבון והתחברות ראשונה](plugins/mybusiness-implementor/skills/myb-p-getting-started/references/01-account-and-first-login.md) ·
+[**הפקת ה-Application Id והמפתח**](plugins/mybusiness-implementor/skills/myb-p-getting-started/references/03-connect-with-application-credentials.md) ·
+[אימות ופתרון תקלות](plugins/mybusiness-implementor/skills/myb-p-getting-started/references/04-verify-and-troubleshoot.md) ·
+[התקנה בכלי AI אחרים](plugins/mybusiness-implementor/skills/myb-p-getting-started/references/05-other-ai-clients.md) ·
+[חיבור בהתחברות משתמש](plugins/mybusiness-implementor/skills/myb-p-getting-started/references/02-connect-with-user-login.md)
+
+4. **פתחו שיחה חדשה** ובקשו, למשל: "תקים לי מודול ניהול ספקים עם דף רשימה ודשבורד". הסקילים נטענים ומופעלים אוטומטית, בעברית ובאנגלית. ואם משהו לא ברור — פשוט כתבו "תחבר אותי למערכת שלי", והסקיל `myb-p-getting-started` ילווה אתכם ויוכיח שהחיבור עובד.
 
 > הסקילים מבצעים שינויים על מערכת חיה. את הניסויים הראשונים מומלץ לעשות על סביבת ניסיון, ולאשר את תוכנית העבודה שה-AI מציג לפני כתיבה למערכת בייצור.
 
@@ -91,14 +123,20 @@
 <div dir="ltr">
 
 ```
-.claude-plugin/marketplace.json      the marketplace manifest
-plugins/mybusiness-implementor/      the plugin: 20 skills, each a folder with
-                                     SKILL.md + references/
+.claude-plugin/marketplace.json      the Claude Code marketplace manifest
+plugins/mybusiness-implementor/
+├── plugin.json                      Agent Plugins 1.0 manifest   ← other clients
+├── mcp.json                         Agent Plugins MCP config     ← other clients
+├── .claude-plugin/plugin.json       Claude Code manifest (+ its two configuration fields)
+├── .mcp.json                        Claude Code MCP config
+└── skills/                          22 skills, each a folder with SKILL.md + references/
 ```
 
 </div>
 
 <div dir="rtl">
+
+**תיקייה אחת, שני פורמטים.** אותו תוסף הוא גם תוסף של Claude Code וגם חבילת [Agent Plugins 1.0](https://agent-plugins.org/specification) — הסטנדרט הפתוח שפורסם ב-6.8.2026 על ידי OpenAI יחד עם AWS, Cursor, GitHub, VS Code ו-Vercel — כך ש-ChatGPT/Codex, Cursor, GitHub Copilot, VS Code ו-Kiro מתקינים את אותה תיקייה בדיוק. הסקילים אינם מוכפלים; כל כלי קורא את המניפסט שהוא מכיר ומתעלם מהשני. שם שני ערכי החיבור מודבקים לתוך `mcp.json` עצמו — [ההסבר והערת האבטחה](plugins/mybusiness-implementor/skills/myb-p-getting-started/references/05-other-ai-clients.md).
 
 הריפו הזה הוא artifact של release — נשמח למשוב ול-issues, אבל שינויי תוכן נכנסים דרך מקור פנימי ומגיעים לכאן עם הגרסה הבאה.
 

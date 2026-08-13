@@ -380,6 +380,16 @@ Automatic email delivery of report results.
 | `"weekly"` | `[0,1,2,3,4,5,6]` | Specific days (0=Sunday) |
 | `"monthly"` | `[1,15]` | Specific days of month |
 
+### ⚠️ Activation requires a UI save (critical)
+
+**A scheduled report will NOT send if it was only created by writing the record** — via `Create-or-Update-Report` or a direct write to `_DynamicQueries`. Alongside the record there is a front-end component that must be updated from the UI; it is only initialized/refreshed when the report is saved from the report generator. Until that happens the schedule never fires, even when `ScheduleSendAt`, `ScheduleSendTo`, `PageId`, and `FormName` are all correct.
+
+**Mandatory handoff step** — after any tool-side create or update of a scheduled report, instruct the user:
+
+> היכנס/י למחולל הדוחות, פתח/י את הדוח "&lt;שם הדוח&gt;" לעריכה, ולחץ/י **שמירה** — בלי לשנות דבר. השמירה מה-UI מאקטבת את הרכיב שנדרש להפעלת התזמון; בלעדיה הדוח המתוזמן לא יישלח.
+
+Treat the report as "scheduled" only after the user confirms the UI save was done. Verifying the record exists in `_DynamicQueries` (Get-Reports) is NOT sufficient verification for scheduling.
+
 **Known issue**: The scheduling feature (`ScheduleSendAt` + `ScheduleSendTo`) causes a `Simbla is not defined` error in some environments (especially the demo environment). This is a platform-level bug, not a syntax issue. If you encounter this error:
 1. Create the report first **without** ScheduleSendAt/ScheduleSendTo
 2. The scheduling can be configured manually through the CRM UI after report creation
@@ -743,6 +753,12 @@ Only include the fields you want to change. Use `Get-Reports` first to find the 
 
 ### "Simbla is not defined" Error
 This can happen with ScheduleSendAt when ScheduleSendTo is empty. Always provide a valid email when using scheduling.
+
+### Scheduled report never sends
+The record exists in `_DynamicQueries` with correct ScheduleSendAt/ScheduleSendTo, but no email arrives:
+1. **Was the report saved from the report generator UI?** This is the #1 cause — a tool-created schedule stays inactive until the user opens that report in the report generator and clicks Save (see §Scheduled Reports → Activation requires a UI save).
+2. Verify `PageId` and `FormName` are present on the record (copy from a working report on the same page).
+3. Verify `ScheduleSendTo` holds a valid, comma-separated email list.
 
 ### Report shows no data
 - Check QueryElems default values - a Boolean filter with `V: true` might be filtering everything out

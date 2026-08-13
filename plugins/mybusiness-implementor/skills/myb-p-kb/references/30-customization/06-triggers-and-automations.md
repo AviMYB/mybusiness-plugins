@@ -1,7 +1,7 @@
-# Triggers & Automations — the Server-Side Automation Engine
+﻿# Triggers & Automations — the Server-Side Automation Engine
 
 > **Purpose:** Complete reference for the trigger engine — טריגר (Trigger) / אוטומציה (Automation) — in MyBusiness CRM: event types, condition formats, all 8 action types, scheduled triggers, dynamic placeholders, chains, logging and debugging. Spec-ready for AI implementers.
-> **Last updated:** 2026-06-10 · **Status:** draft
+> **Last updated:** 2026-07-28 (§13 User-Assignments round-robin engine — rule shape, the הקצאה כאשר→events mapping, measured rotation/cap/latency/fairness) · **Status:** draft
 
 ## 1. Architecture — two-step model
 
@@ -591,6 +591,76 @@ End-to-end compositions (SLA deadline stamping, per-status tracking rows, escala
 | Delete action | `Set-Trigger-Action` with `actionId`, `deleteAction: true` **and** dummy-but-valid `actionData` |
 | List | `Get-Triggers()` (all) / `Get-Triggers(tableName)` |
 
+## 13. User-Assignments — the productised round-robin engine
+
+**What it is:** a settings screen (`הגדרות הקצאות משתמשים`, `apps/mybusiness/user-assignments`) that
+auto-assigns incoming records to a rotating pool of users. It is **not** a hand-rolled trigger recipe —
+it is a product feature whose rules are rows in `UsersAssignments`, each backed by a companion trigger
+the screen creates for you. Installing it into a tenant is a guided setup (settings page + menu entry + hosted JS).
+
+
+> **Availability (verify before promising).** The settings screen is **not part of a vanilla
+> tenant** — checked 2026-07-28, a fresh app carries only MyChat's `settings-users-assignment`.
+> It is installed per tenant as a guided setup. Confirm with `Get-Site-Pages` that
+> `apps/mybusiness/user-assignments` exists before scoping it into a fit-gap.
+
+### 13.1 The rule row (`UsersAssignments`)
+
+| Field | Meaning |
+|---|---|
+| `Name` | Rule name |
+| `Table` | Table the rule watches (Accounts / Cases / Sales / any) |
+| `AssignmentField` | The pointer-to-`_User` field that gets filled (e.g. `OwnerId`, `LeadOwnerId`) |
+| `Users` | Array of `_User` pointers — **array order IS the rotation order** |
+| `LastAssignmentUserId` | The rotation cursor (last user served). Exposed in the form as "משתמש אחרון שקיבל הקצאה" so the cursor can be seeded/reset |
+| `MaximumAssignmentForUser` | Optional cap per user; empty or `0` = no cap |
+| `MaximumAssignmentConditions` | F/C/T/V/P criteria defining **which records count** toward that cap (e.g. status = פתוח) |
+| `ActiveStatuses` | Optional filter on user presence status; leave empty to ignore |
+| `Active` | Rule on/off |
+
+### 13.2 What saving a rule creates
+
+Saving writes the row **and** a companion `data change` trigger named `User Assignments` on
+`Table`, whose single action is `http` → `https://api.mbapps.co.il/functions/<appId>/user_assignments?assignmentId=<ruleId>`
+with `useQueue: true`.
+
+> **The single most important setup fact.** The form's **"הקצאה כאשר"** checkboxes —
+> **ביצירת רשומה** and **בעדכון רשומה** — are what populate that trigger's `events`.
+> Leave both unticked and the trigger is created with **`events: []`**, which by design never fires:
+> the rule shows as *פעיל*, the screen gives no warning, and **nothing is ever assigned**.
+> This is correct engine behaviour, not a defect — but it is the #1 cause of "the mechanism does
+> nothing" reports. Always confirm at least `ביצירת רשומה` is ticked, and verify with
+> `Get-Triggers(<Table>)` that `events` is non-empty.
+
+### 13.3 Runtime behaviour (measured)
+
+| Aspect | Verified behaviour |
+|---|---|
+| Rotation | Per-record round-robin over `Users` in array order; cursor advances one user per assigned record |
+| Cap | Users at `MaximumAssignmentForUser` (counted against `MaximumAssignmentConditions`) are skipped; when **all** are at cap **no assignment happens**; a user dropping below cap re-enters the rotation |
+| Latency, single record | Assignment is written in **well under a second** (measured 0.3–0.7 s) |
+| Latency, 10 concurrent creates | 0.4–9.2 s — the queue serialises the calls |
+| Fairness under load | With `useQueue: true`, three separate 10-way bursts each produced a **perfect even split** (2/2/2/2/2). The same bursts with `useQueue` off skewed badly (spreads of 2, 4 and 4; one rep received 5 while another received 0) |
+| Records created while misconfigured | **Never assigned retroactively** — fixing the rule later does not sweep them; they need manual assignment |
+| Pre-filled owner | A record created with the assignment field already populated is left untouched |
+
+**Therefore: keep `useQueue: true`.** The few seconds it costs under burst is what buys the even
+distribution; turning it off restores the skew.
+
+### 13.4 Operational gotchas
+
+1. **Deleting a rule from the screen leaves the companion trigger behind** as an orphan pointing at a
+   non-existent `assignmentId`. It is a no-op per record but still costs a queued call on every write —
+   deactivate or hard-delete it (UI only; MCP cannot delete triggers).
+2. **`UsersAssignments` is shared with MyChat**, which uses the same table for channel assignment
+   groups via `Channels.UsersAssignmentId` (see [10/04](../10-modules/04-mychat.md)). Never delete or
+   repurpose rows you did not create.
+3. **Editing a rule does not repair a trigger that was created with empty `events`** — the edit path
+   preserves whatever events exist but never adds them. Re-tick the checkboxes, or patch with
+   `Set-Trigger { _id, events: ["create","update"] }`.
+4. The CRM new-lead form pre-fills `LeadOwnerId` with the current user, so leads created by hand from
+   that form do not qualify for a rule conditioned on "assignment field is empty".
+
 ## Limitations & gotchas
 
 1. **Triggers fire on Master-key/API writes too (live-verified §9)** — bulk writes can storm automations; suppression exists only on `Create-Many` (`skipTriggers`/`skipTimeline`); plan every import's trigger behavior explicitly.
@@ -607,4 +677,6 @@ End-to-end compositions (SLA deadline stamping, per-status tracking rows, escala
 12. **`_syslogTriggers` is not guaranteed to be populated** in every environment; `_Timeline` is ground truth.
 13. **timeGap is calendar minutes** — business-day SLA math needs `server-side-code`.
 14. **`active` key absent = active** when reading stored triggers.
-15. Criteria date keywords (`"today"`, `"30 days period"`, …) come from the Usage-Guide condition spec; their evaluation inside *trigger* criteria specifically is ⚠️ UNVERIFIED (verified usages are Pointer/Number/Boolean/String/exists).
+15. **User-Assignments rules with no "הקצאה כאשר" checkbox ticked** produce a companion trigger with
+    `events: []` — active-looking rule, zero assignments, no warning. See §13.2.
+16. Criteria date keywords (`"today"`, `"30 days period"`, …) come from the Usage-Guide condition spec; their evaluation inside *trigger* criteria specifically is ⚠️ UNVERIFIED (verified usages are Pointer/Number/Boolean/String/exists).

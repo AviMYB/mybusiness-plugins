@@ -1,10 +1,25 @@
 {
   "name": "mybusiness-implementor",
-  "description": "MyBusiness CRM implementation toolkit: product knowledge base + no-code implementation skills (entities, pages, table views, dashboards, reports, triggers, form rules, users & permissions, terminology, price quotes, data import, web2lead, multi-select & cascading fields, SLA, settings pages, fit-gap analysis). Hebrew-first Israeli CRM.",
-  "version": "1.0.1",
+  "description": "MyBusiness CRM implementation toolkit: a bundled MCP connection to your own CRM (Application Id + an API key you generate yourself) + product knowledge base + no-code implementation skills (entities, pages, table views, dashboards, reports, triggers, form rules, users & permissions, terminology, price quotes, data import, web2lead, multi-select & cascading fields, SLA, settings pages, CSAT surveys, fit-gap analysis). Hebrew-first Israeli CRM.",
+  "version": "1.1.0",
   "author": {
     "name": "MyBusiness CRM",
     "email": "support@mybusiness-crm.com",
     "url": "https://www.mybusiness.co.il"
+  },
+  "userConfig": {
+    "application_id": {
+      "type": "string",
+      "title": "Application Id",
+      "description": "From your CRM's development environment: the arrow next to your user name -> Development environment -> Databases -> your database -> Settings -> Application Id (Copy). Step-by-step with screenshots: the myb-p-getting-started skill.",
+      "required": true
+    },
+    "api_key": {
+      "type": "string",
+      "title": "API key",
+      "description": "On the same Settings screen, under API Keys: press 'Add Key', then Save, and copy the key. It grants full access to that database - treat it like a password, and press Revoke on that row to withdraw it.",
+      "sensitive": true,
+      "required": true
+    }
   }
 }

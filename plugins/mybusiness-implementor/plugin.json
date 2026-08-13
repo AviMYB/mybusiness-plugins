@@ -1,0 +1,21 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "mybusiness-implementor",
+  "version": "1.1.0",
+  "description": "MyBusiness CRM implementation toolkit: the MCP connection to your own CRM plus no-code implementation skills - entities, pages, table views, dashboards, reports, triggers, form rules, users and permissions, terminology, price quotes, data import, web2lead, SLA, CSAT surveys and fit-gap analysis. Hebrew-first Israeli CRM.",
+  "author": {
+    "name": "MyBusiness CRM",
+    "email": "support@mybusiness-crm.com",
+    "url": "https://www.mybusiness.co.il"
+  },
+  "homepage": "https://www.mybusiness.co.il",
+  "repository": "https://github.com/AviMYB/mybusiness-plugins",
+  "keywords": ["crm", "mybusiness", "hebrew", "israel", "no-code", "implementation", "mcp"],
+  "extensions": {
+    "com.anthropic.claude-code": {
+      "manifest": "./.claude-plugin/plugin.json",
+      "mcp": "./.mcp.json",
+      "note": "Claude Code reads its own manifest and MCP config from those paths, and fills the two connection headers from the plugin's userConfig instead of from mcp.json."
+    }
+  }
+}

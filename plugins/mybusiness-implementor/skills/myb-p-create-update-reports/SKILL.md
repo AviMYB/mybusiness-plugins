@@ -98,6 +98,8 @@ Automatic email delivery. Use for:
 - Weekly sales summaries
 - Monthly performance digests
 
+**⚠️ Activation requires a UI save — a scheduled report created via tools does NOT send on its own.** The scheduler depends on a front-end component that is only initialized when the report is saved from the report generator UI. Writing the record (Create-or-Update-Report or a direct `_DynamicQueries` write) is not enough, even when all fields are correct. After creating or updating a scheduled report, **always instruct the user (in Hebrew) to open the report generator on that specific report and click Save (שמירה)** — that save activates the front-end component the schedule needs. Until it happens, no email is sent. See [references/report-building-guide.md](references/report-building-guide.md) §Scheduled Reports for the exact handoff instruction.
+
 ## Reference Files
 
 For detailed parameter documentation, field format examples, and real-world report patterns:
@@ -164,6 +166,7 @@ Always run `Get-Optional-Fields(className)` first and copy the exact `field` and
 12. **Pointer QueryElems need P object** with targetClass (and multiple:true for containedIn)
 13. **Date range filters come in pairs**: greaterThanOrEqualTo + lessThanOrEqualTo
 14. **Boolean filters go last** in QueryElems array (renders bottom-left in RTL)
+15. **Scheduled reports need a UI save to activate** — after any tool-side create/update of a scheduled report, instruct the user to open that report in the report generator and click Save; without it the schedule never fires
 
 ## Troubleshooting
 

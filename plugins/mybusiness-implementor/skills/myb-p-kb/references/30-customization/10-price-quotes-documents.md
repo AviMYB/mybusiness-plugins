@@ -1,7 +1,7 @@
 # Price Quotes & PDF Documents — הצעות מחיר
 
 > **Purpose:** Reference for the quote/document subsystem: PDF templates (תבניות הצעת מחיר), the generation pipeline from a Sale, dynamic placeholders vs static blocks, branding/logo handling, digital signature block, and the hard rendering gotchas.
-> **Last updated:** 2026-06-10 · **Status:** draft
+> **Last updated:** 2026-08-02 (MyBooks document-template engine documented — §8) · **Status:** draft
 
 ## 1. Architecture
 
@@ -175,6 +175,56 @@ Browsers strip background colors in print/PDF by default. Every colored element 
 
 Checklist before saving: `windowDiv` ✓ · no `<script>` ✓ · `@media print !important` per color ✓ · `sigDiv`+3 ids ✓ · `data-repeat` on `<tr>` ✓ · logo cropped ✓ · all placeholders `{{...}}` valid for this customer's schema ✓.
 
+## 8. MyBooks document templates (מסמכי הנהח"ש) — a second, different engine
+
+Live-verified 2026-08-02 on a freshly provisioned tenant. MyBooks document PDFs render from rows in the **same `PDFTemplate` table** as quotes, separated by `PDFTemplateTypes`:
+
+| `PDFTemplateTypes.Name` | Consumer |
+|---|---|
+| `הצעת מחיר` | CRM price quotes (§1–§7 above) |
+| `מסמך מקור` | MyBooks accounting documents |
+
+`AccountingHeaders.TemplateId` records which row produced a given document. Vanilla ships six document templates: `Invoice`, `Invoice-EN`, `Receipt`, `Receipt-EN`, `Invoice-Receipt`, `Invoice-Receipt-EN`.
+
+### 8.1 The placeholder engine is NOT the quote engine
+
+| Aspect | Quote templates (§4) | MyBooks document templates |
+|---|---|---|
+| Placeholder braces | `{{ }}` | **`{{{ }}}`** (triple) |
+| Repeating rows | `data-repeat="SaleRows"` on the `<tr>` | block markers `{{{relatedData.InvoiceLines}}}` … `{{{/relatedData.InvoiceLines}}}` **wrapping** the `<tr>` |
+| Formatting | none (no JS allowed) | `.format(he-IL)` for numbers, `.format(date,he-IL)` for dates |
+| Empty value | prints the placeholder literally | renders **empty** — no raw `{{{…}}}` leaks to the customer |
+| Data roots | `{{Sales.*}}`, `{{SaleRows.*}}`, `{{Accounts.*}}` | `{{{object.*}}}` = the `AccountingHeaders` row · `{{{settings.*}}}` = `AccountingSettings` · `{{{object.DocTypeId.*}}}` = the document type |
+| Signature block | `sigDiv` contract required | not used |
+
+Editing: `Get-Data(table:"PDFTemplate", objectId)` — **without `keys`**, per §6 — then `Update-Data(table:"PDFTemplate", objectId, data:{HTML})`. **Changes serve live**: these are DB rows, not published page content, so no publish step is involved (unlike `apps/mybooks/*` pages).
+
+### 8.2 Line-table anatomy (what you must keep consistent)
+
+The vanilla line table is **7 columns** — product / description / quantity / price / rate / currency / total — and every summary row underneath is built as:
+
+```html
+<tr class="summed"><td colspan="5"></td> <td>LABEL</td> <td>{{{object.FIELD.format(he-IL)}}}</td></tr>
+```
+
+Consequences when adding columns:
+
+- **Every `colspan` must be re-derived** — it is `(column count − 2)`. Miss one and the totals block slides out of alignment.
+- **The `<td>`s inside the repeating row carry their own fixed widths** that override the header's. Strip them, or the header's width budget is ignored (the widest cell in a column wins).
+- **The brand stylesheet draws no vertical rules**, so two adjacent numeric cells read as one number (`1` + `31.8.2027` → `131.8.2027`). Pad the cells.
+- **Numeric and date cells need `direction:ltr`** inside the RTL document, or symbols land on the wrong side.
+
+### 8.3 Per-line period and discount columns
+
+`AccountingInvoiceLines` carries `SubscriptionStartDate`, `SubscriptionEndDate`, `DiscountValue`, `DiscountType` (see [10/02](../10-modules/02-mybooks.md) §4.1). **The vanilla templates do not render any of them** — a discounted line therefore prints `1 × 2,400 = 2,160` with nothing explaining the gap, which is not defensible on an Israeli tax invoice. Adding them takes the table from 7 to 10 columns:
+
+```html
+<td style="width:78px;white-space:nowrap;padding:0 6px;direction:ltr;text-align:center">{{{relatedData.InvoiceLines.SubscriptionStartDate.format(date,he-IL)}}}</td>
+<td style="width:62px;white-space:nowrap;padding:0 6px;direction:ltr;text-align:center">{{{relatedData.InvoiceLines.DiscountValue.format(he-IL)}}} {{{relatedData.InvoiceLines.DiscountType}}}</td>
+```
+
+The line-table columns on each document draft page must be widened in the same pass, or the values can be printed but never entered.
+
 ## Limitations & gotchas
 
 1. **No JavaScript at all** in templates — CSS-only logic; no client-side number formatting or conditionals.
@@ -187,4 +237,4 @@ Checklist before saving: `windowDiv` ✓ · no `<script>` ✓ · `@media print !
 8. **Input-field write-back is environment-dependent** (⚠️ under investigation) — verify against a working template in the same environment.
 9. **Template edits are global** — every future quote from that template changes; duplicate before experimenting.
 10. **VAT**: `includeVAT` default `true`; `{{Vat}}`/`{{totalIncludingVat}}` come from the pipeline — don't hand-compute totals in static HTML.
-11. Other document types (invoices/receipts in MyBooks) are a **separate** subsystem — this doc covers `PDFTemplate` quote documents only (⚠️ MyBooks document templating UNVERIFIED here; see the MyBooks module docs).
+11. **MyBooks document templates are a different engine in the same table** — triple braces, `relatedData` block repeats, empty values render empty. Documented in §8; do not carry quote-template habits across.

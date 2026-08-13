@@ -2,7 +2,7 @@
 
 > **Purpose:** Every verified limitation, gotcha, and platform sharp edge in one place — so fit-gap doesn't over-promise and builders don't step on landmines.
 > **Audience:** Implementers, developers, AI agents — read before classifying anything as "Config" and before any build/migration.
-> **Last updated:** 2026-06-23 (MyCollege 2026-06 rework) · **Status:** draft — living document.
+> **Last updated:** 2026-08-02 (line period/discount rollout gaps — §14) · **Status:** draft — living document.
 
 Format per item: **the edge** → why it bites → what to do.
 
@@ -39,7 +39,7 @@ Format per item: **the edge** → why it bites → what to do.
 18. **No page/element deletion via MCP**; `Create-Form-Page` forces the NewMaster master (irreversible); standalone-URL custom cards aren't creatable via MCP. → Plan page inventory before creating; hide/rename as workaround. ([30/03](../30-customization/03-pages-and-layouts.md))
 19. **Search-form (dbFormQuery) inputs have no MCP tool** — page JS only. ([30/04](../30-customization/04-table-views-and-lists.md))
 20. **Dashboard cloning overwrites `genericform`**; from-scratch dashboard tooling is new (2026) with open gaps. → Follow the clone-and-repoint workflow exactly. ([30/05](../30-customization/05-dashboards-and-reports.md))
-21. **Compound reports and report deletion are REST-only.** ([30/05](../30-customization/05-dashboards-and-reports.md))
+21. **Compound reports and report deletion are REST-only; scheduled reports created tool-side never send until a UI save.** A `Create-or-Update-Report`/direct-write schedule stays inactive — the front-end schedule component only initializes when the report is saved from the report generator UI (live-verified 2026-07-21). → Always hand the user the open-in-generator-and-Save activation step. ([30/05](../30-customization/05-dashboards-and-reports.md) §B7)
 22. **`minimal:true` page reads hide interactive elements** — don't audit pages with minimal mode. ([30/03](../30-customization/03-pages-and-layouts.md))
 
 ## 5. Permissions & users
@@ -67,7 +67,7 @@ Format per item: **the edge** → why it bites → what to do.
 
 ## 8. Intake & integrations
 
-37. **web2lead always inserts** (duplicate → new row flagged duplicate, no merge); **web2table creates but never updates linked Accounts**; deployed web2table requires `phone` and reads `AcceptWebToTable` (repo vs skill drift). → Spec intake field contracts from [40/03](../40-integrations-api/03-web2lead-web2table.md), not from memory.
+37. **web2lead always inserts** (duplicate → new row flagged duplicate, no merge); **web2table creates but never updates** — not the linked Account and not the target row either (no `objectId` addressing); deployed web2table requires `phone` and reads `AcceptWebToTable` (repo vs skill drift). **There is no anonymous UPDATE path at all**, and **anonymous direct Parse REST writes are CAPTCHA-gated (`code 119`) even with `create:{"*":true}`** — so widening a CLP never unblocks a public page, while `web2table` bypasses CLP anyway and needs no permissions. "Public visitor updates an existing record" must be built as **staging table + projection trigger**. → Spec intake field contracts and the anonymous-write model from [40/03](../40-integrations-api/03-web2lead-web2table.md) §11, not from memory.
 38. **The `Config` table is fully MCP-restricted** (holds AcceptWeb*, PBX, Twilio, payment settings) → diagnosing/enabling these needs UI/REST/dev. ([40/04](../40-integrations-api/04-cloud-functions.md))
 39. **CDR phone matching uses last-7-digit endsWith** — collision risk on shared lines. ([40/04](../40-integrations-api/04-cloud-functions.md))
 40. **Landing-page form contract has a doc bug** (`F_name` listed for both first/last name) — verify the last-name key on a test lead. ([10/03](../10-modules/03-mycampaigns.md))
@@ -106,6 +106,14 @@ Format per item: **the edge** → why it bites → what to do.
 58. **Server-side row-level scoping (advanced permissions) is per-tenant optional and invisible to API tools** — CLP is table-wide, element criteria are UX-only. A tenant without it has no row fence against raw REST queries from a portal session. → UI-configure per table (staff exemptions included), document in the spec, and run the REST isolation test with a real portal user before every go-live and after every permission change. ([30/13](../30-customization/13-customer-portals.md))
 59. **`find: requiresAuthentication` on lookup tables exposes them to every portal user** — value-bearing lookups (coupon/voucher codes, price agreements) become enumerable by any logged-in external user; `_User` rows carry a public-read ACL by default, so portal sessions can often enumerate the whole user list. → Lock sensitive lookups to staff roles and validate codes inside a server function; restrict the `_User` CLP for portal audiences. ([30/13](../30-customization/13-customer-portals.md))
 60. **The built-in OTP login page (`PortalLoginOTP`/`loginOTPForm`) is not in the vanilla install** — it arrives with tenant-level `enableOTP` provisioning. Triggers also cannot add users to roles — trigger-provisioned portal users need a separate role-attachment step (users tool or a server function). → Plan OTP enablement + role attachment explicitly in every portal build. ([30/13](../30-customization/13-customer-portals.md))
+
+
+## 14. MyBooks line-level period & discount (2026-08)
+
+63. **The line period/discount columns are absent from every vanilla document page** (live-verified 2026-08-02) — the DB fields and the page JS ship, but no `.ProductsTable` `thead` defines them, so both features are invisible and unreachable on a new tenant. The JS guards on `if (input.length > 0)` and therefore **fails silently, with no console error**. → Treat "the field exists in `Get-Schema`" as no evidence that a user can reach it; check the page's column definitions. ([30/10](../30-customization/10-price-quotes-documents.md) §8.3)
+64. **The vanilla PDF templates render neither field** — a discounted line prints `quantity × price ≠ line total` with no column explaining the difference, on a document that is a legal tax invoice. → Never enable the line discount for a customer without updating their document templates in the same change. ([30/10](../30-customization/10-price-quotes-documents.md) §8)
+65. **The per-line discount has no validation** — 150 %, an amount larger than the line, and negative values are all accepted and produce negative or inflated line totals on a produced (immutable) document. → Constrain at the point of entry; a produced document can only be corrected with a זיכוי. ([10/02](../10-modules/02-mybooks.md) §4.1)
+66. **Line period dates default to today on every new line** and `DiscountType` is persisted even when no discount is entered → a one-off service line prints a one-day "period", and a discount-free line prints a bare `%`. → Clear both before producing, or accept the noise on the customer's document. ([10/02](../10-modules/02-mybooks.md) §4.1)
 
 ## Limitations & gotchas
 
