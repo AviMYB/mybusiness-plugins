@@ -2,11 +2,11 @@
 
 # MyBusiness CRM — Build and Extend a CRM with AI
 
-![Claude Code plugin](https://img.shields.io/badge/Claude_Code-plugin-d97757) ![version](https://img.shields.io/badge/version-1.1.0-007ec6) ![skills](https://img.shields.io/badge/skills-22-007ec6) ![ISO 27001](https://img.shields.io/badge/security-ISO_27001-2ea44f)
+![AI agents](https://img.shields.io/badge/AI_agents-plugin-d97757) ![Agent Plugins](https://img.shields.io/badge/Agent_Plugins-1.0-24292e) ![version](https://img.shields.io/badge/version-1.1.0-007ec6) ![skills](https://img.shields.io/badge/skills-22-007ec6) ![ISO 27001](https://img.shields.io/badge/security-ISO_27001-2ea44f)
 
-The official [Claude Code](https://claude.com/claude-code) plugin marketplace for **[MyBusiness CRM](https://www.mybusiness.co.il)** — a Hebrew-first, Israeli business-management platform: CRM core (leads, accounts, sales, cases, tasks) plus the MyBooks (billing), MyCampaigns (marketing), MyChat (WhatsApp), MyCollege (courses) and TimeSheet modules.
+The official **[MyBusiness CRM](https://www.mybusiness.co.il)** plugin **for AI agents** — Claude Code, Codex, Claude Cowork, ChatGPT Work, Cursor, GitHub Copilot and the rest. MyBusiness is a Hebrew-first, Israeli business-management platform: CRM core (leads, accounts, sales, cases, tasks) plus the MyBooks (billing), MyCampaigns (marketing), MyChat (WhatsApp), MyCollege (courses) and TimeSheet modules.
 
-The `mybusiness-implementor` plugin turns Claude Code into an **expert implementor of the system**: describe what you need in plain language — Hebrew or English — and the AI plans and executes it for real: entities and fields, card pages, tables and dashboards, reports, automations, permissions, data import, and website form integration.
+The `mybusiness-implementor` plugin turns your AI agent into an **expert implementor of the system**: describe what you need in plain language — Hebrew or English — and the AI plans and executes it for real: entities and fields, card pages, tables and dashboards, reports, automations, permissions, data import, and website form integration.
 
 ## Who is this for
 
@@ -20,7 +20,7 @@ Today anyone can "spin up a system" with AI in a few days. Anyone who has done i
 
 Here the AI **does not write a system from scratch — it configures one on top of a proven business platform**:
 
-| | Vibe coding from scratch | MyBusiness + Claude Code |
+| | Vibe coding from scratch | MyBusiness + an AI agent |
 |---|---|---|
 | **Time to launch** | Days | Days — in plain language |
 | **Code maintenance** | A codebase born yesterday that nobody knows | No codebase to maintain — configuration on a managed platform |
@@ -33,7 +33,7 @@ Here the AI **does not write a system from scratch — it configures one on top 
 ## What's inside
 
 - **The connection to your system, built in** — installing the plugin registers the official MyBusiness MCP server for you. No file to write: paste the Application Id and an API key you generate yourself, and you are connected.
-- **Two packaging formats in one folder** — a Claude Code plugin *and* an [Agent Plugins 1.0](https://agent-plugins.org/specification) package, so the same skills work in ChatGPT/Codex, Cursor, GitHub Copilot, VS Code and Kiro.
+- **No vendor lock-in** — the plugin is packaged twice in one folder: as a Claude Code plugin *and* as an [Agent Plugins 1.0](https://agent-plugins.org/specification) package, the open standard published 2026-08-06 by OpenAI with AWS, Cursor, GitHub, VS Code and Vercel. The same skills run in Codex, Cursor, GitHub Copilot, VS Code and Kiro.
 - **A product knowledge base** (`myb-p-kb`) — product capabilities, data model, known limitations, and the implementation methodology. Ask "can MyBusiness do X?" and get an answer from documentation, not guesswork.
 - **21 hands-on implementation skills** that plan and execute real configuration work on a live tenant through the official MyBusiness MCP server:
 
@@ -53,39 +53,60 @@ Skills trigger in **both Hebrew and English**.
 
 ## Getting started
 
-1. **Don't have a system yet?** Open a [trial account — 14 days free](https://sub.mybusiness.co.il/landingreg/).
-2. **Install the plugin** in Claude Code:
+**1. Don't have a system yet?** Open a [trial account — 14 days free](https://sub.mybusiness.co.il/landingreg/).
+
+**2. Generate the two connection values** — the only step that happens inside the CRM, and it takes a minute:
+
+| Value | Where |
+|---|---|
+| **Application Id** | the arrow next to your user name → *Development environment* → **Databases** → your database → **Settings** → *Copy* |
+| **API key (token)** | the same Settings screen → **API Keys** → *Add Key* → **Save** → copy the key |
+
+📘 **[Full guide, with a screenshot of every click](plugins/mybusiness-implementor/skills/myb-p-getting-started/references/03-connect-with-application-credentials.md)** — reaching the development environment, generating the token, and revoking it.
+
+That key has full access to the database and bypasses every permission — treat it like a password, and press
+**Revoke** on its row when it is no longer needed.
+
+**3. Install the plugin in the agent you use.**
+
+*Claude Code:*
 
 ```
 /plugin marketplace add AviMYB/mybusiness-plugins
 /plugin install mybusiness-implementor@mybusiness
+/plugin configure mybusiness-implementor@mybusiness      →  paste both values
+/reload-plugins
 ```
 
-3. **Connect it to your system.** The plugin already carries the MCP server; it needs two values that you
-   generate yourself, in your CRM:
+Here the key goes to your operating system's credential store, not to a file.
 
-   | Value | Where |
-   |---|---|
-   | **Application Id** | the arrow next to your user name → *Development environment* → **Databases** → your database → **Settings** → *Copy* |
-   | **API key** | the same Settings screen → **API Keys** → *Add Key* → **Save** → copy |
+*An agent that implements Agent Plugins* (Codex, Cursor, GitHub Copilot, VS Code, Kiro): install the plugin
+folder the way your agent installs plugins, open the `mcp.json` inside it, and replace the two placeholders
+with the values you generated:
 
-   ```
-   /plugin configure mybusiness-implementor@mybusiness      →  paste both values
-   /reload-plugins
-   ```
+```json
+"headers": {
+  "X-Parse-Application-Id": "REPLACE_WITH_YOUR_APPLICATION_ID",
+  "X-Parse-API-Key": "REPLACE_WITH_YOUR_API_KEY"
+}
+```
 
-   That key has full access to the database and bypasses every permission — treat it like a password, and press
-   **Revoke** on its row when it is no longer needed. Claude Code stores it in your operating system's
-   credential store, not in a file.
+⚠️ The open standard has no secret storage, so there the key lives in a plain file on disk. Keep that folder
+out of any repository and revoke the key when it is no longer needed —
+[the full note](plugins/mybusiness-implementor/skills/myb-p-getting-started/references/05-other-ai-clients.md).
 
-   Step-by-step with screenshots:
-   [account & first login](plugins/mybusiness-implementor/skills/myb-p-getting-started/references/01-account-and-first-login.md) ·
-   [**get the Application Id and the API key**](plugins/mybusiness-implementor/skills/myb-p-getting-started/references/03-connect-with-application-credentials.md) ·
-   [verify & troubleshoot](plugins/mybusiness-implementor/skills/myb-p-getting-started/references/04-verify-and-troubleshoot.md) ·
-   [other AI clients](plugins/mybusiness-implementor/skills/myb-p-getting-started/references/05-other-ai-clients.md) ·
-   [signing in as a user instead](plugins/mybusiness-implementor/skills/myb-p-getting-started/references/02-connect-with-user-login.md)
+*An agent that doesn't install plugins* (ChatGPT Work, Claude Cowork and similar): add the system directly as
+an MCP connector to `https://mcp.mbapps.co.il/` with the same two headers, and work against your data. The
+skills in this folder are readable as plain documents anywhere.
 
-4. **Start a new session** and ask, for example: "Set up a supplier-management module with a list page and a dashboard." The skills load and trigger automatically. If anything is unclear, just say "connect me to my system" — the `myb-p-getting-started` skill walks you through it and proves the connection.
+**4. Start a new session** and ask, for example: "Set up a supplier-management module with a list page and a dashboard." The skills load and trigger automatically. If anything is unclear, just say "connect me to my system" — the `myb-p-getting-started` skill walks you through it and proves the connection.
+
+**Every guide, inside this repository:**
+[account & first login](plugins/mybusiness-implementor/skills/myb-p-getting-started/references/01-account-and-first-login.md) ·
+[**get the Application Id and the token**](plugins/mybusiness-implementor/skills/myb-p-getting-started/references/03-connect-with-application-credentials.md) ·
+[verify & troubleshoot](plugins/mybusiness-implementor/skills/myb-p-getting-started/references/04-verify-and-troubleshoot.md) ·
+[other AI agents](plugins/mybusiness-implementor/skills/myb-p-getting-started/references/05-other-ai-clients.md) ·
+[signing in as a user instead](plugins/mybusiness-implementor/skills/myb-p-getting-started/references/02-connect-with-user-login.md)
 
 > The implementation skills write to the live tenant they are connected to. Run your first experiments on a demo or sandbox tenant, and review the plan the AI presents before approving writes on a production system.
 

@@ -8,15 +8,15 @@
 
 <div dir="ltr">
 
-![Claude Code plugin](https://img.shields.io/badge/Claude_Code-plugin-d97757) ![version](https://img.shields.io/badge/version-1.1.0-007ec6) ![skills](https://img.shields.io/badge/skills-22-007ec6) ![ISO 27001](https://img.shields.io/badge/security-ISO_27001-2ea44f)
+![AI agents](https://img.shields.io/badge/AI_agents-plugin-d97757) ![Agent Plugins](https://img.shields.io/badge/Agent_Plugins-1.0-24292e) ![version](https://img.shields.io/badge/version-1.1.0-007ec6) ![skills](https://img.shields.io/badge/skills-22-007ec6) ![ISO 27001](https://img.shields.io/badge/security-ISO_27001-2ea44f)
 
 </div>
 
 <div dir="rtl">
 
-זהו ה-plugin marketplace הרשמי של [MyBusiness CRM](https://www.mybusiness.co.il) עבור [Claude Code](https://claude.com/claude-code) — פלטפורמת ניהול עסק ישראלית: CRM (לידים, לקוחות, מכירות, פניות, משימות) לצד מודולי MyBooks (חיובים והצעות מחיר), MyCampaigns (קמפיינים), MyChat (וואטסאפ), MyCollege (קורסים) ו-TimeSheet (דיווח שעות).
+זהו התוסף הרשמי של [MyBusiness CRM](https://www.mybusiness.co.il) **לסוכני AI** — כגון Claude Code, Codex, Claude Cowork, ChatGPT Work, Cursor ו-GitHub Copilot. MyBusiness היא פלטפורמת ניהול עסק ישראלית: CRM (לידים, לקוחות, מכירות, פניות, משימות) לצד מודולי MyBooks (חיובים והצעות מחיר), MyCampaigns (קמפיינים), MyChat (וואטסאפ), MyCollege (קורסים) ו-TimeSheet (דיווח שעות).
 
-התוסף `mybusiness-implementor` הופך את Claude Code ל**מטמיע מומחה של המערכת**: מתארים בשפה חופשית — בעברית או באנגלית — מה צריך, וה-AI מתכנן ומבצע בפועל: ישויות ושדות, דפי כרטיס, טבלאות ודשבורדים, דוחות, אוטומציות, הרשאות, יבוא נתונים וחיבור טפסים מהאתר.
+התוסף `mybusiness-implementor` הופך את סוכן ה-AI שלכם ל**מטמיע מומחה של המערכת**: מתארים בשפה חופשית — בעברית או באנגלית — מה צריך, וה-AI מתכנן ומבצע בפועל: ישויות ושדות, דפי כרטיס, טבלאות ודשבורדים, דוחות, אוטומציות, הרשאות, יבוא נתונים וחיבור טפסים מהאתר.
 
 ## למי זה מיועד
 
@@ -30,7 +30,7 @@
 
 כאן ה-AI **לא כותב מערכת מאפס — הוא מגדיר אותה על גבי פלטפורמה עסקית מוכחת**:
 
-| | vibe coding מאפס | MyBusiness + Claude Code |
+| | vibe coding מאפס | MyBusiness + סוכן AI |
 |---|---|---|
 | **מהירות הקמה** | ימים | ימים — בשפה חופשית, בעברית |
 | **תחזוקת קוד** | codebase שנולד אתמול ואיש אינו מכיר | אין codebase לתחזק — הגדרות על פלטפורמה מנוהלת |
@@ -43,7 +43,7 @@
 ## מה בתוך התוסף
 
 - **החיבור למערכת שלכם — כבר בפנים.** התקנת התוסף רושמת גם את שרת ה-MCP הרשמי של MyBusiness. אין קובץ לכתוב: מדביקים Application Id ומפתח API שאתם מפיקים בעצמכם — ומחוברים.
-- **שני פורמטים באותה תיקייה** — גם תוסף של Claude Code וגם חבילת [Agent Plugins 1.0](https://agent-plugins.org/specification), כך שאותם סקילים עובדים גם ב-ChatGPT/Codex, Cursor, GitHub Copilot, VS Code ו-Kiro.
+- **לא נעולים על ספק אחד** — התוסף ארוז בשני פורמטים באותה תיקייה: גם כתוסף של Claude Code וגם כחבילת [Agent Plugins 1.0](https://agent-plugins.org/specification), התקן הפתוח שהוכרז ב-6.8.2026 על ידי OpenAI יחד עם AWS, Cursor, GitHub, VS Code ו-Vercel. אותם סקילים בדיוק עובדים ב-Codex, Cursor, GitHub Copilot, VS Code ו-Kiro.
 - **בסיס ידע מוצרי** (`myb-p-kb`) — יכולות המוצר, מודל הנתונים, מגבלות ידועות ומתודולוגיית הטמעה. שואלים "האם המערכת יודעת X?" ומקבלים תשובה מהתיעוד — לא ניחוש.
 - **21 סקילים ביצועיים** שמתכננים ומבצעים עבודה אמיתית על המערכת דרך שרת ה-MCP הרשמי:
 
@@ -61,8 +61,22 @@
 
 ## איך מתחילים
 
-1. **אין לכם עדיין מערכת?** פתחו [חשבון ניסיון — 14 יום חינם](https://sub.mybusiness.co.il/landingreg/).
-2. **התקינו את התוסף** בתוך Claude Code:
+**1. אין לכם עדיין מערכת?** פתחו [חשבון ניסיון — 14 יום חינם](https://sub.mybusiness.co.il/landingreg/).
+
+**2. הפיקו את שני ערכי החיבור** — זה השלב היחיד שדורש כניסה למערכת, והוא לוקח דקה:
+
+| הערך | מאיפה |
+|---|---|
+| **Application Id** | החץ ליד שם המשתמש ← *סביבת פיתוח* ← **Databases** ← בסיס הנתונים שלכם ← טאב **Settings** ← *Copy* |
+| **מפתח API (טוקן)** | באותו מסך Settings ← **API Keys** ← *Add Key* ← **Save** ← מעתיקים את המפתח |
+
+📘 **[מדריך מלא עם צילום מסך של כל לחיצה](plugins/mybusiness-implementor/skills/myb-p-getting-started/references/03-connect-with-application-credentials.md)** — כולל איך מגיעים לסביבת הפיתוח, איך מפיקים את הטוקן ואיך מבטלים אותו.
+
+המפתח נותן גישה מלאה לבסיס הנתונים ועוקף את כל ההרשאות — מתייחסים אליו כמו לסיסמה, ולוחצים **Revoke** בשורה שלו כשכבר לא צריך אותו.
+
+**3. התקינו את התוסף בסוכן שאתם עובדים איתו.**
+
+**ב-Claude Code:**
 
 </div>
 
@@ -71,24 +85,6 @@
 ```
 /plugin marketplace add AviMYB/mybusiness-plugins
 /plugin install mybusiness-implementor@mybusiness
-```
-
-</div>
-
-<div dir="rtl">
-
-3. **חברו אותו למערכת שלכם.** שרת ה-MCP כבר מגיע עם התוסף; הוא צריך שני ערכים שאתם מפיקים בעצמכם, בתוך המערכת שלכם:
-
-| הערך | מאיפה |
-|---|---|
-| **Application Id** | החץ ליד שם המשתמש ← *סביבת פיתוח* ← **Databases** ← בסיס הנתונים שלכם ← טאב **Settings** ← *Copy* |
-| **מפתח API** | באותו מסך Settings ← **API Keys** ← *Add Key* ← **Save** ← מעתיקים |
-
-</div>
-
-<div dir="ltr">
-
-```
 /plugin configure mybusiness-implementor@mybusiness      ←  מדביקים את שני הערכים
 /reload-plugins
 ```
@@ -97,16 +93,38 @@
 
 <div dir="rtl">
 
-המפתח נותן גישה מלאה לבסיס הנתונים ועוקף את כל ההרשאות — מתייחסים אליו כמו לסיסמה, ולוחצים **Revoke** בשורה שלו כשכבר לא צריך אותו. ב-Claude Code הוא נשמר בכספת של מערכת ההפעלה, לא בקובץ.
+כאן המפתח נשמר בכספת של מערכת ההפעלה ולא בקובץ.
+
+**בסוכן שתומך ב-Agent Plugins** (Codex, Cursor, GitHub Copilot, VS Code, Kiro): מתקינים את תיקיית התוסף כפי שהסוכן שלכם מתקין תוספים, פותחים את `mcp.json` שבתוכה, ומחליפים את שני ה-placeholders בערכים שהפקתם:
+
+</div>
+
+<div dir="ltr">
+
+```json
+"headers": {
+  "X-Parse-Application-Id": "REPLACE_WITH_YOUR_APPLICATION_ID",
+  "X-Parse-API-Key": "REPLACE_WITH_YOUR_API_KEY"
+}
+```
+
+</div>
+
+<div dir="rtl">
+
+⚠️ שימו לב: בפורמט הפתוח אין מנגנון לשמירת סודות, ולכן המפתח נשמר בקובץ רגיל על הדיסק. אל תעלו את התיקייה הזו ל-repository, ובטלו את המפתח כשכבר אין בו צורך. [ההסבר המלא](plugins/mybusiness-implementor/skills/myb-p-getting-started/references/05-other-ai-clients.md).
+
+**בסוכן שלא מתקין תוספים** (למשל ChatGPT Work או Claude Cowork): אפשר לחבר את המערכת ישירות כ-MCP connector לכתובת `https://mcp.mbapps.co.il/` עם אותן שתי הכותרות, ולעבוד מול הנתונים. הסקילים שבתיקייה קריאים גם כמסמכים רגילים.
 
 מדריכים מפורטים עם צילומי מסך:
-[פתיחת חשבון והתחברות ראשונה](plugins/mybusiness-implementor/skills/myb-p-getting-started/references/01-account-and-first-login.md) ·
-[**הפקת ה-Application Id והמפתח**](plugins/mybusiness-implementor/skills/myb-p-getting-started/references/03-connect-with-application-credentials.md) ·
-[אימות ופתרון תקלות](plugins/mybusiness-implementor/skills/myb-p-getting-started/references/04-verify-and-troubleshoot.md) ·
-[התקנה בכלי AI אחרים](plugins/mybusiness-implementor/skills/myb-p-getting-started/references/05-other-ai-clients.md) ·
-[חיבור בהתחברות משתמש](plugins/mybusiness-implementor/skills/myb-p-getting-started/references/02-connect-with-user-login.md)
+**4. פתחו שיחה חדשה** ובקשו, למשל: "תקים לי מודול ניהול ספקים עם דף רשימה ודשבורד". הסקילים נטענים ומופעלים אוטומטית, בעברית ובאנגלית. ואם משהו לא ברור — פשוט כתבו "תחבר אותי למערכת שלי", והסקיל `myb-p-getting-started` ילווה אתכם ויוכיח שהחיבור עובד.
 
-4. **פתחו שיחה חדשה** ובקשו, למשל: "תקים לי מודול ניהול ספקים עם דף רשימה ודשבורד". הסקילים נטענים ומופעלים אוטומטית, בעברית ובאנגלית. ואם משהו לא ברור — פשוט כתבו "תחבר אותי למערכת שלי", והסקיל `myb-p-getting-started` ילווה אתכם ויוכיח שהחיבור עובד.
+**כל המדריכים, בתוך הריפו הזה:**
+[פתיחת חשבון והתחברות ראשונה](plugins/mybusiness-implementor/skills/myb-p-getting-started/references/01-account-and-first-login.md) ·
+[**הפקת ה-Application Id והטוקן**](plugins/mybusiness-implementor/skills/myb-p-getting-started/references/03-connect-with-application-credentials.md) ·
+[אימות ופתרון תקלות](plugins/mybusiness-implementor/skills/myb-p-getting-started/references/04-verify-and-troubleshoot.md) ·
+[התקנה בסוכני AI אחרים](plugins/mybusiness-implementor/skills/myb-p-getting-started/references/05-other-ai-clients.md) ·
+[חיבור בהתחברות משתמש](plugins/mybusiness-implementor/skills/myb-p-getting-started/references/02-connect-with-user-login.md)
 
 > הסקילים מבצעים שינויים על מערכת חיה. את הניסויים הראשונים מומלץ לעשות על סביבת ניסיון, ולאשר את תוכנית העבודה שה-AI מציג לפני כתיבה למערכת בייצור.
 
