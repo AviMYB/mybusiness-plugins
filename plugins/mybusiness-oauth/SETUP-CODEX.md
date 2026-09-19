@@ -18,3 +18,11 @@
 ## הרשאות
 
 OAuth פועל בהרשאות המשתמש. יש לאפשר את סוגי הפעולות במסך User Settings → MCP Permissions. כלים מתקדמים מחייבים בקשת פתיחה מ-MyBusiness, תפקיד Admin וסימון Edit pages and schema. בטוקן API הגישה מלאה ושלב הפתיחה הזה אינו נדרש. [הסבר וצילומי מסך](PERMISSIONS.md).
+
+## Known connection failure — verified 2026-09-19
+
+On Codex Desktop 26.915.31029, Authenticate can fail before opening a browser. Reproducing the request through the bundled Codex app-server returned `Registration failed: Dynamic registration failed: HTTP 403 Forbidden`. OAuth discovery endpoints return HTTP 200, so discovery alone does not establish that login works.
+
+This failure occurs during OAuth client registration, before user sign-in or CRM permission checks. Reinstalling the plugin or enabling user MCP Permissions is not a demonstrated fix. The MyBusiness service/edge owner needs to investigate the rejected registration request, including the desktop loopback callback. Do not disable OAuth validation or broadly relax firewall rules. After correcting the rejection, verify browser sign-in and a read-only Get-Current-User call from Codex.
+
+No successful end-to-end OAuth login has been verified for this installation.
