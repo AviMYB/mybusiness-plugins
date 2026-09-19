@@ -372,3 +372,7 @@ Full messaging architecture: [05-messaging-channels.md](05-messaging-channels.md
 - **WhatsApp Identity rule**: `fromPhoneNumberId` = `Channels.Identity`, never `Channels.objectId` — the #1 WhatsApp integration bug.
 - **Page edits need a browser refresh** to show; some tools explicitly tell you to ask the user to reload.
 - **One connection = one customer app**; there is no cross-app tool. Credential routing happens at MCP connection setup (per-customer `.mcp.json`/proxy), not per call.
+
+### Authentication permission clarification — 2026-09-19
+
+Confirmed by the product owner with User Settings screenshots: API-token access is full access to the connected database and tools, without the OAuth per-user permission gate or the additional advanced-tools enablement step. OAuth is limited by the signed-in user’s existing role/table permissions and their enabled MCP Permissions (Read, Create, Update; save with Apply). Advanced tools are not fully enabled by default: customers must request enablement from MyBusiness. After enablement, Edit pages and schema requires Admin role and must be enabled for the user, then saved with Apply. Successful OAuth login alone does not imply advanced-tool access.

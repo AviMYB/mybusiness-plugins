@@ -39,6 +39,8 @@ Read [SETUP-CODEX.md](../../SETUP-CODEX.md) from THIS installed plugin before gi
 
 Install only one variant. Never install or change local settings unless asked. If the user wants step-by-step instructions, give one step and wait. Never request credentials in chat, open a custom setup window, or install Python/Bitwarden. After authentication, open a new task and verify Usage-Guide, Get-Current-User and Get-Schema, then confirm the intended system. A tool list is not proof of authorization. Do not continue into the legacy Claude/API-key steps below when guiding Codex.
 
+Before selecting a connection method, explain [the permission comparison](../../PERMISSIONS.md): API token has full access; OAuth requires per-user MCP permissions, and advanced admin tools additionally require MyBusiness enablement plus Admin role and Edit pages and schema. Do not describe successful OAuth login as full tool access.
+
 ## Step 0 — Do you already have a MyBusiness system?
 
 - **Yes** → go to Step 1.

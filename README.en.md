@@ -2,6 +2,14 @@
 
 # MyBusiness CRM — Build and Extend a CRM with AI
 
+## הרשאות / Access permissions
+
+**API token: full access to the connected system. OAuth: the signed-in user’s permissions.**
+
+בטוקן API יש גישה מלאה. ב-OAuth מנהל המערכת צריך להפעיל את סוגי הפעולות המותרים למשתמש ב-User Settings → MCP Permissions. כלים מתקדמים דורשים בקשת פתיחה מ-MyBusiness, ולאחריה תפקיד Admin וסימון Edit pages and schema. שלב הפתיחה הנוסף אינו נדרש בחיבור עם טוקן.
+
+[הסבר מלא עם צילומי מסך](plugins/mybusiness-implementor/PERMISSIONS.md).
+
 ## שתי אפשרויות התקנה / Two installation choices
 
 בחרו אפשרות אחת בלבד — הסקילים זהים:

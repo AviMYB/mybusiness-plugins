@@ -18,6 +18,14 @@
 
 התוסף `mybusiness-implementor` הופך את סוכן ה-AI שלכם ל**מטמיע מומחה של המערכת**: מתארים בשפה חופשית — בעברית או באנגלית — מה צריך, וה-AI מתכנן ומבצע בפועל: ישויות ושדות, דפי כרטיס, טבלאות ודשבורדים, דוחות, אוטומציות, הרשאות, יבוא נתונים וחיבור טפסים מהאתר.
 
+## הרשאות / Access permissions
+
+**API token: full access to the connected system. OAuth: the signed-in user’s permissions.**
+
+בטוקן API יש גישה מלאה. ב-OAuth מנהל המערכת צריך להפעיל את סוגי הפעולות המותרים למשתמש ב-User Settings → MCP Permissions. כלים מתקדמים דורשים בקשת פתיחה מ-MyBusiness, ולאחריה תפקיד Admin וסימון Edit pages and schema. שלב הפתיחה הנוסף אינו נדרש בחיבור עם טוקן.
+
+[הסבר מלא עם צילומי מסך](plugins/mybusiness-implementor/PERMISSIONS.md).
+
 ## שתי אפשרויות התקנה / Two installation choices
 
 בחרו אפשרות אחת בלבד — הסקילים זהים:
