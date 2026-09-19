@@ -163,7 +163,10 @@ def verify(headers):
     for name in ('Usage-Guide', 'Get-Current-User', 'Get-Schema'):
         result = remote.request('tools/call', {'name': name, 'arguments': {}})
         text = json.dumps(result, ensure_ascii=False).lower()
-        if result.get('isError') or any(word in text for word in ('invalid_token', 'permission denied', 'unauthorized', 'authorization header is required')):
+        # The usage guide may document error messages; do not mistake those examples for failures.
+        denied = name != 'Usage-Guide' and any(word in text for word in ('invalid_token', 'permission denied', 'unauthorized', 'authorization header is required'))
+        structured = result.get('structuredContent', {})
+        if result.get('isError') or denied or (isinstance(structured, dict) and structured.get('error')):
             raise SetupError('בדיקת הגישה נכשלה בשלב ' + name + '. בדקו את פרטי החיבור.')
         if not result.get('content') and not result.get('structuredContent'):
             raise SetupError('השרת החזיר תשובה ריקה בשלב ' + name)
