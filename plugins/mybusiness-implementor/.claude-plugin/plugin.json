@@ -1,7 +1,7 @@
 {
   "name": "mybusiness-implementor",
   "description": "MyBusiness CRM implementation toolkit: a bundled MCP connection to your own CRM (Application Id + an API key you generate yourself) + product knowledge base + no-code implementation skills (entities, pages, table views, dashboards, reports, triggers, form rules, users & permissions, terminology, price quotes, data import, web2lead, multi-select & cascading fields, SLA, settings pages, CSAT surveys, fit-gap analysis). Hebrew-first Israeli CRM.",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "author": {
     "name": "MyBusiness CRM",
     "email": "support@mybusiness-crm.com",

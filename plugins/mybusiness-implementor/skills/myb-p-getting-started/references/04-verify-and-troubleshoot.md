@@ -1,6 +1,6 @@
 # 4. Prove the connection, and read the failures
 
-> **Codex Desktop 1.2.0:** open MyBusiness-Setup for App ID/token entry. If only setup/status tools appear, complete setup and start a new task. For prerequisite, vault and reinstall errors read [SETUP-CODEX.md](../../../SETUP-CODEX.md). Do not choose Authenticate for this token-based path.
+> **Codex Desktop 1.2.1:** use [SETUP-CODEX.md](../../../SETUP-CODEX.md) and the built-in Custom MCP form. Set Application ID and API token as the two Headers. No custom window, Python, Bitwarden or OAuth. Claude/manual examples below are not Codex setup instructions.
 
 ## 4.1 The three-call proof
 

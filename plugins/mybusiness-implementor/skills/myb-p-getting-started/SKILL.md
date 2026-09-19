@@ -30,11 +30,13 @@ Step-by-step guides with screenshots live in this skill's `references/`:
 4. `references/04-verify-and-troubleshoot.md` — prove the connection, read the failure messages.
 5. `references/05-other-ai-clients.md` — installing outside Claude Code (Agent Plugins 1.0 packaging).
 
-## Codex Desktop — route here first
+## Codex Desktop — built-in Custom MCP settings
 
-Read [SETUP-CODEX.md](../../SETUP-CODEX.md). Use the bundled **MyBusiness-Setup** tool with no arguments to open the local App ID/token window. Never ask for credentials in chat or edit the installed plugin files. If unavailable, run `python` with `scripts/codex_connection.py setup` from the plugin root. Explain missing Python/Tk or Bitwarden prerequisites explicitly.
+Read [SETUP-CODEX.md](../../SETUP-CODEX.md). This plugin provides skills; it intentionally bundles no portable MCP server. Guide users through the built-in **Connect to a custom MCP** form. Never open a custom setup window, install a helper, ask for credentials in chat, or edit installed plugin/config files on their behalf. When asked for step-by-step help, give one step and wait.
 
-After successful save, start a new task to reload the CRM tool catalog. Verify Usage-Guide, Get-Current-User and Get-Schema, and confirm the intended database. Setup/status tools alone do not prove CRM access. Do not suggest Authenticate, `/plugin configure`, or editing mcp.json in Codex. The remaining configuration steps on this page describe the Claude route.
+Name: MyBusiness. Type: Streamable HTTP. URL: https://mcp.mbapps.co.il/. Leave Bearer token env var empty. Under Headers add X-Parse-Application-Id (their App ID) and X-Parse-API-Key (their API token). The user enters values in Settings and saves. Leave Headers from environment variables empty for this path. These are local Codex settings, not a promised encrypted vault.
+
+Start a new task, call Usage-Guide, Get-Current-User and Get-Schema, and confirm the intended database. Use the personal MyBusiness MCP tools with this plugin's skills. Do not require tools to come from the plugin namespace. Do not suggest Authenticate, MyBusiness-Setup, Python or Bitwarden. For migration from 1.2.0, follow the guide. The remaining configuration commands below describe the Claude route only.
 
 ## Step 0 — Do you already have a MyBusiness system?
 
@@ -90,7 +92,7 @@ Short form of `references/03-connect-with-application-credentials.md`:
 
 **Not in Claude Code?** The same folder is also an [Agent Plugins 1.0](https://agent-plugins.org/specification)
 package (`plugin.json` + `mcp.json` + `skills/`), for ChatGPT/Codex, Cursor, GitHub Copilot, VS Code and Kiro.
-For Codex, use the local setup window above. For another host, use its secure credential configuration; never place a real key inside the plugin package.
+For Codex, use the built-in Custom MCP settings above. For another host, use its secure credential configuration; never place a real key inside the plugin package.
 
 ## Step 3 — Prove the connection (never skip)
 

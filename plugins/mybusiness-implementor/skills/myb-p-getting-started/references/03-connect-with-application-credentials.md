@@ -1,6 +1,6 @@
 # 3. Connect with application credentials — Application Id + API key
 
-> **Codex Desktop:** after obtaining the two values using the screenshots below, follow [SETUP-CODEX.md](../../../SETUP-CODEX.md). Enter them only in the local MyBusiness-Setup window. The Claude commands and manual JSON examples on this page do not configure Codex. Never paste real keys into chat or plugin files.
+> **Codex Desktop 1.2.1:** use [SETUP-CODEX.md](../../../SETUP-CODEX.md) and the built-in Custom MCP form. Set Application ID and API token as the two Headers. No custom window, Python, Bitwarden or OAuth. Claude/manual examples below are not Codex setup instructions.
 
 Two values from one screen, both of which you generate yourself. No support ticket, no browser sign-in — which
 makes this the connection to use for Claude Code and any other desktop/CLI client today.

@@ -1,10 +1,4 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
-  "mcpServers": {
-    "MyBusiness": {
-      "type": "stdio",
-      "command": "python",
-      "args": ["scripts/codex_connection.py"]
-    }
-  }
+  "mcpServers": {}
 }

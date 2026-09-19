@@ -2,13 +2,13 @@
 
 # MyBusiness CRM — Build and Extend a CRM with AI
 
-## Codex Desktop: App ID + API token setup (1.2.0)
+## Codex Desktop — 1.2.1
 
-After installing MyBusiness, choose the starter **הגדרת חיבור MyBusiness — פתח טופס App ID וטוקן**, or ask Codex to open MyBusiness setup. Enter credentials only in the local window, select your Bitwarden project and choose **בדוק ושמור חיבור**. After success, start a new task and verify the CRM table names. Do not use Authenticate or edit plugin files.
+התקינו את הפלאגין לקבלת הסקילים. לחיבור המערכת הוסיפו **Custom MCP** דרך ההגדרות המובנות של Codex: **Streamable HTTP**, כתובת `https://mcp.mbapps.co.il/`, ושתי שורות **Headers** בשם `X-Parse-Application-Id` ו-`X-Parse-API-Key`. את הפרטים האישיים מזינים בטופס של Codex בלבד. לאחר Save פתחו משימה חדשה.
 
-Windows prerequisites: Python 3.11+ with Tk on PATH, and configured Bitwarden Secrets Manager CLI with a writable project. [Exact setup and troubleshooting](plugins/mybusiness-implementor/SETUP-CODEX.md). For an older installation, upgrade the mybusiness marketplace, then remove and reinstall the plugin. The legacy Claude/manual configuration examples below are not the Codex setup path.
+The plugin supplies skills; configure the personal MCP separately in Codex Settings. No custom window, Python or external vault is required. [Exact setup / הוראות מלאות](plugins/mybusiness-implementor/SETUP-CODEX.md). Upgrade the marketplace and reinstall to migrate from 1.2.0; existing personal MCP connections remain independent of the plugin.
 
-![AI agents](https://img.shields.io/badge/AI_agents-plugin-d97757) ![Agent Plugins](https://img.shields.io/badge/Agent_Plugins-1.0-24292e) ![version](https://img.shields.io/badge/version-1.1.0-007ec6) ![skills](https://img.shields.io/badge/skills-22-007ec6) ![ISO 27001](https://img.shields.io/badge/security-ISO_27001-2ea44f)
+![AI agents](https://img.shields.io/badge/AI_agents-plugin-d97757) ![Agent Plugins](https://img.shields.io/badge/Agent_Plugins-1.0-24292e) ![version](https://img.shields.io/badge/version-1.2.1-007ec6) ![skills](https://img.shields.io/badge/skills-22-007ec6) ![ISO 27001](https://img.shields.io/badge/security-ISO_27001-2ea44f)
 
 The official **[MyBusiness CRM](https://www.mybusiness.co.il)** plugin **for AI agents** — Claude Code, Codex, Claude Cowork, ChatGPT Work, Cursor, GitHub Copilot and the rest. MyBusiness is a Hebrew-first, Israeli business-management platform: CRM core (leads, accounts, sales, cases, tasks) plus the MyBooks (billing), MyCampaigns (marketing), MyChat (WhatsApp), MyCollege (courses) and TimeSheet modules.
 
@@ -38,7 +38,7 @@ Here the AI **does not write a system from scratch — it configures one on top 
 
 ## What's inside
 
-- **The connection to your system, built in** — installing the plugin registers the official MyBusiness MCP server for you. No file to write: paste the Application Id and an API key you generate yourself, and you are connected.
+- **Your CRM connection:** in Codex, add a personal Custom MCP using built-in Settings. The plugin supplies skills and setup guidance. Claude retains its host-specific connection.
 - **No vendor lock-in** — the plugin is packaged twice in one folder: as a Claude Code plugin *and* as an [Agent Plugins 1.0](https://agent-plugins.org/specification) package, the open standard published 2026-08-06 by OpenAI with AWS, Cursor, GitHub, VS Code and Vercel. The same skills run in Codex, Cursor, GitHub Copilot, VS Code and Kiro.
 - **A product knowledge base** (`myb-p-kb`) — product capabilities, data model, known limitations, and the implementation methodology. Ask "can MyBusiness do X?" and get an answer from documentation, not guesswork.
 - **21 hands-on implementation skills** that plan and execute real configuration work on a live tenant through the official MyBusiness MCP server:
@@ -86,24 +86,7 @@ That key has full access to the database and bypasses every permission — treat
 
 Here the key goes to your operating system's credential store, not to a file.
 
-*An agent that implements Agent Plugins* (Codex, Cursor, GitHub Copilot, VS Code, Kiro): install the plugin
-folder the way your agent installs plugins, open the `mcp.json` inside it, and replace the two placeholders
-with the values you generated:
-
-```json
-"headers": {
-  "X-Parse-Application-Id": "REPLACE_WITH_YOUR_APPLICATION_ID",
-  "X-Parse-API-Key": "REPLACE_WITH_YOUR_API_KEY"
-}
-```
-
-⚠️ The open standard has no secret storage, so there the key lives in a plain file on disk. Keep that folder
-out of any repository and revoke the key when it is no longer needed —
-[the full note](plugins/mybusiness-implementor/skills/myb-p-getting-started/references/05-other-ai-clients.md).
-
-*An agent that doesn't install plugins* (ChatGPT Work, Claude Cowork and similar): add the system directly as
-an MCP connector to `https://mcp.mbapps.co.il/` with the same two headers, and work against your data. The
-skills in this folder are readable as plain documents anywhere.
+**Codex and other hosts:** configure a personal MCP through the host settings. Do not put real credentials into plugin files. [Exact Codex instructions](plugins/mybusiness-implementor/SETUP-CODEX.md).
 
 **4. Start a new session** and ask, for example: "Set up a supplier-management module with a list page and a dashboard." The skills load and trigger automatically. If anything is unclear, just say "connect me to my system" — the `myb-p-getting-started` skill walks you through it and proves the connection.
 

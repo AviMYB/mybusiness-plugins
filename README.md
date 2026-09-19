@@ -8,7 +8,7 @@
 
 <div dir="ltr">
 
-![AI agents](https://img.shields.io/badge/AI_agents-plugin-d97757) ![Agent Plugins](https://img.shields.io/badge/Agent_Plugins-1.0-24292e) ![version](https://img.shields.io/badge/version-1.1.0-007ec6) ![skills](https://img.shields.io/badge/skills-22-007ec6) ![ISO 27001](https://img.shields.io/badge/security-ISO_27001-2ea44f)
+![AI agents](https://img.shields.io/badge/AI_agents-plugin-d97757) ![Agent Plugins](https://img.shields.io/badge/Agent_Plugins-1.0-24292e) ![version](https://img.shields.io/badge/version-1.2.1-007ec6) ![skills](https://img.shields.io/badge/skills-22-007ec6) ![ISO 27001](https://img.shields.io/badge/security-ISO_27001-2ea44f)
 
 </div>
 
@@ -18,11 +18,11 @@
 
 התוסף `mybusiness-implementor` הופך את סוכן ה-AI שלכם ל**מטמיע מומחה של המערכת**: מתארים בשפה חופשית — בעברית או באנגלית — מה צריך, וה-AI מתכנן ומבצע בפועל: ישויות ושדות, דפי כרטיס, טבלאות ודשבורדים, דוחות, אוטומציות, הרשאות, יבוא נתונים וחיבור טפסים מהאתר.
 
-## Codex Desktop — הגדרת חיבור (1.2.0)
+## Codex Desktop — 1.2.1
 
-לאחר התקנת MyBusiness בחרו בהצעת הפתיחה **הגדרת חיבור MyBusiness — פתח טופס App ID וטוקן**. הזינו את הפרטים בחלון המקומי, בחרו פרויקט בכספת ולחצו **בדוק ושמור חיבור**. לאחר הצלחה פתחו משימה חדשה ובקשו בדיקת חיבור ושמות טבלאות. אין צורך ב-Authenticate או בעריכת קבצי הפלאגין.
+התקינו את הפלאגין לקבלת הסקילים. לחיבור המערכת הוסיפו **Custom MCP** דרך ההגדרות המובנות של Codex: **Streamable HTTP**, כתובת `https://mcp.mbapps.co.il/`, ושתי שורות **Headers** בשם `X-Parse-Application-Id` ו-`X-Parse-API-Key`. את הפרטים האישיים מזינים בטופס של Codex בלבד. לאחר Save פתחו משימה חדשה.
 
-דרישות Windows: Python 3.11 ומעלה עם Tk ב-PATH, ו-Bitwarden Secrets Manager CLI מוגדר עם הרשאת כתיבה לפרויקט. [הוראות מדויקות ופתרון תקלות](plugins/mybusiness-implementor/SETUP-CODEX.md). למתקינים מחדש: Marketplace → mybusiness → Upgrade, ואז הסרה והתקנה של הפלאגין. הוראות Claude וההגדרה הידנית בהמשך אינן מסלול החיבור של Codex.
+The plugin supplies skills; configure the personal MCP separately in Codex Settings. No custom window, Python or external vault is required. [Exact setup / הוראות מלאות](plugins/mybusiness-implementor/SETUP-CODEX.md). Upgrade the marketplace and reinstall to migrate from 1.2.0; existing personal MCP connections remain independent of the plugin.
 
 ## למי זה מיועד
 
@@ -48,7 +48,7 @@
 
 ## מה בתוך התוסף
 
-- **החיבור למערכת שלכם — כבר בפנים.** התקנת התוסף רושמת גם את שרת ה-MCP הרשמי של MyBusiness. אין קובץ לכתוב: מדביקים Application Id ומפתח API שאתם מפיקים בעצמכם — ומחוברים.
+- **חיבור למערכת שלכם:** ב-Codex מוסיפים Custom MCP אישי דרך ההגדרות המובנות; הפלאגין מספק את הסקילים וההנחיות. ב-Claude נשמר מסלול החיבור הייעודי שלו.
 - **לא נעולים על ספק אחד** — התוסף ארוז בשני פורמטים באותה תיקייה: גם כתוסף של Claude Code וגם כחבילת [Agent Plugins 1.0](https://agent-plugins.org/specification), התקן הפתוח שהוכרז ב-6.8.2026 על ידי OpenAI יחד עם AWS, Cursor, GitHub, VS Code ו-Vercel. אותם סקילים בדיוק עובדים ב-Codex, Cursor, GitHub Copilot, VS Code ו-Kiro.
 - **בסיס ידע מוצרי** (`myb-p-kb`) — יכולות המוצר, מודל הנתונים, מגבלות ידועות ומתודולוגיית הטמעה. שואלים "האם המערכת יודעת X?" ומקבלים תשובה מהתיעוד — לא ניחוש.
 - **21 סקילים ביצועיים** שמתכננים ומבצעים עבודה אמיתית על המערכת דרך שרת ה-MCP הרשמי:
@@ -101,26 +101,7 @@
 
 כאן המפתח נשמר בכספת של מערכת ההפעלה ולא בקובץ.
 
-**בסוכן שתומך ב-Agent Plugins** (Codex, Cursor, GitHub Copilot, VS Code, Kiro): מתקינים את תיקיית התוסף כפי שהסוכן שלכם מתקין תוספים, פותחים את `mcp.json` שבתוכה, ומחליפים את שני ה-placeholders בערכים שהפקתם:
-
-</div>
-
-<div dir="ltr">
-
-```json
-"headers": {
-  "X-Parse-Application-Id": "REPLACE_WITH_YOUR_APPLICATION_ID",
-  "X-Parse-API-Key": "REPLACE_WITH_YOUR_API_KEY"
-}
-```
-
-</div>
-
-<div dir="rtl">
-
-⚠️ שימו לב: בפורמט הפתוח אין מנגנון לשמירת סודות, ולכן המפתח נשמר בקובץ רגיל על הדיסק. אל תעלו את התיקייה הזו ל-repository, ובטלו את המפתח כשכבר אין בו צורך. [ההסבר המלא](plugins/mybusiness-implementor/skills/myb-p-getting-started/references/05-other-ai-clients.md).
-
-**בסוכן שלא מתקין תוספים** (למשל ChatGPT Work או Claude Cowork): אפשר לחבר את המערכת ישירות כ-MCP connector לכתובת `https://mcp.mbapps.co.il/` עם אותן שתי הכותרות, ולעבוד מול הנתונים. הסקילים שבתיקייה קריאים גם כמסמכים רגילים.
+**ב-Codex ובסוכנים אחרים:** מתקינים את הסקילים ומגדירים חיבור אישי דרך הגדרות ה-MCP של המוצר. אין לערוך mcp.json בתוך הפלאגין. [הוראות Codex המדויקות](plugins/mybusiness-implementor/SETUP-CODEX.md).
 
 מדריכים מפורטים עם צילומי מסך:
 **4. פתחו שיחה חדשה** ובקשו, למשל: "תקים לי מודול ניהול ספקים עם דף רשימה ודשבורד". הסקילים נטענים ומופעלים אוטומטית, בעברית ובאנגלית. ואם משהו לא ברור — פשוט כתבו "תחבר אותי למערכת שלי", והסקיל `myb-p-getting-started` ילווה אתכם ויוכיח שהחיבור עובד.

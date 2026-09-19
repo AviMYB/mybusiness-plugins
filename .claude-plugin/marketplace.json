@@ -1,15 +1,15 @@
 {
-    "description":  "Official MyBusiness CRM plugins for AI agents.",
-    "name":  "mybusiness",
-    "owner":  {
-                  "email":  "support@mybusiness-crm.com",
-                  "name":  "MyBusiness CRM"
-              },
-    "plugins":  [
-                    {
-                        "description":  "MyBusiness CRM implementation toolkit: a built-in connection to your own CRM (Application Id + an API key you generate yourself) + the product knowledge base + no-code implementation skills - entities, pages, table views, dashboards, reports, triggers, form rules, users and permissions, terminology, price quotes, data import, web2lead, SLA, CSAT surveys and fit-gap analysis. Hebrew-first. Also packaged as an Agent Plugins 1.0 bundle for non-Claude agents.",
-                        "name":  "mybusiness-implementor",
-                        "source":  "./plugins/mybusiness-implementor"
-                    }
-                ]
+  "description": "Official MyBusiness CRM plugins for AI agents.",
+  "name": "mybusiness",
+  "owner": {
+    "email": "support@mybusiness-crm.com",
+    "name": "MyBusiness CRM"
+  },
+  "plugins": [
+    {
+      "description": "MyBusiness CRM implementation skills. In Codex, connect through built-in Custom MCP settings using Application ID and API token. See the plugin setup guide.",
+      "name": "mybusiness-implementor",
+      "source": "./plugins/mybusiness-implementor"
+    }
+  ]
 }
