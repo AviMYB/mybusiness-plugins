@@ -1,0 +1,9 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "MyBusiness": {
+      "type": "streamable-http",
+      "url": "https://mcp.mbapps.co.il/"
+    }
+  }
+}

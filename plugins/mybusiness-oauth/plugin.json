@@ -1,0 +1,48 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "mybusiness-oauth",
+  "version": "1.3.0",
+  "description": "MyBusiness CRM skills with bundled MCP and browser OAuth sign-in. Authenticate from Codex MCP settings.",
+  "author": {
+    "name": "MyBusiness CRM",
+    "email": "support@mybusiness-crm.com",
+    "url": "https://www.mybusiness.co.il"
+  },
+  "homepage": "https://github.com/AviMYB/mybusiness-plugins/blob/main/plugins/mybusiness-oauth/SETUP-CODEX.md",
+  "repository": "https://github.com/AviMYB/mybusiness-plugins",
+  "keywords": [
+    "crm",
+    "mybusiness",
+    "hebrew",
+    "israel",
+    "no-code",
+    "implementation",
+    "mcp"
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "MyBusiness — OAuth",
+        "shortDescription": "כולל MCP — התחברות לחשבון דרך הדפדפן",
+        "longDescription": "התקינו את הפלאגין ואז עברו ל-MCPs ולחצו Authenticate ליד MyBusiness. התחברו למערכת הרצויה בדפדפן ואשרו גישה. אין צורך להזין App ID או טוקן. נדרשות הרשאות MCP למשתמש במערכת. התקינו רק אחת משתי אפשרויות MyBusiness.",
+        "developerName": "MyBusiness CRM",
+        "category": "Productivity",
+        "capabilities": [
+          "Read",
+          "Write"
+        ],
+        "websiteURL": "https://github.com/AviMYB/mybusiness-plugins/blob/main/plugins/mybusiness-oauth/SETUP-CODEX.md",
+        "defaultPrompt": [
+          "הדריך אותי צעד אחד בכל פעם לחיבור MyBusiness באמצעות OAuth",
+          "בדוק את חיבור MyBusiness ואת המשתמש המחובר בלי לשנות נתונים"
+        ],
+        "brandColor": "#003C80"
+      }
+    },
+    "com.anthropic.claude-code": {
+      "manifest": "./.claude-plugin/plugin.json",
+      "mcp": "./.mcp.json",
+      "note": "Claude uses the bundled HTTP MCP with browser OAuth; no userConfig credentials."
+    }
+  }
+}

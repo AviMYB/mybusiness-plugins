@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<!--
+  MyBusiness CRM — BRAND deliverable template (RTL, official brand palette + Assistant font + logo)
+  Used by: plan-summary-for-approval (the executive approval summary — a customer-facing, presented artifact).
+  This is the BRAND variant of doc-template.html: same {{PLACEHOLDERS}} and same component classes
+  (.kpi-row/.kpi, .chip.*, .note/.warn/.ok, .req-card, table, .mermaid) — only restyled to the brand identity.
+  HOW TO USE: copy this file, replace every {{PLACEHOLDER}}, inject sections into <main>. Keep ALL content inside <main>. Print = A4 ready.
+-->
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{DOC_TYPE}} — {{CUSTOMER}} | MyBusiness CRM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>if (window.mermaid) mermaid.initialize({ startOnLoad: true, theme: 'base', themeVariables: { primaryColor: '#E6F6F0', primaryTextColor: '#001489', primaryBorderColor: '#00618c', lineColor: '#00618c', fontFamily: 'Assistant, Heebo, Arial' }});</script>
+<style>
+  :root{
+    --brand-blue:#001489; --brand-green:#00e5a0; --brand-light-teal:#bfe8de;
+    --brand-dark-teal:#00618c; --brand-white:#ffffff; --brand-aqua:#00a396;
+    /* semantic chip colors — legible (white text), harmonized with the brand chrome */
+    --c-native:#1f9d57; --c-config:#00618c; --c-customjs:#c8791b; --c-customserver:#6336BE;
+    --c-external:#2f6fdb; --c-gap:#d83a2c; --orange:#c8791b; --red:#d83a2c; --green:#1f9d57;
+    --muted:#7c8aa0; --border:#dce7e3; --strip:#f1f7f5; --soft:#f6fbf9; --selected:#e7f4ef; --backdrop:#eef5f3;
+  }
+  *{box-sizing:border-box}
+  html{background:var(--backdrop); margin:0; padding:0}
+  body{margin:0; font-family:'Assistant','Heebo',Arial,sans-serif; color:var(--brand-blue); background:var(--backdrop); line-height:1.6; font-size:15px}
+  /* ── Cover header (white, so the colored logo always shows; brand-green separator) ── */
+  header.doc{background:var(--brand-white); padding:26px 48px 20px; border-bottom:4px solid var(--brand-green)}
+  header.doc .logo{height:38px; width:auto; display:block; margin-bottom:12px}
+  header.doc h1{margin:8px 0 4px; font-size:29px; font-weight:700; color:var(--brand-blue)}
+  header.doc .sub{color:var(--brand-dark-teal); font-size:15px; font-weight:600}
+  .meta-strip{background:var(--brand-light-teal); border-bottom:1px solid var(--border); padding:10px 48px; display:flex; gap:28px; flex-wrap:wrap; font-size:13px; color:var(--brand-dark-teal)}
+  .meta-strip b{color:var(--brand-blue)}
+  /* ── Layout: bounded white reading column on the page backdrop ── */
+  main{max-width:1000px; margin:22px auto; padding:10px 48px 56px; background:var(--brand-white); border:1px solid var(--border); border-radius:12px; box-shadow:0 2px 14px rgba(0,0,32,.06)}
+  nav.toc{background:var(--soft); border:1px solid var(--border); border-radius:10px; padding:16px 22px; margin:18px 0 30px}
+  nav.toc h2{margin:0 0 8px; font-size:15px; border:none; padding:0; counter-increment:none; color:var(--brand-dark-teal)}
+  nav.toc h2::before{content:none}
+  nav.toc ol{margin:0; padding-inline-start:18px} nav.toc a{color:var(--brand-dark-teal); text-decoration:none} nav.toc a:hover{color:var(--brand-aqua)}
+  /* ── Headings (auto chapter numbers) ── */
+  main{counter-reset:chap}
+  main h2{counter-increment:chap; counter-reset:sec; font-size:21px; color:var(--brand-blue); border-bottom:3px solid var(--brand-green); padding-bottom:6px; margin-top:40px}
+  main h2::before{content:counter(chap) " · "; color:var(--brand-dark-teal)}
+  main h3{counter-increment:sec; font-size:17px; color:var(--brand-dark-teal); margin-top:24px}
+  main h4{font-size:15px; color:var(--brand-blue); margin-top:18px}
+  a{color:var(--brand-dark-teal)}
+  /* ── Tables ── */
+  table{width:100%; border-collapse:collapse; margin:14px 0; font-size:13.5px}
+  th{background:var(--brand-dark-teal); color:#fff; padding:8px 10px; text-align:right; font-weight:600}
+  td{border:1px solid var(--border); padding:7px 10px; vertical-align:top}
+  tr:nth-child(even) td{background:var(--soft)}
+  tr:hover td{background:var(--selected)}
+  /* ── Chips ── */
+  .chip{display:inline-block; padding:2px 10px; border-radius:12px; font-size:12px; font-weight:600; color:#fff; white-space:nowrap}
+  .chip.native{background:var(--c-native)} .chip.config{background:var(--c-config)}
+  .chip.custom-js{background:var(--c-customjs)} .chip.custom-server{background:var(--c-customserver)}
+  .chip.external{background:var(--c-external)} .chip.gap{background:var(--c-gap)}
+  .chip.must{background:var(--brand-blue)} .chip.should{background:var(--brand-dark-teal)} .chip.nice{background:var(--muted)}
+  .chip.open{background:var(--orange)} .chip.done{background:var(--c-native)} .chip.blocked{background:var(--c-gap)}
+  .chip.s{background:var(--c-native)} .chip.m{background:var(--c-config)} .chip.l{background:var(--orange)} .chip.xl{background:var(--c-customserver)}
+  /* ── Callouts ── */
+  .note,.warn,.ok{border-radius:8px; padding:12px 16px; margin:14px 0; border-right:5px solid}
+  .note{background:#eaf4f1; border-color:var(--brand-aqua)}
+  .warn{background:#fdf3e7; border-color:var(--orange)}
+  .ok{background:#e7f7ef; border-color:var(--brand-green)}
+  /* ── Requirement / spec cards ── */
+  .req-card{border:1px solid var(--border); border-right:5px solid var(--brand-dark-teal); border-radius:8px; padding:12px 16px; margin:12px 0; background:#fff}
+  .req-card .req-id{font-weight:700; color:var(--brand-dark-teal); font-family:Consolas,monospace}
+  .req-card .req-meta{font-size:12px; color:var(--muted); margin-top:6px}
+  .kpi-row{display:flex; gap:14px; flex-wrap:wrap; margin:18px 0}
+  .kpi{flex:1; min-width:120px; background:var(--strip); border:1px solid var(--border); border-radius:10px; padding:14px; text-align:center}
+  .kpi .num{font-size:26px; font-weight:700; color:var(--brand-blue)} .kpi .lbl{font-size:12.5px; color:var(--brand-dark-teal)}
+  /* ── Mermaid ── */
+  .mermaid{background:var(--soft); border:1px solid var(--border); border-radius:10px; padding:14px; margin:14px 0; text-align:center}
+  code,pre{font-family:Consolas,monospace; background:var(--strip); border-radius:4px}
+  pre{padding:12px; overflow-x:auto; border:1px solid var(--border); direction:ltr; text-align:left}
+  code{padding:1px 5px}
+  /* ── Footer ── */
+  footer.doc{max-width:1000px; margin:0 auto; border-top:1px solid var(--border); padding:16px 48px 30px; font-size:12px; color:var(--muted); display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px}
+  /* ── Print ── */
+  @media print{
+    html,body{background:#fff}
+    .meta-strip,header.doc{-webkit-print-color-adjust:exact; print-color-adjust:exact}
+    main{max-width:none; margin:0; border:none; box-shadow:none; padding:10px 0}
+    h2{page-break-after:avoid} table,.req-card,.mermaid{page-break-inside:avoid}
+    nav.toc{page-break-after:always} body{font-size:12px}
+  }
+</style>
+</head>
+<body>
+
+<header class="doc">
+  <img class="logo" src="https://www.mybusiness.co.il/wp-content/uploads/2022/10/logoweb.svg" alt="MyBusiness CRM">
+  <h1>{{DOC_TYPE}}</h1>
+  <div class="sub">{{CUSTOMER}} · {{SUBTITLE}}</div>
+</header>
+
+<div class="meta-strip">
+  <span><b>גרסה:</b> {{VERSION}}</span>
+  <span><b>תאריך:</b> {{DATE}}</span>
+  <span><b>מאת:</b> {{AUTHOR}}</span>
+  <span><b>סטטוס:</b> {{STATUS}}</span>
+  <span><b>גורם מאשר (לקוח):</b> {{APPROVER}}</span>
+</div>
+
+<main>
+
+<nav class="toc">
+  <h2>תוכן עניינים</h2>
+  <ol>
+    {{TOC_ITEMS}}
+  </ol>
+</nav>
+
+{{CONTENT}}
+
+</main>
+
+<footer class="doc">
+  <span>MyBusiness CRM · www.mybusiness.co.il · support@mybusiness-crm.com</span>
+  <span>מסמך זה הוכן עבור {{CUSTOMER}} — סודי</span>
+</footer>
+
+</body>
+</html>

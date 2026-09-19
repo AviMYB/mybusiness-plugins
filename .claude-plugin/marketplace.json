@@ -1,15 +1,20 @@
 {
-  "description": "Official MyBusiness CRM plugins for AI agents.",
   "name": "mybusiness",
   "owner": {
-    "email": "support@mybusiness-crm.com",
-    "name": "MyBusiness CRM"
+    "name": "MyBusiness CRM",
+    "email": "support@mybusiness-crm.com"
   },
+  "description": "Choose one: MyBusiness OAuth or App ID and API token.",
   "plugins": [
     {
-      "description": "MyBusiness CRM implementation skills. In Codex, connect through built-in Custom MCP settings using Application ID and API token. See the plugin setup guide.",
+      "name": "mybusiness-oauth",
+      "source": "./plugins/mybusiness-oauth",
+      "description": "MyBusiness — OAuth — Includes MCP. Sign in through the browser using Authenticate."
+    },
+    {
       "name": "mybusiness-implementor",
-      "source": "./plugins/mybusiness-implementor"
+      "source": "./plugins/mybusiness-implementor",
+      "description": "MyBusiness — App ID וטוקן — Same skills. Codex currently requires a personal Custom MCP for App ID/API token entry; see setup guide."
     }
   ]
 }

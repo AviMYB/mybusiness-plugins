@@ -1,0 +1,76 @@
+<!--
+  Three-face rating block for the closing email.
+  Drops in where the template's CTA button was. See references/url-contract.md before editing.
+
+  Replace:
+    __SURVEY_URL__   full URL of the public survey page (no query string)
+    the labels       the process owner's approved Hebrew wording
+    the r= values    must match RATING_LABELS in assets/survey-page.js
+
+  Rules baked into this markup, each one learned the hard way:
+    * Table layout + inline styles only — Outlook ignores <div> layout and <style> blocks.
+    * The three glyphs are DIFFERENT characters, not one character in three colours.
+      Colour is lost in plain-text parts and in some clients; two identical glyphs
+      make the middle option unreadable.
+    * Each face is a link that already carries the answer. There is no submit button
+      anywhere in this flow — one click from the inbox is the entire interaction.
+    * {{{objectId}}} and {{{PhoneNumber}}} must resolve on THIS tenant. Render a real
+      mail and look at the body before sending to anyone; a literal {{{...}}} in a
+      customer's inbox is this build's most common failure.
+      If the record does not carry the phone, use {{{AccountId.PhoneNumber}}}
+      (one pointer hop is supported; two are not).
+-->
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"
+       style="margin:24px 0;direction:rtl;">
+  <tr>
+    <td align="center" style="font-family:Assistant,Arial,sans-serif;font-size:16px;
+               color:#001489;padding-bottom:14px;">
+      <strong>איך היה הטיפול בפנייה?</strong>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+
+          <!-- מרוצה -->
+          <td align="center" style="padding:0 8px;">
+            <a href="__SURVEY_URL__?c={{{objectId}}}&amp;p={{{PhoneNumber}}}&amp;r=3"
+               style="display:block;text-decoration:none;border:2px solid #4CAE4C;border-radius:10px;
+                      padding:12px 18px;min-width:96px;font-family:Assistant,Arial,sans-serif;">
+              <span style="font-size:30px;line-height:34px;color:#4CAE4C;">&#9786;</span><br>
+              <span style="font-size:14px;color:#001489;font-weight:600;">מרוצה</span>
+            </a>
+          </td>
+
+          <!-- סביר -->
+          <td align="center" style="padding:0 8px;">
+            <a href="__SURVEY_URL__?c={{{objectId}}}&amp;p={{{PhoneNumber}}}&amp;r=2"
+               style="display:block;text-decoration:none;border:2px solid #E8A13D;border-radius:10px;
+                      padding:12px 18px;min-width:96px;font-family:Assistant,Arial,sans-serif;">
+              <span style="font-size:30px;line-height:34px;color:#E8A13D;">&#128528;</span><br>
+              <span style="font-size:14px;color:#001489;font-weight:600;">סביר</span>
+            </a>
+          </td>
+
+          <!-- לא מרוצה -->
+          <td align="center" style="padding:0 8px;">
+            <a href="__SURVEY_URL__?c={{{objectId}}}&amp;p={{{PhoneNumber}}}&amp;r=1"
+               style="display:block;text-decoration:none;border:2px solid #D9534F;border-radius:10px;
+                      padding:12px 18px;min-width:96px;font-family:Assistant,Arial,sans-serif;">
+              <span style="font-size:30px;line-height:34px;color:#D9534F;">&#9785;</span><br>
+              <span style="font-size:14px;color:#001489;font-weight:600;">לא מרוצה</span>
+            </a>
+          </td>
+
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" style="font-family:Assistant,Arial,sans-serif;font-size:12px;
+               color:#00618c;padding-top:12px;">
+      לחיצה אחת מספיקה — אפשר להוסיף מילה אחרי כן, וזה לא חובה.
+    </td>
+  </tr>
+</table>

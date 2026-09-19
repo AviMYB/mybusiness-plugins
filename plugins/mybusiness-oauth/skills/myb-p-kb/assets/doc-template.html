@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<!--
+  MyBusiness CRM — unified deliverable template (RTL, brand palette)
+  Used by: business-discovery · myb-p-fit-gap · functional-spec
+  HOW TO USE: copy this file, replace every {{PLACEHOLDER}}, inject sections into <main>.
+  Conventions: h2 = chapter (auto-numbered), .req-card for requirements, class chips for fit-gap levels,
+  <div class="mermaid"> for diagrams. Keep ALL content inside <main>. Print = A4 ready.
+-->
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{DOC_TYPE}} — {{CUSTOMER}} | MyBusiness CRM</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>if (window.mermaid) mermaid.initialize({ startOnLoad: true, theme: 'base', themeVariables: { primaryColor: '#E8EAF2', primaryTextColor: '#252C57', primaryBorderColor: '#3D4993', lineColor: '#3D4993', fontFamily: 'Segoe UI, Heebo, Arial' }});</script>
+<style>
+  :root{
+    --navy:#252C57; --navy2:#3D4993; --info:#369BCD; --link:#62A6FF;
+    --red:#F44336; --orange:#F5A623; --green:#4CAE4C; --purple:#6336BE;
+    --muted:#8B93A8; --border:#E8E8E8; --strip:#F4F5F7; --selected:#E8EAF2; --soft:#FAFBFC;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; font-family:'Segoe UI','Heebo','Assistant',Arial,sans-serif; color:var(--navy); background:#fff; line-height:1.55; font-size:15px}
+  /* ── Cover header ── */
+  header.doc{background:var(--navy); color:#fff; padding:34px 48px 26px}
+  header.doc .logotype{font-size:20px; font-weight:700; letter-spacing:.3px}
+  header.doc .logotype span{color:var(--link)}
+  header.doc h1{margin:14px 0 4px; font-size:30px; font-weight:700}
+  header.doc .sub{color:#C9D2F2; font-size:15px}
+  .meta-strip{background:var(--strip); border-bottom:1px solid var(--border); padding:10px 48px; display:flex; gap:28px; flex-wrap:wrap; font-size:13px}
+  .meta-strip b{color:var(--navy2)}
+  /* ── Layout ── */
+  main{max-width:1080px; margin:0 auto; padding:28px 48px 60px}
+  nav.toc{background:var(--soft); border:1px solid var(--border); border-radius:10px; padding:16px 22px; margin:18px 0 30px}
+  nav.toc h2{margin:0 0 8px; font-size:15px; border:none; padding:0; counter-increment:none}
+  nav.toc ol{margin:0; padding-inline-start:18px} nav.toc a{color:var(--navy2); text-decoration:none} nav.toc a:hover{color:var(--info)}
+  /* ── Headings (auto chapter numbers) ── */
+  main{counter-reset:chap}
+  main h2{counter-increment:chap; counter-reset:sec; font-size:21px; color:var(--navy); border-bottom:3px solid var(--navy2); padding-bottom:6px; margin-top:42px}
+  main h2::before{content:counter(chap) " · "; color:var(--navy2)}
+  main h3{counter-increment:sec; font-size:17px; color:var(--navy2); margin-top:26px}
+  main h3::before{content:counter(chap) "." counter(sec) " "; }
+  main h4{font-size:15px; color:var(--navy); margin-top:18px}
+  a{color:var(--link)}
+  /* ── Tables ── */
+  table{width:100%; border-collapse:collapse; margin:14px 0; font-size:13.5px}
+  th{background:var(--navy); color:#fff; padding:8px 10px; text-align:right; font-weight:600}
+  td{border:1px solid var(--border); padding:7px 10px; vertical-align:top}
+  tr:nth-child(even) td{background:var(--soft)}
+  tr:hover td{background:var(--selected)}
+  /* ── Chips: fit-gap levels, priority, status ── */
+  .chip{display:inline-block; padding:2px 10px; border-radius:12px; font-size:12px; font-weight:600; color:#fff; white-space:nowrap}
+  .chip.native{background:var(--green)} .chip.config{background:var(--info)}
+  .chip.custom-js{background:var(--orange)} .chip.custom-server{background:var(--purple)}
+  .chip.external{background:var(--link)} .chip.gap{background:var(--red)}
+  .chip.must{background:var(--navy)} .chip.should{background:var(--navy2)} .chip.nice{background:var(--muted)}
+  .chip.open{background:var(--orange)} .chip.done{background:var(--green)} .chip.blocked{background:var(--red)}
+  .chip.s{background:var(--green)} .chip.m{background:var(--info)} .chip.l{background:var(--orange)} .chip.xl{background:var(--purple)}
+  /* ── Callouts ── */
+  .note,.warn,.ok{border-radius:8px; padding:12px 16px; margin:14px 0; border-right:5px solid}
+  .note{background:#EEF4FB; border-color:var(--info)}
+  .warn{background:#FDF3E7; border-color:var(--orange)}
+  .ok{background:#EEF7EE; border-color:var(--green)}
+  /* ── Requirement / spec cards ── */
+  .req-card{border:1px solid var(--border); border-right:5px solid var(--navy2); border-radius:8px; padding:12px 16px; margin:12px 0; background:#fff}
+  .req-card .req-id{font-weight:700; color:var(--navy2); font-family:Consolas,monospace}
+  .req-card .req-meta{font-size:12px; color:var(--muted); margin-top:6px}
+  .kpi-row{display:flex; gap:14px; flex-wrap:wrap; margin:18px 0}
+  .kpi{flex:1; min-width:140px; background:var(--soft); border:1px solid var(--border); border-radius:10px; padding:14px; text-align:center}
+  .kpi .num{font-size:26px; font-weight:700; color:var(--navy2)} .kpi .lbl{font-size:12.5px; color:var(--muted)}
+  /* ── Mermaid ── */
+  .mermaid{background:var(--soft); border:1px solid var(--border); border-radius:10px; padding:14px; margin:14px 0; text-align:center}
+  code,pre{font-family:Consolas,monospace; background:var(--strip); border-radius:4px}
+  pre{padding:12px; overflow-x:auto; border:1px solid var(--border); direction:ltr; text-align:left}
+  code{padding:1px 5px}
+  /* ── Footer ── */
+  footer.doc{border-top:1px solid var(--border); margin-top:50px; padding:16px 48px; font-size:12px; color:var(--muted); display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px}
+  /* ── Print ── */
+  @media print{
+    .meta-strip,header.doc{-webkit-print-color-adjust:exact; print-color-adjust:exact}
+    main{padding:10px 0} h2{page-break-after:avoid} table,.req-card,.mermaid{page-break-inside:avoid}
+    nav.toc{page-break-after:always} body{font-size:12px}
+  }
+</style>
+</head>
+<body>
+
+<header class="doc">
+  <div class="logotype">MyBusiness<span>●</span>CRM</div>
+  <h1>{{DOC_TYPE}}</h1>
+  <div class="sub">{{CUSTOMER}} · {{SUBTITLE}}</div>
+</header>
+
+<div class="meta-strip">
+  <span><b>גרסה:</b> {{VERSION}}</span>
+  <span><b>תאריך:</b> {{DATE}}</span>
+  <span><b>מאפיין/ת:</b> {{AUTHOR}}</span>
+  <span><b>סטטוס:</b> {{STATUS}}</span>
+  <span><b>גורם מאשר (לקוח):</b> {{APPROVER}}</span>
+</div>
+
+<main>
+
+<nav class="toc">
+  <h2>תוכן עניינים</h2>
+  <ol>
+    {{TOC_ITEMS}}
+  </ol>
+</nav>
+
+{{CONTENT}}
+
+</main>
+
+<footer class="doc">
+  <span>MyBusiness CRM · www.mybusiness.co.il · support@mybusiness-crm.com</span>
+  <span>מסמך זה הוכן עבור {{CUSTOMER}} — סודי</span>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "name": "mybusiness-oauth",
+  "description": "MyBusiness CRM skills with bundled MCP and browser OAuth sign-in. Authenticate from Codex MCP settings.",
+  "version": "1.3.0",
+  "author": {
+    "name": "MyBusiness CRM",
+    "email": "support@mybusiness-crm.com",
+    "url": "https://www.mybusiness.co.il"
+  }
+}

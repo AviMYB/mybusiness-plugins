@@ -8,7 +8,7 @@
 
 <div dir="ltr">
 
-![AI agents](https://img.shields.io/badge/AI_agents-plugin-d97757) ![Agent Plugins](https://img.shields.io/badge/Agent_Plugins-1.0-24292e) ![version](https://img.shields.io/badge/version-1.2.1-007ec6) ![skills](https://img.shields.io/badge/skills-22-007ec6) ![ISO 27001](https://img.shields.io/badge/security-ISO_27001-2ea44f)
+![AI agents](https://img.shields.io/badge/AI_agents-plugin-d97757) ![Agent Plugins](https://img.shields.io/badge/Agent_Plugins-1.0-24292e) ![version](https://img.shields.io/badge/version-1.3.0-007ec6) ![skills](https://img.shields.io/badge/skills-22-007ec6) ![ISO 27001](https://img.shields.io/badge/security-ISO_27001-2ea44f)
 
 </div>
 
@@ -18,7 +18,18 @@
 
 התוסף `mybusiness-implementor` הופך את סוכן ה-AI שלכם ל**מטמיע מומחה של המערכת**: מתארים בשפה חופשית — בעברית או באנגלית — מה צריך, וה-AI מתכנן ומבצע בפועל: ישויות ושדות, דפי כרטיס, טבלאות ודשבורדים, דוחות, אוטומציות, הרשאות, יבוא נתונים וחיבור טפסים מהאתר.
 
-## Codex Desktop — 1.2.1
+## שתי אפשרויות התקנה / Two installation choices
+
+בחרו אפשרות אחת בלבד — הסקילים זהים:
+
+| אפשרות | חיבור ב-Codex |
+|---|---|
+| **MyBusiness — OAuth** (`mybusiness-oauth`) | כולל MCP; התחברות בדפדפן באמצעות Authenticate. [מדריך](plugins/mybusiness-oauth/SETUP-CODEX.md) |
+| **MyBusiness — App ID וטוקן** (`mybusiness-implementor`) | הזנת הפרטים ב-Custom MCP אישי; מגבלת הגדרת פרטים בשרת מתוך פלאגין עדיין קיימת. [מדריך](plugins/mybusiness-implementor/SETUP-CODEX.md) |
+
+No third variant. Install only one. OAuth discovery was checked; live sign-in still requires the user. The section below describes the App ID/token option only.
+
+## Codex Desktop — 1.3.0
 
 התקינו את הפלאגין לקבלת הסקילים. לחיבור המערכת הוסיפו **Custom MCP** דרך ההגדרות המובנות של Codex: **Streamable HTTP**, כתובת `https://mcp.mbapps.co.il/`, ושתי שורות **Headers** בשם `X-Parse-Application-Id` ו-`X-Parse-API-Key`. את הפרטים האישיים מזינים בטופס של Codex בלבד. לאחר Save פתחו משימה חדשה.
 
