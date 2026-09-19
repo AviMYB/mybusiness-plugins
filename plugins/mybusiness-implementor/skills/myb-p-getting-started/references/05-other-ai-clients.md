@@ -1,5 +1,7 @@
 # 5. Installing in clients other than Claude Code
 
+> **Codex Desktop 1.2.0 — follow this instead of the legacy instructions below:** read [SETUP-CODEX.md](../../../SETUP-CODEX.md), choose the plugin's setup starter and enter App ID/token in the local window. The portable mcp.json now runs a local bridge; it has no credential placeholders to replace. Requires Windows, Python/Tk and Bitwarden Secrets Manager. Do not edit the installed package or use Authenticate. The examples below describe the historical 1.1.0 remote package and other hosts, not current Codex installation.
+
 This plugin ships in **two packaging formats at once, from one folder** — nothing is duplicated, the skills are
 the same files:
 

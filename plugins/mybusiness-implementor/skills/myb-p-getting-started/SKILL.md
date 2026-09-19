@@ -30,6 +30,12 @@ Step-by-step guides with screenshots live in this skill's `references/`:
 4. `references/04-verify-and-troubleshoot.md` — prove the connection, read the failure messages.
 5. `references/05-other-ai-clients.md` — installing outside Claude Code (Agent Plugins 1.0 packaging).
 
+## Codex Desktop — route here first
+
+Read [SETUP-CODEX.md](../../SETUP-CODEX.md). Use the bundled **MyBusiness-Setup** tool with no arguments to open the local App ID/token window. Never ask for credentials in chat or edit the installed plugin files. If unavailable, run `python` with `scripts/codex_connection.py setup` from the plugin root. Explain missing Python/Tk or Bitwarden prerequisites explicitly.
+
+After successful save, start a new task to reload the CRM tool catalog. Verify Usage-Guide, Get-Current-User and Get-Schema, and confirm the intended database. Setup/status tools alone do not prove CRM access. Do not suggest Authenticate, `/plugin configure`, or editing mcp.json in Codex. The remaining configuration steps on this page describe the Claude route.
+
 ## Step 0 — Do you already have a MyBusiness system?
 
 - **Yes** → go to Step 1.
@@ -84,8 +90,7 @@ Short form of `references/03-connect-with-application-credentials.md`:
 
 **Not in Claude Code?** The same folder is also an [Agent Plugins 1.0](https://agent-plugins.org/specification)
 package (`plugin.json` + `mcp.json` + `skills/`), for ChatGPT/Codex, Cursor, GitHub Copilot, VS Code and Kiro.
-There the two values are pasted into `mcp.json` itself — which means the key sits in a plain file, so read the
-security note in `references/05-other-ai-clients.md` before doing it.
+For Codex, use the local setup window above. For another host, use its secure credential configuration; never place a real key inside the plugin package.
 
 ## Step 3 — Prove the connection (never skip)
 

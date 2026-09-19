@@ -1,5 +1,7 @@
 # 4. Prove the connection, and read the failures
 
+> **Codex Desktop 1.2.0:** open MyBusiness-Setup for App ID/token entry. If only setup/status tools appear, complete setup and start a new task. For prerequisite, vault and reinstall errors read [SETUP-CODEX.md](../../../SETUP-CODEX.md). Do not choose Authenticate for this token-based path.
+
 ## 4.1 The three-call proof
 
 A green server status is not proof. The server answers `initialize` and lists its tools **without any

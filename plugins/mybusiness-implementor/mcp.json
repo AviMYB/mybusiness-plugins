@@ -2,12 +2,9 @@
   "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
   "mcpServers": {
     "MyBusiness": {
-      "type": "streamable-http",
-      "url": "https://mcp.mbapps.co.il/",
-      "headers": {
-        "X-Parse-Application-Id": "REPLACE_WITH_YOUR_APPLICATION_ID",
-        "X-Parse-API-Key": "REPLACE_WITH_YOUR_API_KEY"
-      }
+      "type": "stdio",
+      "command": "python",
+      "args": ["scripts/codex_connection.py"]
     }
   }
 }

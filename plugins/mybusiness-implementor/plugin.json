@@ -1,17 +1,30 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "mybusiness-implementor",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "MyBusiness CRM implementation toolkit: the MCP connection to your own CRM plus no-code implementation skills - entities, pages, table views, dashboards, reports, triggers, form rules, users and permissions, terminology, price quotes, data import, web2lead, SLA, CSAT surveys and fit-gap analysis. Hebrew-first Israeli CRM.",
   "author": {
     "name": "MyBusiness CRM",
     "email": "support@mybusiness-crm.com",
     "url": "https://www.mybusiness.co.il"
   },
-  "homepage": "https://www.mybusiness.co.il",
+  "homepage": "https://github.com/AviMYB/mybusiness-plugins/blob/main/plugins/mybusiness-implementor/SETUP-CODEX.md",
   "repository": "https://github.com/AviMYB/mybusiness-plugins",
   "keywords": ["crm", "mybusiness", "hebrew", "israel", "no-code", "implementation", "mcp"],
   "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "MyBusiness",
+        "shortDescription": "חיבור CRM עם App ID וטוקן — התחילו בהגדרת חיבור",
+        "longDescription": "לאחר ההתקנה בחרו בהצעת הפתיחה: הגדרת חיבור MyBusiness. ייפתח חלון מקומי להזנת App ID וטוקן API; אין להזין אותם בצ׳אט או ללחוץ Authenticate. Windows: נדרשים Python 3.11 עם Tk ו-Bitwarden Secrets Manager. לאחר בדיקת החיבור ושמירה בכספת פתחו משימה חדשה. המדריך נמצא בקישור האתר של הפלאגין.",
+        "developerName": "MyBusiness CRM",
+        "category": "Productivity",
+        "capabilities": ["Read", "Write"],
+        "websiteURL": "https://github.com/AviMYB/mybusiness-plugins/blob/main/plugins/mybusiness-implementor/SETUP-CODEX.md",
+        "defaultPrompt": ["הגדרת חיבור MyBusiness — פתח טופס App ID וטוקן", "בדוק את חיבור MyBusiness והצג שמות טבלאות בלי לשנות נתונים"],
+        "brandColor": "#003C80"
+      }
+    },
     "com.anthropic.claude-code": {
       "manifest": "./.claude-plugin/plugin.json",
       "mcp": "./.mcp.json",

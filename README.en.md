@@ -2,6 +2,12 @@
 
 # MyBusiness CRM — Build and Extend a CRM with AI
 
+## Codex Desktop: App ID + API token setup (1.2.0)
+
+After installing MyBusiness, choose the starter **הגדרת חיבור MyBusiness — פתח טופס App ID וטוקן**, or ask Codex to open MyBusiness setup. Enter credentials only in the local window, select your Bitwarden project and choose **בדוק ושמור חיבור**. After success, start a new task and verify the CRM table names. Do not use Authenticate or edit plugin files.
+
+Windows prerequisites: Python 3.11+ with Tk on PATH, and configured Bitwarden Secrets Manager CLI with a writable project. [Exact setup and troubleshooting](plugins/mybusiness-implementor/SETUP-CODEX.md). For an older installation, upgrade the mybusiness marketplace, then remove and reinstall the plugin. The legacy Claude/manual configuration examples below are not the Codex setup path.
+
 ![AI agents](https://img.shields.io/badge/AI_agents-plugin-d97757) ![Agent Plugins](https://img.shields.io/badge/Agent_Plugins-1.0-24292e) ![version](https://img.shields.io/badge/version-1.1.0-007ec6) ![skills](https://img.shields.io/badge/skills-22-007ec6) ![ISO 27001](https://img.shields.io/badge/security-ISO_27001-2ea44f)
 
 The official **[MyBusiness CRM](https://www.mybusiness.co.il)** plugin **for AI agents** — Claude Code, Codex, Claude Cowork, ChatGPT Work, Cursor, GitHub Copilot and the rest. MyBusiness is a Hebrew-first, Israeli business-management platform: CRM core (leads, accounts, sales, cases, tasks) plus the MyBooks (billing), MyCampaigns (marketing), MyChat (WhatsApp), MyCollege (courses) and TimeSheet modules.
