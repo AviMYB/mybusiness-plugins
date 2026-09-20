@@ -3,7 +3,8 @@
 ## State and boundaries
 
 - Use one consistent synthetic data model across routes. Record edits, board moves, dashboard
-  counts and activity entries must agree. Keep unsaved form drafts separate from saved state.
+  counts and audit entries must agree. Keep the audit log separate from business activities.
+  Keep unsaved form drafts separate from saved state.
 - Store under one project-specific, versioned key. Never call `localStorage.clear()`; reset
   only the current project's key. Catch blocked/full storage and explain session-only operation.
 - A successful save confirms the action and updates affected views. Cancel and Escape must
@@ -35,7 +36,7 @@
 | Search/filter | Matching rows narrow; zero matches have clear feedback; reset restores rows |
 | Forms | Required/invalid input blocks submission; corrected values save; cancel discards |
 | Persistence | Saved state survives refresh; reset restores seed and leaves other keys intact |
-| Cross-screen data | Status change appears in list, board, KPI counts and activity feed |
+| Cross-screen data | Status change appears in list, board, KPI counts and record audit timeline; activity reports read business-activity records |
 | Dialog | Tab remains inside, Escape closes, focus returns to the trigger |
 | Responsive | Desktop 1440px and mobile 390px screenshots inspected; no page overflow |
 | Safety | No external requests in interactive journey; no customer data or credentials |
