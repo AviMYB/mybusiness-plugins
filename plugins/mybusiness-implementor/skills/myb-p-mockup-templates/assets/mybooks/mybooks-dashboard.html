@@ -22,7 +22,6 @@
   /* module top bar (dark navy, white logo) */
   .topbar{height:70px;background:var(--modnavy);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 26px}
   .brand{direction:ltr;display:flex;align-items:center;gap:8px;font-family:'Heebo',sans-serif;font-weight:700;font-size:26px;letter-spacing:.2px}
-  .brand .fa{font-size:24px}
   .topcluster{display:flex;align-items:center;gap:22px}
   .topcluster .fa{font-size:20px;color:#fff}
   .topcluster .wa{color:#25D366;font-size:24px}
@@ -59,11 +58,12 @@
   .rows2{display:grid;grid-template-columns:1.6fr 1fr;gap:20px}
   .mocktag{position:fixed;bottom:12px;left:12px;background:var(--modnavy);color:#fff;font-size:11px;padding:4px 10px;border-radius:4px;opacity:.85;z-index:99}
 </style>
+<link rel="stylesheet" href="../brand/brand.css">
 </head>
 <body>
 
   <div class="topbar">
-    <div class="brand"><i class="fa fa-th-large"></i>mybooks</div>
+    <div class="brand" data-brand-surface="dark"><img class="myb-brand-logo" src="../brand/mybusiness-logo.svg" alt="MyBusiness CRM" width="210" height="32"><span class="module-name">MyBooks</span></div>
     <div class="topcluster">
       <i class="fa fa-envelope-o"></i>
       <i class="fa fa-whatsapp wa"></i>

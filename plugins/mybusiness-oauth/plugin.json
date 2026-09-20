@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "mybusiness-oauth",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "MyBusiness CRM skills with bundled MCP and browser OAuth sign-in. Authenticate from Codex MCP settings. Includes interactive local mockup templates with synthetic data.",
   "author": {
     "name": "MyBusiness CRM",

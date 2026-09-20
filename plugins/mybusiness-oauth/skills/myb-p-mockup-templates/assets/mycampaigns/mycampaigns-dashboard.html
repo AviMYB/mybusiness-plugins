@@ -21,7 +21,6 @@
   a{text-decoration:none;color:inherit} button{font-family:inherit;cursor:pointer}
   .topbar{height:70px;background:var(--modnavy);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 26px}
   .brand{direction:ltr;display:flex;align-items:center;gap:8px;font-family:'Heebo',sans-serif;font-weight:700;font-size:26px}
-  .brand .fa{font-size:24px}
   .topcluster{display:flex;align-items:center;gap:22px}
   .topcluster .fa{font-size:20px;color:#fff}
   .userchip{font-size:14px;font-weight:600}
@@ -59,11 +58,12 @@
   .price{font-size:13.5px;color:#2B3A63}
   .mocktag{position:fixed;bottom:12px;left:12px;background:var(--modnavy);color:#fff;font-size:11px;padding:4px 10px;border-radius:4px;opacity:.85;z-index:99}
 </style>
+<link rel="stylesheet" href="../brand/brand.css">
 </head>
 <body>
 
   <div class="topbar">
-    <div class="brand"><i class="fa fa-th-large"></i>mycampaigns</div>
+    <div class="brand" data-brand-surface="dark"><img class="myb-brand-logo" src="../brand/mybusiness-logo.svg" alt="MyBusiness CRM" width="210" height="32"><span class="module-name">MyCampaigns</span></div>
     <div class="topcluster">
       <i class="fa fa-bell-o"></i>
       <i class="fa fa-th"></i>

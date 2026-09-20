@@ -11,3 +11,5 @@
   illustrations are approximated, not an exact reproduction.
 - No screenshots, customer imagery, tenant CSS dumps, account information, source maps or
   network captures are bundled. Private comparison evidence stays outside the package.
+
+Static references use the byte-identical wordmark in `assets/brand/mybusiness-logo.svg` and shared `brand.css`. Their dark headers provide a white logo surface; module labels remain separate. Check all references when changing branding, not only the interactive shell.

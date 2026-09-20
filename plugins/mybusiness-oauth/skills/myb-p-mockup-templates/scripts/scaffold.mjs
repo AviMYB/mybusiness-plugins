@@ -17,7 +17,7 @@ try {
   await mkdir(target, { recursive: true });
   await cp(path.join(skill, 'assets/prototype'), target, { recursive: true });
   await cp(path.join(here, 'serve.mjs'), path.join(target, 'serve.mjs'));
-  for (const module of ['mybusiness', 'mybooks', 'mychat', 'mycampaigns', 'mycollege', 'timesheet']) {
+  for (const module of ['brand', 'mybusiness', 'mybooks', 'mychat', 'mycampaigns', 'mycollege', 'timesheet']) {
     await cp(path.join(skill, 'assets', module), path.join(target, 'reference-pages', module), { recursive: true });
   }
   await writeFile(path.join(target, 'config.js'), `export const config = ${JSON.stringify({ title: 'סביבת הדגמה', initialPage: page, storageKey: 'myb-prototype-' + randomUUID() }, null, 2)};\n`);

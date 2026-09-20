@@ -89,6 +89,10 @@ explain that the preview was not run and offer the original static HTML as a lim
   confirmation → updated view; use validation before saves and show empty/error/loading states.
 - Remove irrelevant example routes from `catalog.js` and the corresponding navigation.
   Keep every remaining link meaningful. A static reference is clearly labeled as such.
+- Use the bundled current MyBusiness SVG wordmark in every header, including static references.
+  Never substitute FontAwesome cubes, a letter or typed brand text. Reference pages share
+  `assets/brand/`; the scaffolder includes those assets. On dark headers use the supplied
+  white logo surface and keep the module name separate. See `references/asset-provenance.md`.
 - Keep a persistent **"הדגמה מקומית · נתונים פיקטיביים"** label and a working reset action.
   Put scope notes in the handoff, not implementation jargon throughout the product UI.
 - Separate **observed screen structure** from **proposed interaction**. A prototype behavior

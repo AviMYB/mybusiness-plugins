@@ -20,8 +20,6 @@
   a{text-decoration:none;color:inherit}
   .topbar{height:64px;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
   .brand{direction:ltr;display:flex;align-items:center;gap:9px;font-family:'Heebo',sans-serif;font-weight:700;font-size:21px;color:var(--navy)}
-  .brand .fa{color:var(--info);font-size:25px}
-  .brand b{color:var(--info)}
   .topcluster{display:flex;align-items:center;gap:20px;color:var(--navy)}
   .topcluster > .fa{font-size:20px}
   .userchip{font-size:13px;font-weight:600;text-align:center;line-height:1.15}
@@ -44,11 +42,12 @@
   .scard p{font-size:14px;color:#5B6474;line-height:1.5}
   .mocktag{position:fixed;bottom:12px;left:12px;background:var(--navy);color:#fff;font-size:11px;padding:4px 10px;border-radius:4px;opacity:.85;z-index:99}
 </style>
+<link rel="stylesheet" href="../brand/brand.css">
 </head>
 <body>
 
   <div class="topbar">
-    <div class="brand"><i class="fa fa-cubes"></i>MyBusiness <b>CRM</b></div>
+    <div class="brand" data-brand-surface="light"><img class="myb-brand-logo" src="../brand/mybusiness-logo.svg" alt="MyBusiness CRM" width="210" height="32"></div>
     <div class="topcluster">
       <i class="fa fa-bell-o"></i>
       <i class="fa fa-th"></i>
