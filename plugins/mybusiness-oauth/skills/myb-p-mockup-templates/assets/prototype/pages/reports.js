@@ -1,7 +1,18 @@
-import { esc, options, money, empty } from '../ui.js';
-import { statuses } from '../data.js';
-export const columns = { name:'שם',status:'סטטוס',owner:'צוות',amount:'סכום' };
+import { esc } from '../ui.js';
+import { nativePager, localDate } from './activity.js';
+export const reportFields={records:{name:'שם',email:'אימייל',status:'סטטוס',owner:'אחראי',amount:'סכום',date:'נוצר בתאריך'},activityRecords:{title:'כותרת',customer:'לקוח - שם',owner:'אחראי',type:'סוג',status:'סטטוס',start:'זמן התחלה',end:'זמן סיום'}};
+export function reportRows(state,report,filters) {
+ if(!report)return [];
+ let rows=state[report.source].map(r=>({...r,customer:state.records.find(x=>x.id===r.customer)?.name||''}));
+ for(const rule of report.filters||[]) {
+  const value=String(filters?.[rule.id]??rule.value??'');if(!value)continue;
+  rows=rows.filter(r=>{const v=String(r[rule.field]??'');return rule.operator==='eq'?v===value:rule.operator==='ne'?v!==value:v.includes(value);});
+ }
+ if(report.sort)rows.sort((a,b)=>String(a[report.sort]??'').localeCompare(String(b[report.sort]??''),'he',{numeric:true})*(report.desc?-1:1));
+ return rows;
+}
 export default function reports({state,ui}) {
- const result=ui.report;
- return `<form class="card" data-form="report"><h2>הרכבת הדוח</h2><p class="muted">בחרו עמודות וסינון, ואז הריצו תצוגה מקדימה.</p><div class="checks">${Object.entries(columns).map(([key,label])=>`<label><input type="checkbox" name="columns" value="${key}" ${ui.reportColumns.includes(key)?'checked':''}>${label}</label>`).join('')}</div><div class="toolbar"><label class="field"><span>סטטוס</span><select name="status">${options(['',...statuses],ui.reportStatus)}</select></label><button>הרצת דוח</button></div><p id="report-error" class="error" hidden>יש לבחור לפחות עמודה אחת.</p></form>${result?`<section class="card"><div class="toolbar"><h2 class="grow">תוצאות · ${result.rows.length} רשומות</h2><button class="outline" data-action="export-report">ייצוא CSV</button></div>${result.rows.length?`<div class="table-wrap"><table><thead><tr>${result.columns.map(k=>`<th>${columns[k]}</th>`).join('')}</tr></thead><tbody>${result.rows.map(r=>`<tr>${result.columns.map(k=>`<td>${k==='amount'?money(r[k]):esc(r[k])}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`:empty()}</section>`:empty('מוכנים לבנות דוח','התוצאות יופיעו לאחר הרצה.')}`;
+ const report=state.reports.find(r=>r.id===ui.reportId),fields=report?reportFields[report.source]:{},rows=reportRows(state,report,ui.reportFilters),pager=nativePager(rows.length,ui,'reports');
+ const menuGroup=shared=>state.reports.filter(r=>!!r.shared===shared).map(r=>`<button type="button" class="report-option" data-action="select-report" data-id="${esc(r.id)}">${esc(r.name)}</button>`).join('');
+ return `<form data-form="report-search" class="record-search report-search"><div class="report-chooser"><button type="button" class="report-heading" data-action="report-menu" aria-expanded="${!!ui.reportMenu}">${esc(report?.name||'שם הדו"ח')} ▾</button>${ui.reportMenu?`<div class="report-menu"><p>הדוחות שלי</p>${menuGroup(false)||'<small>לא נמצאו דוחות</small>'}<p>דוחות משותפים</p>${menuGroup(true)}<div class="report-menu-footer"><button type="button" data-action="new-report">＋ צור דוח חדש</button></div></div>`:''}</div>${report?.filters?.length?`<div class="search-grid report-filter-grid">${report.filters.map(r=>`<label class="field"><span>${esc(fields[r.field])} ${r.operator==='eq'?'שווה ל':r.operator==='ne'?'לא שווה ל':'מכיל'}</span><input name="${esc(r.id)}" value="${esc(ui.reportFilters?.[r.id]??r.value)}"></label>`).join('')}</div>`:''}<div class="search-actions"><button>חפש</button>${report?'<button type="button" class="quiet" data-action="edit-report">הגדרות דוח</button><button type="button" class="quiet" data-action="export-report">ייצוא CSV</button>':''}</div></form><section class="record-results report-results"><div class="table-wrap"><table><thead><tr>${report?report.columns.map(k=>`<th>${esc(report.labels?.[k]||fields[k])}</th>`).join(''):'<th class="empty-report-heading"><span class="sr-only">תוצאות הדוח</span></th>'}</tr></thead><tbody>${report?rows.slice((ui.reportsPage-1)*(ui.reportsSize||10),ui.reportsPage*(ui.reportsSize||10)).map(r=>`<tr>${report.columns.map(k=>`<td>${esc(['start','end'].includes(k)?localDate(r[k]):r[k])}</td>`).join('')}</tr>`).join('')||`<tr><td colspan="${report.columns.length}" class="native-empty">אין רשומות התואמות לחיתוך</td></tr>`:''}</tbody></table></div>${pager}</section>`;
 }

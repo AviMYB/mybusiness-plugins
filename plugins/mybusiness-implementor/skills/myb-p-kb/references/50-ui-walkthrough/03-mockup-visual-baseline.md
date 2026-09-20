@@ -2,7 +2,7 @@
 
 Last compared with the rendered CRM: **2026-09-20**, using an authorized demo account.
 Read-only inspection covered dashboard, customer list, customer record sheet, settings
-landing/detail, weekly calendar and pipeline. No live records were modified. Only sanitized
+landing/detail, weekly calendar, pipeline, business activities and report selection/configuration. No live records were modified. Only sanitized
 visual facts appear here; account identifiers, tenant URLs and captures remain private.
 
 ## Current CRM shell
@@ -43,6 +43,26 @@ unimplemented destinations. Gallery and pattern names are not native menu labels
   hourly lines, time labels on the right, pale-blue current-day column.
 - Pipeline: white columns in one outlined/shadowed board, headings and summaries above,
   compact white cards with an accent edge. Stages are configuration-dependent.
+
+## Activities and Reports
+
+- Activities is a business-record list, not the application's change log. A collapsible search
+  heading sits above seven fields: title, customer, type, status, owner, start from and start to.
+  Four columns on desktop; three fields in the second row. Table follows a generous gap:
+  title, customer name, owner, type, status, start time, edit/delete/duplicate actions; pager below.
+- New/edit activity uses a LEFT 70vw sheet, full height, navy header, two-column fields:
+  title/location, customer/contact, start/end, reminder, status/type, owner and extra users.
+  Save-and-close / save-and-edit actions sit at the bottom. Sample options are illustrative.
+- Reports opens with an underlined report-name dropdown, personal/shared report groups and
+  a create-report action, then Search, a navy-header result table and pager. With no selection,
+  the observed demo shows an empty table header; it is not an inline report builder.
+- Report settings is a centered modal, 1180px at the inspected 1920px viewport, about 90px
+  from the top. It has a 46px navy header, horizontal tabs, a large bordered content panel
+  and back/close/save footer. Settings has name/source/default fields; table columns uses
+  two tall transfer lists; filtering has field/operator/value rows and sort controls.
+- The live editor also exposes column configuration, calculated fields, sharing and scheduling.
+  The prototype implements only synthetic local reports, columns/labels, simple filters and
+  sorting. Advanced tabs are disabled with an explicit scope note. No live report was saved.
 
 ## Starter scope and remaining differences
 

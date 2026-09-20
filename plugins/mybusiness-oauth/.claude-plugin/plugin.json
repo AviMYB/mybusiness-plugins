@@ -1,7 +1,7 @@
 {
   "name": "mybusiness-oauth",
   "description": "MyBusiness CRM skills with bundled MCP and browser OAuth sign-in. Authenticate from Codex MCP settings. Includes interactive local mockup templates with synthetic data.",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "author": {
     "name": "MyBusiness CRM",
     "email": "support@mybusiness-crm.com",

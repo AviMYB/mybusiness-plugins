@@ -44,6 +44,10 @@ skill or prototype. Do not change the live tenant to make the comparison.
 
 Compare composition as well as color: header, menu, background, search grid, table density,
 record-card placement, tabs, settings navigation, calendar grid and dashboard columns.
+Confirm each destination's purpose: **Activities** is a business-activity list and card,
+not a local audit feed. **Reports** starts with a saved-report chooser and results table;
+configuration opens in a tabbed modal. Never put a generic concept behind a native menu
+item. Inspect that exact destination and its primary action, even if the shell was verified.
 Read `references/visual-fidelity-checklist.md`. Keep live screenshots as private task evidence;
 only sanitized measurements and public branding belong in reusable assets.
 
@@ -137,6 +141,10 @@ The application itself uses the product shell rather than the report-document la
 - These are browser-local simulations with invented data; no CRM writes or real integrations.
 - Core CRM geometry was compared with the live product on 2026-09-20. Module references
   remain historical; tenant configuration and later product changes require comparison.
+- Activities and Reports have verified composition with a local subset of actions. Reports
+  support two synthetic data sources, columns, labels, filters and sorting. Calculated fields,
+  sharing, scheduling and advanced reports are outside the demo. Activity reminders and
+  additional participants are stored form values only. The audit feed remains separate.
 - Original HTML references remain static and may need responsive adaptation before reuse.
 - Reset affects this prototype's storage key only. Private browsing or storage restrictions
   may prevent persistence; the app then reports that changes last for the current session.

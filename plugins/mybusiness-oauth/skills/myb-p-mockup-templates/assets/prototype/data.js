@@ -8,6 +8,8 @@ export function makeSeed() {
     settings: { notifications: true, owner: 'צוות 1', summary: false },
     document: { title: 'הצעת מחיר לדוגמה', discount: 0, rows: [{ name: 'שירות לדוגמה', quantity: 2, price: 450 }] },
     activities: [{ text: 'סביבת ההדגמה מוכנה', date: '2026-09-20T09:00:00' }],
+    activityRecords: [{id:'activity-demo-1',title:'פגישת היכרות לדוגמה',customer:'demo-1',contact:'',owner:'צוות 1',type:'פגישה',status:'נקבעה',start:'2026-09-23T10:00',end:'2026-09-23T11:00',location:'משרד לדוגמה',reminder:false,reminderTime:'בזמן',additionalUsers:''}],
+    reports: [{id:'report-demo-1',name:'לקוחות לדוגמה',source:'records',columns:['name','email','owner','status'],filters:[],labels:{},sort:'name',default:false,shared:false},{id:'report-demo-2',name:'פעילויות לדוגמה',source:'activityRecords',columns:['title','customer','owner','type','status','start'],filters:[],labels:{},sort:'start',default:false,shared:true}],
     imported: false,
     requests: []
   };

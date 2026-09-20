@@ -6,6 +6,8 @@ A working local app can still be the wrong mockup. Check interaction and visual 
    docs if a demo account exists. Never embed credentials in the public skill.
 2. Inspect list, record card and the relevant feature. Record viewport dimensions,
    computed styles and private screenshots. Read-only inspection is enough.
+   Verify each native destination independently, including the primary action. A verified
+   shell does not validate a substituted workflow or a renamed generic template.
 3. Compare at the SAME desktop viewport: white background, 71px header, 232px navy right menu,
    62px menu rows, 44px icon circles, pale title strip and real product wordmark.
 4. List: four-column search grid above navy table; no generic rounded wrapper card.
@@ -23,4 +25,10 @@ A working local app can still be the wrong mockup. Check interaction and visual 
    bundled baseline and explicitly mark the current match unverified.
 
 Never publish live screenshots, account identifiers, tenant URLs, actual records or exports.
+Activities: seven filters in a four-column grid; business-activity table with title, customer,
+owner, type, status, start and row actions; left 70vw sheet with two-column fields.
+Reports: report-name dropdown with personal/shared groups, search action, navy table and
+pager. Settings open in a centered modal, about 1180px at a 1920px viewport; navy header,
+horizontal tabs, field-transfer lists, filter rows and save/close footer. Do not substitute
+an inline checkbox builder. Keep unsupported advanced controls explicitly disabled.
 The baseline supports a visual shape, not a claim about an API or native workflow.

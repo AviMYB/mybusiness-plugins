@@ -7,9 +7,9 @@ export const catalog = [
   { id: 'wizard', title: 'אשף תהליך', group: 'ניהול', icon: 'flow', text: 'שלושה צעדים, בדיקות שדות, חזרה לאחור וסיכום לפני סיום.' },
   { id: 'document', title: 'עורך מסמך', group: 'ניהול', icon: 'document', text: 'שורות, כמויות, מחירים, הנחה וחישוב סכום מתעדכן.' },
   { id: 'inbox', title: 'תיבת שיחות', group: 'עבודה שוטפת', icon: 'chat', text: 'בחירת שיחה, חיפוש, טיוטה והוספת הודעה להדגמה.', source: 'mychat/mychat-conversations.html' },
-  { id: 'reports', title: 'בונה דוחות', group: 'תובנות ובקרה', icon: 'chart', text: 'בחירת עמודות, סינון, הרצה וייצוא CSV מקומי.' },
+  { id: 'reports', title: 'דוחות', group: 'תובנות ובקרה', icon: 'document', text: 'בורר דוחות, טבלת תוצאות ועורך דוח עם לשוניות, חיתוך וייצוא.' },
   { id: 'import', title: 'קליטה ובדיקת נתונים', group: 'ניהול', icon: 'upload', text: 'בדיקת קובץ פיקטיבי, טיפול בשגיאות וקליטת רשומות תקינות.' },
-  { id: 'activity', title: 'מרכז פעילות', group: 'תובנות ובקרה', icon: 'clock', text: 'ציר פעילות שנבנה מפעולות ההדגמה עם חיפוש.' },
+  { id: 'activity', title: 'פעילויות', group: 'תובנות ובקרה', icon: 'calendar', text: 'חיפוש פעילויות עסקיות, טבלה וכרטיס פעילות צדדי ליצירה ועריכה.' },
   { id: 'knowledge', title: 'מרכז ידע', group: 'ניהול', icon: 'book', text: 'חיפוש מדריכים, סינון נושאים ופתיחת תוכן לקריאה.' }
 ];
 export const classics = [
