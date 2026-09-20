@@ -27,7 +27,7 @@ No third variant. Install only one. OAuth discovery was checked; live sign-in st
 
 The plugin supplies skills; configure the personal MCP separately in Codex Settings. No custom window, Python or external vault is required. [Exact setup / הוראות מלאות](plugins/mybusiness-implementor/SETUP-CODEX.md). Upgrade the marketplace and reinstall to migrate from 1.2.0; existing personal MCP connections remain independent of the plugin.
 
-![AI agents](https://img.shields.io/badge/AI_agents-plugin-d97757) ![Agent Plugins](https://img.shields.io/badge/Agent_Plugins-1.0-24292e) ![version](https://img.shields.io/badge/version-1.3.0-007ec6) ![skills](https://img.shields.io/badge/skills-22-007ec6) ![ISO 27001](https://img.shields.io/badge/security-ISO_27001-2ea44f)
+![AI agents](https://img.shields.io/badge/AI_agents-plugin-d97757) ![Agent Plugins](https://img.shields.io/badge/Agent_Plugins-1.0-24292e) ![version](https://img.shields.io/badge/version-1.4.0-007ec6) ![skills](https://img.shields.io/badge/skills-23-007ec6) ![ISO 27001](https://img.shields.io/badge/security-ISO_27001-2ea44f)
 
 The official **[MyBusiness CRM](https://www.mybusiness.co.il)** plugin **for AI agents** — Claude Code, Codex, Claude Cowork, ChatGPT Work, Cursor, GitHub Copilot and the rest. MyBusiness is a Hebrew-first, Israeli business-management platform: CRM core (leads, accounts, sales, cases, tasks) plus the MyBooks (billing), MyCampaigns (marketing), MyChat (WhatsApp), MyCollege (courses) and TimeSheet modules.
 
@@ -60,13 +60,14 @@ Here the AI **does not write a system from scratch — it configures one on top 
 - **Your CRM connection:** in Codex, add a personal Custom MCP using built-in Settings. The plugin supplies skills and setup guidance. Claude retains its host-specific connection.
 - **No vendor lock-in** — the plugin is packaged twice in one folder: as a Claude Code plugin *and* as an [Agent Plugins 1.0](https://agent-plugins.org/specification) package, the open standard published 2026-08-06 by OpenAI with AWS, Cursor, GitHub, VS Code and Vercel. The same skills run in Codex, Cursor, GitHub Copilot, VS Code and Kiro.
 - **A product knowledge base** (`myb-p-kb`) — product capabilities, data model, known limitations, and the implementation methodology. Ask "can MyBusiness do X?" and get an answer from documentation, not guesswork.
-- **21 hands-on implementation skills** that plan and execute real configuration work on a live tenant through the official MyBusiness MCP server:
+- **Implementation and local-prototyping skills** that plan and execute real configuration work on a live tenant through the official MyBusiness MCP server:
 
 | Area | Skills |
 |---|---|
 | Getting connected | `myb-p-getting-started` (account, first login, Application Id + API key, verification, other clients) |
 | Knowledge & analysis | `myb-p-kb` · `myb-p-fit-gap` (requirements fit-gap analysis) |
 | Data model | `myb-p-create-entity` · `myb-p-multi-select-field` · `myb-p-parent-child-fields` · `myb-p-timestamp-field` · `myb-p-rename-terms` |
+| Local prototypes | `myb-p-mockup-templates` |
 | Pages & UI | `myb-p-page-builder` · `myb-p-page-tables` · `myb-p-create-settings-page` · `myb-p-dashboards` · `myb-p-create-update-reports` |
 | Automation | `myb-p-trigger-setup` · `myb-p-form-rules` · `myb-p-sla-configuration` |
 | Data & integrations | `myb-p-data-import` · `myb-p-web2lead-web2table` |
@@ -75,6 +76,11 @@ Here the AI **does not write a system from scratch — it configures one on top 
 | Users & access | `myb-p-users-roles-permissions` |
 
 Skills trigger in **both Hebrew and English**.
+
+
+## Interactive local mockups
+
+The `myb-p-mockup-templates` skill builds local, clickable prototypes with **12 interactive page patterns and 14 original visual references**. Lists, record forms, dashboards, boards, calendars, wizards, document editing, conversations, reports, import review, activity and help screens use invented data. Save, cancel, refresh and reset work in the browser; no CRM connection is required. Ask: "Build an interactive local mockup of this workflow."
 
 ## Getting started
 
@@ -133,7 +139,7 @@ plugins/mybusiness-implementor/
 ├── mcp.json                         Agent Plugins MCP config     ← other clients
 ├── .claude-plugin/plugin.json       Claude Code manifest (+ its two configuration fields)
 ├── .mcp.json                        Claude Code MCP config
-└── skills/                          22 skills, each a folder with SKILL.md + references/
+└── skills/                          23 skills, each a folder with SKILL.md + references/
 ```
 
 **One folder, two packaging formats.** The same plugin is both a Claude Code plugin and an

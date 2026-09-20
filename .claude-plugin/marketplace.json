@@ -9,12 +9,12 @@
     {
       "name": "mybusiness-oauth",
       "source": "./plugins/mybusiness-oauth",
-      "description": "MyBusiness — OAuth — Includes MCP. Sign in through the browser using Authenticate."
+      "description": "MyBusiness — OAuth — Includes MCP. Sign in through the browser using Authenticate. Includes interactive local mockups."
     },
     {
       "name": "mybusiness-implementor",
       "source": "./plugins/mybusiness-implementor",
-      "description": "MyBusiness — App ID וטוקן — Same skills. Codex currently requires a personal Custom MCP for App ID/API token entry; see setup guide."
+      "description": "MyBusiness — App ID וטוקן — Same skills. Codex currently requires a personal Custom MCP for App ID/API token entry; see setup guide. Includes interactive local mockups."
     }
   ]
 }

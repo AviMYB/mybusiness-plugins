@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<!-- TEMPLATE: record-card side modal (verified vs live Account card 2026-07-17):
+     navy modal header, form column (right) with 3-col grid + pill tabs, timeline column (left),
+     footer שמור וסגור/שמור (left) + עריכה (right). The list page shows dimmed behind. -->
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>תבנית — כרטיס רשומה (מודל צד)</title>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&family=Heebo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+<style>
+  :root{
+    --navy:#252C57;--navy2:#3D4993;--blue:#62A6FF;--info:#369BCD;
+    --border:#E8E8E8;--line:#F0F0F0;--strip:#F4F4F4;--muted:#8B93A8;
+    --red:#F44336;--softred:#F18483;--orange:#F5A623;--green:#4CAE4C;--purple:#6336BE;
+    --pencil:#00618C;--sel:#EAF1FF;--shadow:-4px 3px 13px 0 rgba(76,76,76,.1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Assistant',Arial,sans-serif;font-size:14px;color:#333;background:#5a5f78}
+  a{text-decoration:none;color:inherit} button{font-family:inherit;cursor:pointer}
+  /* dimmed backdrop stands in for the list page behind the modal */
+  .backdrop{position:fixed;inset:0;background:rgba(37,44,87,.45)}
+  /* ===== the side modal ===== */
+  .sidemodal{position:fixed;top:0;bottom:0;right:auto;left:0;width:82%;min-width:900px;background:#fff;display:flex;flex-direction:column;box-shadow:8px 0 30px rgba(0,0,0,.25)}
+  .smhead{background:var(--navy);color:#fff;padding:15px 24px;display:flex;align-items:center;justify-content:space-between}
+  .smhead .t{display:flex;align-items:center;gap:10px;font-family:'Heebo',sans-serif;font-size:22px}
+  .smhead .x{color:#fff;font-size:22px;background:none;border:none}
+  .smbody{flex:1;overflow:auto;display:flex;gap:0}
+  /* form column (right in RTL = first) */
+  .formcol{flex:1.35;padding:24px 28px;border-inline-end:1px solid var(--line)}
+  h2.section{font-family:'Heebo',sans-serif;font-size:20px;font-weight:600;color:var(--navy);margin-bottom:16px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px 22px}
+  .field label{display:block;font-size:13px;font-weight:600;color:var(--navy);margin-bottom:6px}
+  .field .req{color:var(--red)}
+  .field input,.field select{width:100%;height:42px;border:1px solid var(--border);border-radius:7px;padding:0 12px;font:inherit;color:var(--navy);background:#fff}
+  .chipsel{display:flex;align-items:center;gap:8px;height:42px;border:1px solid var(--border);border-radius:7px;padding:0 12px;color:var(--navy)}
+  .chipsel .x{color:var(--muted);font-size:13px}
+  .chipsel .fa-caret-down{margin-inline-start:auto;color:var(--muted)}
+  /* tabs */
+  .tabsrow{margin:24px 0 18px}
+  .tabs{display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:7px;flex-wrap:wrap}
+  .tabs a{padding:10px 18px;font-size:14px;color:var(--navy);border-inline-start:1px solid var(--line);white-space:nowrap}
+  .tabs a:first-child{border-inline-start:none}
+  .tabs a.on{background:var(--navy);color:#fff;border-radius:7px;font-weight:600;margin:-1px}
+  /* timeline column (left) */
+  .tlcol{flex:1;padding:24px 22px;background:#fff}
+  .tlhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+  .tlhead h3{font-family:'Heebo',sans-serif;font-size:20px;font-weight:600;color:var(--navy)}
+  .tlhead .actions{display:flex;gap:8px}
+  .btn{border:none;font-weight:600;font-size:13px;border-radius:6px;padding:8px 16px;display:inline-flex;align-items:center;gap:7px}
+  .btn-navy{background:var(--navy);color:#fff}
+  .btn-outline{background:#fff;color:var(--navy);border:1px solid var(--navy);border-radius:7px;padding:7px 13px}
+  .tl{position:relative;padding-inline-start:34px}
+  .tl::before{content:"";position:absolute;inset-inline-start:15px;top:6px;bottom:6px;width:2px;background:#E0E3F0}
+  .tlitem{position:relative;margin-bottom:16px}
+  .tlbadge{position:absolute;inset-inline-start:-34px;top:12px;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;z-index:1}
+  .b-acc{background:var(--navy2)} .b-task{background:var(--orange)} .b-sale{background:var(--purple)} .b-case{background:var(--info)}
+  .tlcard{background:#fff;border:1px solid #f0f0f0;border-radius:7px;box-shadow:var(--shadow);padding:12px 15px}
+  .tlcard .t{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+  .tlcard h4{font-family:'Heebo',sans-serif;font-size:15px;font-weight:600;color:var(--navy)}
+  .tlcard .menu{color:var(--muted)}
+  .tlcard .meta{font-size:12px;color:var(--muted);margin:3px 0 7px}
+  .tlcard .meta .fa{margin-inline-end:4px}
+  .tlcard p{font-size:13.5px;color:var(--navy)}
+  .tlcard .link{margin-top:8px;font-size:12.5px;color:var(--navy);font-weight:600}
+  .tlcard .link .fa{color:var(--blue);margin-inline-end:5px}
+  /* footer */
+  .smfoot{border-top:1px solid var(--border);padding:11px 24px;display:flex;gap:10px;align-items:center;background:#fff}
+  .smfoot .edit{margin-inline-start:auto;color:var(--navy);font-size:13.5px;font-weight:600}
+  .mocktag{position:fixed;bottom:12px;left:12px;background:var(--navy);color:#fff;font-size:11px;padding:4px 10px;border-radius:4px;opacity:.95;z-index:99}
+</style>
+</head>
+<body>
+
+  <div class="backdrop"></div>
+
+  <div class="sidemodal">
+    <div class="smhead">
+      <div class="t"><i class="fa fa-building-o"></i>{{ישות}}: {{שם הרשומה}}</div>
+      <button class="x">×</button>
+    </div>
+
+    <div class="smbody">
+
+      <!-- ===== FORM COLUMN (right) ===== -->
+      <div class="formcol">
+        <h2 class="section">{{פרטי הרשומה}}</h2>
+        <div class="grid3">
+          <div class="field"><label>{{שם}} <span class="req">*</span></label><input type="text" value="{{ערך}}"></div>
+          <div class="field"><label>{{אימייל}}</label><input type="text" value="{{ערך}}"></div>
+          <div class="field"><label>{{טלפון}}</label><input type="text" value="{{ערך}}"></div>
+          <div class="field"><label>{{שדה}}</label><input type="text" value="{{ערך}}"></div>
+          <div class="field"><label>{{שדה}}</label><input type="text" value="{{ערך}}"></div>
+          <div class="field"><label>{{בחירה}}</label><select><option>{{ערך}}</option></select></div>
+          <div class="field"><label>{{בחירה}}</label><select><option>{{ערך}}</option></select></div>
+          <div class="field"><label>{{סטאטוס}}</label><select><option>{{ערך}}</option></select></div>
+          <div class="field"><label>{{אחראי}}</label><div class="chipsel"><span class="x">×</span> {{משתמש}} <i class="fa fa-caret-down"></i></div></div>
+        </div>
+
+        <div class="tabsrow">
+          <div class="tabs">
+            <a href="#" class="on">{{טאב פעיל}}</a>
+            <a href="#">{{טאב}}</a>
+            <a href="#">{{טאב}}</a>
+            <a href="#">{{טאב}}</a>
+            <a href="#">{{טאב}}</a>
+          </div>
+        </div>
+
+        <h2 class="section">{{כותרת הטאב הפעיל}}</h2>
+        <div class="grid3">
+          <div class="field"><label>{{שדה}}</label><input type="text" value="{{ערך}}"></div>
+          <div class="field"><label>{{שדה}}</label><input type="text"></div>
+          <div class="field"><label>{{שדה}}</label><input type="text" value="{{ערך}}"></div>
+        </div>
+      </div>
+
+      <!-- ===== TIMELINE COLUMN (left) ===== -->
+      <div class="tlcol">
+        <div class="tlhead">
+          <h3>ציר הזמן</h3>
+          <div class="actions">
+            <button class="btn btn-navy"><i class="fa fa-plus"></i> הוסף חדש</button>
+            <button class="btn btn-outline">סינון <i class="fa fa-caret-down"></i></button>
+          </div>
+        </div>
+        <div class="tl">
+          <div class="tlitem">
+            <span class="tlbadge b-acc"><i class="fa fa-building-o"></i></span>
+            <div class="tlcard">
+              <div class="t"><h4>{{אירוע — לקוח עודכן}}</h4><span class="menu">...</span></div>
+              <div class="meta"><i class="fa fa-clock-o"></i>17/07/2026, 15:15 · על ידי {{משתמש}}</div>
+              <p>{{תיאור קצר}}</p>
+              <div class="link"><i class="fa fa-building-o"></i>{{רשומה מקושרת}}</div>
+            </div>
+          </div>
+          <div class="tlitem">
+            <span class="tlbadge b-task"><i class="fa fa-th-list"></i></span>
+            <div class="tlcard">
+              <div class="t"><h4>{{אירוע — משימה נוצרה}}</h4><span class="menu">...</span></div>
+              <div class="meta"><i class="fa fa-clock-o"></i>17/07/2026, 15:15 · על ידי {{משתמש}}</div>
+              <p>{{סוג: שיחת טלפון | תאריך: 18/07/2026}}</p>
+              <div class="link"><i class="fa fa-building-o"></i>{{רשומה מקושרת}}</div>
+            </div>
+          </div>
+          <div class="tlitem">
+            <span class="tlbadge b-sale"><i class="fa fa-handshake-o"></i></span>
+            <div class="tlcard">
+              <div class="t"><h4>{{אירוע — מכירה נוצרה}}</h4><span class="menu">...</span></div>
+              <div class="meta"><i class="fa fa-clock-o"></i>17/07/2026, 15:15 · על ידי {{משתמש}}</div>
+              <p>{{שם: ... | סכום: ...}}</p>
+            </div>
+          </div>
+          <div class="tlitem">
+            <span class="tlbadge b-case"><i class="fa fa-headphones"></i></span>
+            <div class="tlcard">
+              <div class="t"><h4>{{אירוע — פניה נוצרה}}</h4><span class="menu">...</span></div>
+              <div class="meta"><i class="fa fa-clock-o"></i>17/07/2026, 15:15 · על ידי {{משתמש}}</div>
+              <p>{{סוג | עדיפות | סטאטוס}}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="smfoot">
+      <button class="btn btn-navy"><i class="fa fa-check"></i> שמור וסגור</button>
+      <button class="btn btn-outline"><i class="fa fa-floppy-o"></i> שמור</button>
+      <a class="edit" href="#"><i class="fa fa-wrench"></i> עריכה</a>
+    </div>
+  </div>
+
+  <div class="mocktag">מוקאפ — אינו מסך חי</div>
+</body>
+</html>

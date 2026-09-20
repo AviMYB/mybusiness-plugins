@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<!-- TEMPLATE: MyBooks מבט-על dashboard (verified vs live apps/mybooks/Dashboard 2026-07-17).
+     MODULE chrome: dark-navy top bar with white module logo; WHITE side menu with small blue icons;
+     blue page title; underline date inputs; KPI cards; empty-state cards; plain-header tables. -->
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>תבנית — MyBooks מבט-על</title>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&family=Heebo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+<style>
+  :root{
+    --modnavy:#132458;--navy:#252C57;--mblue:#2263C4;--icoblue:#2F80D0;
+    --border:#E3E5EC;--muted:#8B93A8;--text:#39404F;
+    --red:#F44336;--orange:#F5A623;--green:#4CAE4C;
+    --shadow:0 1px 4px rgba(40,50,80,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Assistant',Arial,sans-serif;font-size:14px;color:var(--text);background:#fff}
+  a{text-decoration:none;color:inherit} button{font-family:inherit;cursor:pointer}
+  /* module top bar (dark navy, white logo) */
+  .topbar{height:70px;background:var(--modnavy);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 26px}
+  .brand{direction:ltr;display:flex;align-items:center;gap:8px;font-family:'Heebo',sans-serif;font-weight:700;font-size:26px;letter-spacing:.2px}
+  .brand .fa{font-size:24px}
+  .topcluster{display:flex;align-items:center;gap:22px}
+  .topcluster .fa{font-size:20px;color:#fff}
+  .topcluster .wa{color:#25D366;font-size:24px}
+  .userchip{font-size:14px;font-weight:600}
+  .app{display:flex;align-items:stretch;min-height:calc(100vh - 70px)}
+  /* WHITE module side menu */
+  .sidemenu{width:170px;flex:none;background:#FBFBFD;border-inline-start:1px solid var(--border);padding:10px 0;display:flex;flex-direction:column}
+  .sidemenu a{display:flex;align-items:center;justify-content:flex-start;gap:9px;padding:12px 16px;color:#2B3A63;font-size:13.5px}
+  .sidemenu a .fa{color:var(--icoblue);font-size:15px;width:18px;text-align:center}
+  .sidemenu a.cur{background:#EEF0F5;font-weight:700}
+  .sidemenu .split{margin:14px 18px;border-top:1px solid var(--border);position:relative}
+  .sidemenu .split i{position:absolute;top:-11px;inset-inline-end:-6px;width:22px;height:22px;border:1px solid var(--border);border-radius:50%;background:#fff;color:#9AA3B5;font-size:11px;display:flex;align-items:center;justify-content:center}
+  .content{flex:1;min-width:0;padding:24px 30px}
+  /* blue page title + underline date filters */
+  .ptitle{display:flex;align-items:center;gap:9px;color:var(--mblue);font-family:'Heebo',sans-serif;font-size:24px;font-weight:600;margin-bottom:14px}
+  .filters{display:flex;align-items:flex-end;gap:34px;margin-bottom:22px;flex-wrap:wrap}
+  .uf{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:13.5px}
+  .uf input{border:none;border-bottom:1px solid #9AA3B5;background:transparent;font:inherit;font-size:15px;color:var(--text);padding:2px 4px;width:150px}
+  .btn-out{background:#fff;border:1px solid #C6CBDA;border-radius:4px;color:var(--text);font-size:13.5px;padding:7px 22px}
+  /* cards */
+  .grid{display:grid;grid-template-columns:1fr 1.6fr 1.6fr;gap:20px;margin-bottom:22px;align-items:stretch}
+  .card{background:#fff;border:1px solid var(--border);border-radius:6px;box-shadow:var(--shadow)}
+  .card .t{font-size:15.5px;font-weight:700;color:#2B3A63;padding:14px 18px 10px;border-bottom:1px solid var(--border);text-align:right}
+  .kpi{padding:10px 18px 16px;text-align:center}
+  .kpi .fa{font-size:34px;color:var(--icoblue);display:block;margin:10px auto 6px}
+  .kpi .num{font-family:'Heebo',sans-serif;font-size:30px;color:#2B3A63}
+  .empty{padding:26px 10px;text-align:center;color:var(--muted);font-size:13px}
+  .empty .fa{display:block;font-size:56px;color:#BFD6F2;margin:12px auto 2px}
+  /* plain table (no navy header) */
+  .ptbl{width:100%;border-collapse:collapse;font-size:13.5px}
+  .ptbl th{color:#5A6478;font-weight:600;text-align:right;padding:11px 14px;border-bottom:1px solid var(--border);white-space:nowrap}
+  .ptbl th .fa{font-size:10px;margin-inline-start:5px;color:#9AA3B5}
+  .ptbl td{padding:10px 14px;border-bottom:1px solid #F0F1F5;color:var(--text)}
+  .rows2{display:grid;grid-template-columns:1.6fr 1fr;gap:20px}
+  .mocktag{position:fixed;bottom:12px;left:12px;background:var(--modnavy);color:#fff;font-size:11px;padding:4px 10px;border-radius:4px;opacity:.85;z-index:99}
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="brand"><i class="fa fa-th-large"></i>mybooks</div>
+    <div class="topcluster">
+      <i class="fa fa-envelope-o"></i>
+      <i class="fa fa-whatsapp wa"></i>
+      <i class="fa fa-bell-o"></i>
+      <i class="fa fa-th"></i>
+      <div class="userchip">mb <i class="fa fa-caret-down"></i></div>
+    </div>
+  </div>
+
+  <div class="app">
+    <aside class="sidemenu">
+      <a href="#" class="cur"><i class="fa fa-bar-chart"></i>מבט על</a>
+      <a href="#"><i class="fa fa-address-book-o"></i>לקוחות</a>
+      <a href="#"><i class="fa fa-file-text-o"></i>מסמכי הנהח"ש</a>
+      <a href="#"><i class="fa fa-money"></i>גבייה</a>
+      <a href="#"><i class="fa fa-refresh"></i>חיוב ריטיינר</a>
+      <a href="#"><i class="fa fa-credit-card"></i>דפי תשלום</a>
+      <a href="#"><i class="fa fa-folder-open-o"></i>דוחות <i class="fa fa-caret-down" style="width:auto;color:#9AA3B5"></i></a>
+      <a href="#"><i class="fa fa-cogs"></i>הגדרות</a>
+      <a href="#"><i class="fa fa-question-circle-o"></i>עזרה</a>
+      <a href="#"><i class="fa fa-paper-plane-o"></i>שיווק</a>
+      <div class="split"><i class="fa fa-chevron-left"></i></div>
+    </aside>
+
+    <div class="content">
+      <!-- ===== CONTENT ===== -->
+      <div class="ptitle"><i class="fa fa-bar-chart"></i>מבט על</div>
+
+      <div class="filters">
+        <span class="uf">מתאריך <input type="date" value="2026-06-17"></span>
+        <span class="uf">עד תאריך <input type="date" value="2026-07-17"></span>
+        <button class="btn-out">החל</button>
+      </div>
+
+      <div class="grid">
+        <div>
+          <div class="card" style="margin-bottom:20px">
+            <div class="t">{{סה"כ הכנסות בתקופה (ללא מע"מ)}}</div>
+            <div class="kpi"><i class="fa fa-hand-holding-usd fa-money"></i><span class="num">0 <small>₪</small></span></div>
+          </div>
+          <div class="card">
+            <div class="t">{{סה"כ תקבולים בתקופה}}</div>
+            <div class="kpi"><i class="fa fa-file-text-o"></i><span class="num">0 <small>₪</small></span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="t">{{חשבוניות לפי חודש בתקופה (ללא מע"מ)}}</div>
+          <div class="empty"><i class="fa fa-bar-chart"></i>לא נמצאו תוצאות</div>
+        </div>
+        <div class="card">
+          <div class="t">{{הכנסות לפי מוצר בתקופה}}</div>
+          <div class="empty"><i class="fa fa-bar-chart"></i>לא נמצאו תוצאות</div>
+        </div>
+      </div>
+
+      <div class="rows2">
+        <div class="card">
+          <div class="t">{{חשבוניות אחרונות}}</div>
+          <table class="ptbl">
+            <thead><tr><th>מספר מסמך</th><th>סוג מסמך</th><th>לקוח</th><th>תאריך הפקה</th><th>סכום לפני מע"מ <i class="fa fa-caret-down"></i></th><th>מסמך</th></tr></thead>
+            <tbody>
+              <tr><td>{{1001}}</td><td>{{חשבונית מס}}</td><td>{{לקוח}}</td><td>17/07/2026</td><td>1,200</td><td><i class="fa fa-file-pdf-o" style="color:var(--icoblue)"></i></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <div class="t">{{קבלות אחרונות}}</div>
+          <table class="ptbl">
+            <thead><tr><th>מספר מסמך</th><th>לקוח</th><th>תאריך הפקה</th><th>סכום <i class="fa fa-caret-down"></i></th><th>מסמך</th></tr></thead>
+            <tbody>
+              <tr><td>{{2001}}</td><td>{{לקוח}}</td><td>17/07/2026</td><td>950</td><td><i class="fa fa-file-pdf-o" style="color:var(--icoblue)"></i></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <!-- ===== /CONTENT ===== -->
+    </div>
+  </div>
+
+  <div class="mocktag">מוקאפ — אינו מסך חי</div>
+</body>
+</html>

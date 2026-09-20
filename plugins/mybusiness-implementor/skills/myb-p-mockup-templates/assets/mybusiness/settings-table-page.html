@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<!-- TEMPLATE: System-Tables-style settings page (verified vs live demo 2026-07-17).
+     Replace content between CONTENT markers. Keep the chrome. -->
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>תבנית — מסך הגדרות (System-Tables)</title>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&family=Heebo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+<style>
+  :root{
+    --navy:#252C57;--navy2:#3D4993;--blue:#62A6FF;--info:#369BCD;
+    --border:#E8E8E8;--line:#F0F0F0;--strip:#F4F4F4;--muted:#8B93A8;
+    --red:#F44336;--softred:#F18483;--orange:#F5A623;--green:#4CAE4C;--purple:#6336BE;
+    --pencil:#00618C;--sel:#EAF1FF;--shadow:-4px 3px 13px 0 rgba(76,76,76,.1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Assistant',Arial,sans-serif;font-size:14px;color:#333;background:#fff}
+  a{text-decoration:none;color:inherit} button{font-family:inherit;cursor:pointer}
+  .topbar{height:64px;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+  .brand{direction:ltr;display:flex;align-items:center;gap:9px;font-family:'Heebo',sans-serif;font-weight:700;font-size:21px;color:var(--navy)}
+  .brand .fa{color:var(--info);font-size:25px}
+  .brand b{color:var(--info);font-weight:700}
+  .topcluster{display:flex;align-items:center;gap:20px;color:var(--navy)}
+  .topcluster > .fa{font-size:20px;cursor:pointer}
+  .userchip{font-size:13px;font-weight:600;text-align:center;line-height:1.15;cursor:pointer}
+  .app{display:flex;align-items:stretch;min-height:calc(100vh - 64px)}
+  .sidemenu{width:232px;flex:none;background:var(--navy);display:flex;flex-direction:column;padding:12px 0 10px}
+  .sidemenu a{display:flex;align-items:center;justify-content:flex-start;gap:13px;height:62px;padding:0 20px 0 25px;color:#fff;font-size:13px}
+  .sidemenu a .circ{width:44px;height:44px;border-radius:50%;background:var(--navy2);display:flex;align-items:center;justify-content:center;font-size:17px;color:#fff;flex:none}
+  .sidemenu a.cur .circ{background:var(--blue)}
+  .sidemenu .collapse{margin-top:auto;padding:16px 26px;color:#fff;font-size:20px}
+  .content{flex:1;min-width:0;display:flex;flex-direction:column}
+  .pagehead{background:var(--strip);display:flex;align-items:center;justify-content:space-between;padding:13px 22px}
+  .pagehead .t{display:flex;align-items:center;gap:11px;color:var(--navy)}
+  .pagehead .t .fa{font-size:22px}
+  .pagehead h2{font-family:'Heebo',sans-serif;font-size:24px;font-weight:600;color:var(--navy)}
+  .btn{border:none;font-weight:600;font-size:13px;border-radius:6px;padding:8px 18px;display:inline-flex;align-items:center;gap:8px}
+  .btn-navy{background:var(--navy);color:#fff}
+  .btn-outline{background:#fff;color:var(--navy);border:1px solid var(--navy);border-radius:7px;padding:7px 14px}
+  .card{background:#fff;border:1px solid #f0f0f0;border-radius:7px;box-shadow:var(--shadow)}
+  .band{background:var(--strip);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;border-radius:7px 7px 0 0}
+  .band h3{font-family:'Heebo',sans-serif;font-size:18px;font-weight:500;color:var(--navy)}
+  .tbl{width:100%;border-collapse:collapse;font-size:14px}
+  .tbl th{background:var(--navy);color:#fff;font-weight:700;padding:14px 15px;text-align:right;white-space:nowrap}
+  .tbl td{padding:12px 15px;color:var(--navy);border-bottom:1px solid var(--line);vertical-align:middle}
+  .tbl tbody tr:hover td{background:#F8F9FC}
+  .act{display:flex;gap:16px;align-items:center}
+  .act .fa-pencil{color:var(--pencil);font-size:16px}
+  .act .fa-trash-o{color:var(--softred);font-size:16px}
+  .pager{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;font-size:13.5px}
+  .pager .grp{display:flex;gap:6px;align-items:center}
+  .pgbox{min-width:34px;height:30px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:4px;padding:0 8px;color:#333}
+  .pgbox.on{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:700}
+  .settings-wrap{display:flex;gap:22px;padding:24px 22px;align-items:flex-start}
+  .setnav{width:242px;flex:none;background:#fff;border:1px solid #f0f0f0;border-radius:7px;box-shadow:var(--shadow);padding:8px 0}
+  .setnav a{display:block;padding:10px 18px;font-size:13.5px;color:var(--navy)}
+  .setnav a.cur{background:var(--sel);font-weight:700}
+  .settings-main{flex:1;min-width:0;max-width:980px}
+  .backrow{margin-bottom:16px}
+  .mocktag{position:fixed;bottom:12px;left:12px;background:var(--navy);color:#fff;font-size:11px;padding:4px 10px;border-radius:4px;opacity:.85;z-index:99}
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="brand"><i class="fa fa-cubes"></i>MyBusiness <b>CRM</b></div>
+    <div class="topcluster">
+      <i class="fa fa-bell-o"></i>
+      <i class="fa fa-th"></i>
+      <div class="userchip">הדגמה <i class="fa fa-caret-down"></i><br>משתמש לדוגמה</div>
+    </div>
+  </div>
+
+  <div class="app">
+    <aside class="sidemenu">
+      <a href="#"><span class="circ"><i class="fa fa-bar-chart"></i></span><span>מבט-על</span> <i class="fa fa-caret-down" style="font-size:11px"></i></a>
+      <a href="#"><span class="circ"><i class="fa fa-search"></i></span><span>חיפוש לקוחות ולידים</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-bullhorn"></i></span><span>לידים</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-building"></i></span><span>לקוחות</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-user"></i></span><span>אנשי קשר</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-th-list"></i></span><span>משימות</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-calendar"></i></span><span>יומן</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-briefcase"></i></span><span>פעילויות</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-handshake-o"></i></span><span>מכירות</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-headphones"></i></span><span>פניות</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-file-text-o"></i></span><span>דוחות</span></a>
+      <a href="#" class="cur"><span class="circ"><i class="fa fa-cog"></i></span><span>הגדרות</span></a>
+      <div class="collapse"><i class="fa fa-arrow-left"></i></div>
+    </aside>
+
+    <div class="content">
+      <div class="pagehead">
+        <div class="t"><i class="fa fa-cog"></i><h2>הגדרות {{אזור}}</h2></div>
+      </div>
+
+      <!-- ===== CONTENT ===== -->
+      <div class="settings-wrap">
+
+        <nav class="setnav">
+          <a href="#">{{פריט הגדרות 1}}</a>
+          <a href="#">{{פריט הגדרות 2}}</a>
+          <a href="#" class="cur">{{הפריט הנוכחי}}</a>
+          <a href="#">{{פריט הגדרות 4}}</a>
+        </nav>
+
+        <div class="settings-main">
+          <div class="backrow"><a class="btn btn-outline" href="#">‹ חזרה להגדרות</a></div>
+
+          <div class="card">
+            <div class="band">
+              <h3>{{כותרת הטבלה}}</h3>
+              <button class="btn btn-navy"><i class="fa fa-plus"></i> הוסף ערך</button>
+            </div>
+            <table class="tbl">
+              <thead>
+                <tr><th>{{עמודה ראשית}}</th><th>{{עמודה נוספת}}</th><th style="width:120px">עריכה</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>{{ערך 1}}</td><td>{{נתון}}</td><td><span class="act"><i class="fa fa-pencil"></i><i class="fa fa-trash-o"></i></span></td></tr>
+                <tr><td>{{ערך 2}}</td><td>{{נתון}}</td><td><span class="act"><i class="fa fa-pencil"></i><i class="fa fa-trash-o"></i></span></td></tr>
+                <tr><td>{{ערך 3}}</td><td>{{נתון}}</td><td><span class="act"><i class="fa fa-pencil"></i><i class="fa fa-trash-o"></i></span></td></tr>
+              </tbody>
+            </table>
+            <div class="pager">
+              <div class="grp"><a class="pgbox on" href="#">10</a><a class="pgbox" href="#">25</a><a class="pgbox" href="#">50</a><a class="pgbox" href="#">100</a></div>
+              <div class="grp"><a class="pgbox" href="#">«</a><a class="pgbox on" href="#">1</a><a class="pgbox" href="#">»</a></div>
+              <div>מספר רשומות: <b>3</b></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <!-- ===== /CONTENT ===== -->
+    </div>
+  </div>
+
+  <div class="mocktag">מוקאפ — אינו מסך חי</div>
+</body>
+</html>

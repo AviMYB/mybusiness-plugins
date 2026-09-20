@@ -1,0 +1,6 @@
+import { esc, empty } from '../ui.js';
+export default function inbox({state,ui}) {
+ const conversations=state.messages.filter(c=>c.title.includes(ui.inboxQuery));
+ const selected=state.messages.find(c=>c.id===ui.conversation)||state.messages[0];
+ return `<section class="card inbox"><aside class="conversation-list"><label class="field"><span>חיפוש שיחה</span><input id="inbox-query" data-field="inboxQuery" value="${esc(ui.inboxQuery)}"></label>${conversations.map(c=>`<button data-action="conversation" data-id="${c.id}" class="${selected.id===c.id?'active':''}">${esc(c.title)} ${c.unread?'· חדשה':''}</button>`).join('')||'<p class="muted">אין שיחות תואמות.</p>'}</aside><div class="chat-pane"><h2>${esc(selected.title)}</h2><p class="muted">התכתבות לדוגמה · ההודעה נשארת בהדגמה</p><div class="messages">${selected.messages.map(m=>`<div class="bubble ${m.direction==='out'?'out':''}">${esc(m.text)}</div>`).join('')}</div><form class="composer" data-form="message"><label class="field"><span>הודעה</span><textarea id="message-draft" name="message" data-field="messageDraft" required maxlength="1000" placeholder="כתבו הודעה לדוגמה">${esc(ui.drafts[selected.id]||'')}</textarea></label><button>הוספה לשיחה</button></form></div></section>`;
+}

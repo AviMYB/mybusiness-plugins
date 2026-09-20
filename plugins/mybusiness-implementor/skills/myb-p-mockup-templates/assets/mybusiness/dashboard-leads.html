@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<!-- TEMPLATE: leads-report dashboard (verified vs live DashboardLeads 2026-07-17):
+     head strip with INLINE date/brand filter + הפעל; colored-circle KPI tiles; amCharts-style FUNNEL card;
+     pivot tables (status columns x user/campaign rows). -->
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>תבנית — דאשבורד לידים (משפך + פיבוט)</title>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&family=Heebo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+<style>
+  :root{
+    --navy:#252C57;--navy2:#3D4993;--blue:#62A6FF;--info:#369BCD;
+    --border:#E8E8E8;--line:#F0F0F0;--strip:#F4F4F4;--muted:#8B93A8;
+    --red:#F44336;--softred:#F18483;--orange:#F5A623;--green:#4CAE4C;--purple:#6336BE;
+    --pencil:#00618C;--sel:#EAF1FF;--shadow:-4px 3px 13px 0 rgba(76,76,76,.1);
+    --cyan:#29C5F6;--magenta:#D6219C;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Assistant',Arial,sans-serif;font-size:14px;color:#333;background:#fff}
+  a{text-decoration:none;color:inherit} button{font-family:inherit;cursor:pointer}
+  .topbar{height:64px;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+  .brand{direction:ltr;display:flex;align-items:center;gap:9px;font-family:'Heebo',sans-serif;font-weight:700;font-size:21px;color:var(--navy)}
+  .brand .fa{color:var(--info);font-size:25px}
+  .brand b{color:var(--info)}
+  .topcluster{display:flex;align-items:center;gap:20px;color:var(--navy)}
+  .topcluster > .fa{font-size:20px}
+  .userchip{font-size:13px;font-weight:600;text-align:center;line-height:1.15}
+  .app{display:flex;align-items:stretch;min-height:calc(100vh - 64px)}
+  .sidemenu{width:232px;flex:none;background:var(--navy);display:flex;flex-direction:column;padding:12px 0 10px}
+  .sidemenu a{display:flex;align-items:center;gap:13px;height:62px;padding:0 20px 0 25px;color:#fff;font-size:13px}
+  .sidemenu a .circ{width:44px;height:44px;border-radius:50%;background:var(--navy2);display:flex;align-items:center;justify-content:center;font-size:17px;color:#fff;flex:none}
+  .sidemenu a.cur .circ{background:var(--blue)}
+  .sidemenu .collapse{margin-top:auto;padding:16px 26px;color:#fff;font-size:20px}
+  .content{flex:1;min-width:0;display:flex;flex-direction:column}
+  /* head strip WITH inline filters (the DashboardLeads pattern) */
+  .pagehead{background:var(--strip);display:flex;align-items:center;justify-content:space-between;padding:13px 22px;gap:18px;flex-wrap:wrap}
+  .pagehead .t{display:flex;align-items:center;gap:11px;color:var(--navy)}
+  .pagehead .t .fa{font-size:22px}
+  .pagehead h2{font-family:'Heebo',sans-serif;font-size:24px;font-weight:600;color:var(--navy)}
+  .headfilters{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap}
+  .hfield label{display:block;font-size:12.5px;font-weight:600;color:var(--navy);margin-bottom:4px}
+  .hfield input,.hfield select{height:38px;border:1px solid var(--border);border-radius:7px;padding:0 10px;font:inherit;color:var(--navy);background:#fff;width:160px}
+  .btn{border:none;font-weight:600;font-size:13px;border-radius:6px;padding:9px 20px;display:inline-flex;align-items:center;gap:8px}
+  .btn-navy{background:var(--navy);color:#fff}
+  .dashwrap{padding:20px 22px;max-width:1400px}
+  .card{background:#fff;border:1px solid #f0f0f0;border-radius:7px;box-shadow:var(--shadow);margin-bottom:18px}
+  .band{background:#fff;padding:14px 20px 6px;display:flex;align-items:center;justify-content:space-between}
+  .band h3{font-family:'Heebo',sans-serif;font-size:17px;font-weight:600;color:var(--navy)}
+  .bd{padding:16px 20px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:stretch}
+  /* KPI tile with colored circle icon (DashboardLeads pattern) */
+  .kpic{background:#fff;border:1px solid #f0f0f0;border-radius:7px;box-shadow:var(--shadow);padding:22px 24px;display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:18px}
+  .kpic .num{font-family:'Heebo',sans-serif;font-size:40px;font-weight:400;color:var(--navy)}
+  .kpic .lbl{flex:1;font-size:14.5px;color:var(--navy);text-align:left;padding-inline-end:8px;text-align:end}
+  .kpic .cc{width:74px;height:74px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:28px;flex:none}
+  .kpic.sm{padding:16px 20px}
+  .kpic.sm .num{font-size:32px}
+  .kpic.sm .cc{width:56px;height:56px;font-size:22px}
+  .cc.g{background:var(--green)} .cc.r{background:var(--red)} .cc.p{background:var(--purple)}
+  .cc.gr{background:#9AA3B5} .cc.lg{background:#8BC98B}
+  .kpis3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:18px}
+  .kpis3 .kpic{margin-bottom:0}
+  /* funnel (amCharts style approximation) */
+  .funnel{direction:ltr;position:relative;height:250px;margin:10px 8px 0;display:flex;align-items:center}
+  .funnel .seg{position:absolute;top:50%;transform:translateY(-50%)}
+  .fx{direction:ltr;display:flex;justify-content:space-between;padding:8px 8px 4px;border-top:1px solid #EEF0F6;margin:0 8px}
+  .fx span{width:25%;text-align:center;font-size:13px;color:#6B7280}
+  .wm{font-size:10.5px;color:#C3C8DA;padding:6px 10px 0}
+  /* pivot table */
+  .tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+  .tbl th{background:var(--navy);color:#fff;font-weight:700;padding:11px 12px;text-align:right;white-space:nowrap}
+  .tbl td{padding:10px 12px;color:var(--navy);border-bottom:1px solid var(--line);vertical-align:middle}
+  .tbl tbody tr:hover td{background:#F8F9FC}
+  .mocktag{position:fixed;bottom:12px;left:12px;background:var(--navy);color:#fff;font-size:11px;padding:4px 10px;border-radius:4px;opacity:.85;z-index:99}
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="brand"><i class="fa fa-cubes"></i>MyBusiness <b>CRM</b></div>
+    <div class="topcluster">
+      <i class="fa fa-bell-o"></i>
+      <i class="fa fa-th"></i>
+      <div class="userchip">הדגמה <i class="fa fa-caret-down"></i><br>משתמש לדוגמה</div>
+    </div>
+  </div>
+
+  <div class="app">
+    <aside class="sidemenu">
+      <a href="#" class="cur"><span class="circ"><i class="fa fa-bar-chart"></i></span><span>מבט-על</span> <i class="fa fa-caret-down" style="font-size:11px"></i></a>
+      <a href="#"><span class="circ"><i class="fa fa-search"></i></span><span>חיפוש לקוחות ולידים</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-bullhorn"></i></span><span>לידים</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-building"></i></span><span>לקוחות</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-user"></i></span><span>אנשי קשר</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-th-list"></i></span><span>משימות</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-calendar"></i></span><span>יומן</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-briefcase"></i></span><span>פעילויות</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-handshake-o"></i></span><span>מכירות</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-headphones"></i></span><span>פניות</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-file-text-o"></i></span><span>דוחות</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-cog"></i></span><span>הגדרות</span></a>
+      <div class="collapse"><i class="fa fa-arrow-left"></i></div>
+    </aside>
+
+    <div class="content">
+      <div class="pagehead">
+        <div class="t"><i class="fa fa-bar-chart"></i><h2>{{דוחות לידים}}</h2></div>
+        <div class="headfilters">
+          <div class="hfield"><label>מתאריך</label><input type="date" value="2026-06-17"></div>
+          <div class="hfield"><label>עד תאריך</label><input type="date" value="2026-07-17"></div>
+          <div class="hfield"><label>{{מותג}}</label><select><option></option></select></div>
+          <button class="btn btn-navy">הפעל</button>
+        </div>
+      </div>
+
+      <!-- ===== CONTENT ===== -->
+      <div class="dashwrap">
+
+        <div class="row2">
+          <!-- funnel card -->
+          <div class="card">
+            <div class="band"><h3>{{משפך לידים בתאריכים נבחרים}}</h3></div>
+            <div class="wm">JS chart by amCharts</div>
+            <div class="funnel">
+              <div class="seg" style="inset-inline-start:2%;width:24%;height:210px;background:#123B73"></div>
+              <div class="seg" style="inset-inline-start:26%;width:24%;height:0;border-top:105px solid transparent;border-bottom:105px solid transparent;border-inline-start:none;border-inline-end:0;background:none">
+                <span style="position:absolute;inset:0;display:block;background:var(--cyan);clip-path:polygon(0 0,100% 34%,100% 66%,0 100%);height:210px;top:-105px"></span>
+              </div>
+              <div class="seg" style="inset-inline-start:50%;width:24%;height:210px">
+                <span style="position:absolute;inset:0;display:block;background:var(--purple);clip-path:polygon(0 34%,100% 42%,100% 58%,0 66%)"></span>
+              </div>
+              <div class="seg" style="inset-inline-start:74%;width:24%;height:210px">
+                <span style="position:absolute;inset:0;display:block;background:var(--magenta);clip-path:polygon(0 42%,100% 50%,0 58%)"></span>
+              </div>
+            </div>
+            <div class="fx"><span>{{נכנסו}}</span><span>{{תקינים}}</span><span>{{בטיפול}}</span><span>{{הצליחו}}</span></div>
+            <div style="height:12px"></div>
+          </div>
+
+          <!-- big thumbs KPI card -->
+          <div style="display:flex;flex-direction:column;gap:0">
+            <div class="kpic">
+              <div class="num">2</div>
+              <div class="lbl">{{לידים/ לקוחות שנכנסו בתאריכים נבחרים והפכו לפעילים}}</div>
+              <div class="cc g"><i class="fa fa-thumbs-up"></i></div>
+            </div>
+            <div class="kpic">
+              <div class="num">0</div>
+              <div class="lbl">{{לידים/ לקוחות שנכנסו בתאריכים נבחרים ונכשלו}}</div>
+              <div class="cc r"><i class="fa fa-thumbs-down"></i></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="kpis3">
+          <div class="kpic sm"><div class="num">7</div><div class="lbl">{{לידים/ לקוחות שנכנסו בתאריכים נבחרים}}</div><div class="cc gr"><i class="fa fa-filter"></i></div></div>
+          <div class="kpic sm"><div class="num">4</div><div class="lbl">{{לידים/ לקוחות תקינים בתאריכים נבחרים}}</div><div class="cc lg"><i class="fa fa-check"></i></div></div>
+          <div class="kpic sm"><div class="num">1</div><div class="lbl">{{לידים/ לקוחות בתהליך בתאריכים נבחרים}}</div><div class="cc p"><i class="fa fa-flask"></i></div></div>
+        </div>
+
+        <div class="row2">
+          <div class="card">
+            <div class="band"><h3>{{לידים/לקוחות לפי משתמש בתאריכים נבחרים}}</h3></div>
+            <table class="tbl">
+              <thead><tr><th>{{משתמש}}</th><th>לידים שנכנסו</th><th>ללא סטאטוס</th><th>תקול</th><th>כפול</th><th>תקינים</th><th>בטיפול</th><th>נכשל</th><th>פעיל</th></tr></thead>
+              <tbody>
+                <tr><td>{{ללא משתמש}}</td><td>7</td><td>4</td><td>0</td><td>0</td><td>7</td><td>1</td><td>0</td><td>2</td></tr>
+                <tr><td>{{משתמש א}}</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="band"><h3>{{לידים/לקוחות לפי קמפיין בתאריכים נבחרים}}</h3></div>
+            <table class="tbl">
+              <thead><tr><th>{{קמפיין}}</th><th>לידים שנכנסו</th><th>ללא סטאטוס</th><th>תקול</th><th>כפול</th><th>תקינים</th><th>בטיפול</th><th>נכשל</th><th>פעיל</th></tr></thead>
+              <tbody>
+                <tr><td>{{גוגל}}</td><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td></tr>
+                <tr><td>{{פייסבוק}}</td><td>2</td><td>1</td><td>0</td><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+      <!-- ===== /CONTENT ===== -->
+    </div>
+  </div>
+
+  <div class="mocktag">מוקאפ — אינו מסך חי</div>
+</body>
+</html>

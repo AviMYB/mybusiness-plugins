@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<!-- TEMPLATE: settings landing (verified vs live הגדרות מערכת 2026-07-17):
+     centered section title with blue underline; grid of outlined cards (line-art icon, navy title, gray caption). -->
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>תבנית — הגדרות מערכת (עמוד ראשי)</title>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&family=Heebo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+<style>
+  :root{
+    --navy:#252C57;--navy2:#3D4993;--blue:#62A6FF;--info:#369BCD;
+    --border:#E8E8E8;--line:#F0F0F0;--strip:#F4F4F4;--muted:#8B93A8;
+    --red:#F44336;--softred:#F18483;--orange:#F5A623;--green:#4CAE4C;
+    --pencil:#00618C;--sel:#EAF1FF;--shadow:-4px 3px 13px 0 rgba(76,76,76,.1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Assistant',Arial,sans-serif;font-size:14px;color:#333;background:#fff}
+  a{text-decoration:none;color:inherit}
+  .topbar{height:64px;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+  .brand{direction:ltr;display:flex;align-items:center;gap:9px;font-family:'Heebo',sans-serif;font-weight:700;font-size:21px;color:var(--navy)}
+  .brand .fa{color:var(--info);font-size:25px}
+  .brand b{color:var(--info)}
+  .topcluster{display:flex;align-items:center;gap:20px;color:var(--navy)}
+  .topcluster > .fa{font-size:20px}
+  .userchip{font-size:13px;font-weight:600;text-align:center;line-height:1.15}
+  .app{display:flex;align-items:stretch;min-height:calc(100vh - 64px)}
+  .sidemenu{width:232px;flex:none;background:var(--navy);display:flex;flex-direction:column;padding:12px 0 10px}
+  .sidemenu a{display:flex;align-items:center;gap:13px;height:62px;padding:0 20px 0 25px;color:#fff;font-size:13px}
+  .sidemenu a .circ{width:44px;height:44px;border-radius:50%;background:var(--navy2);display:flex;align-items:center;justify-content:center;font-size:17px;color:#fff;flex:none}
+  .sidemenu a.cur .circ{background:var(--blue)}
+  .sidemenu .collapse{margin-top:auto;padding:16px 26px;color:#fff;font-size:20px}
+  .content{flex:1;min-width:0}
+  .wrap{max-width:1240px;margin:0 auto;padding:36px 26px 50px}
+  .secttitle{text-align:center;margin-bottom:34px}
+  .secttitle h2{display:inline-block;font-family:'Heebo',sans-serif;font-size:24px;font-weight:400;color:var(--navy);border-bottom:3px solid var(--info);padding-bottom:10px}
+  .secttitle h2 b{font-weight:700}
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;margin-bottom:44px}
+  .scard{background:#fff;border:1px solid var(--border);border-radius:6px;padding:28px 22px 24px;text-align:center;cursor:pointer;transition:box-shadow .15s}
+  .scard:hover{box-shadow:var(--shadow)}
+  .scard .fa{font-size:52px;color:var(--info);margin-bottom:18px}
+  .scard h3{font-family:'Heebo',sans-serif;font-size:18px;font-weight:700;color:var(--navy);margin-bottom:8px}
+  .scard p{font-size:14px;color:#5B6474;line-height:1.5}
+  .mocktag{position:fixed;bottom:12px;left:12px;background:var(--navy);color:#fff;font-size:11px;padding:4px 10px;border-radius:4px;opacity:.85;z-index:99}
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="brand"><i class="fa fa-cubes"></i>MyBusiness <b>CRM</b></div>
+    <div class="topcluster">
+      <i class="fa fa-bell-o"></i>
+      <i class="fa fa-th"></i>
+      <div class="userchip">הדגמה <i class="fa fa-caret-down"></i><br>משתמש לדוגמה</div>
+    </div>
+  </div>
+
+  <div class="app">
+    <aside class="sidemenu">
+      <a href="#"><span class="circ"><i class="fa fa-bar-chart"></i></span><span>מבט-על</span> <i class="fa fa-caret-down" style="font-size:11px"></i></a>
+      <a href="#"><span class="circ"><i class="fa fa-search"></i></span><span>חיפוש לקוחות ולידים</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-bullhorn"></i></span><span>לידים</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-building"></i></span><span>לקוחות</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-user"></i></span><span>אנשי קשר</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-th-list"></i></span><span>משימות</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-calendar"></i></span><span>יומן</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-briefcase"></i></span><span>פעילויות</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-handshake-o"></i></span><span>מכירות</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-headphones"></i></span><span>פניות</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-file-text-o"></i></span><span>דוחות</span></a>
+      <a href="#" class="cur"><span class="circ"><i class="fa fa-cog"></i></span><span>הגדרות</span></a>
+      <div class="collapse"><i class="fa fa-arrow-left"></i></div>
+    </aside>
+
+    <div class="content">
+      <!-- ===== CONTENT ===== -->
+      <div class="wrap">
+
+        <div class="secttitle"><h2>הגדרות <b>מערכת</b></h2></div>
+        <div class="cards">
+          <div class="scard"><i class="fa fa-users"></i><h3>{{לקוחות ולידים}}</h3><p>{{הגדרת טבלאות וייבוא קבצים בעולם הלקוחות.}}</p></div>
+          <div class="scard"><i class="fa fa-comments-o"></i><h3>{{פניות ושירות}}</h3><p>{{הגדרת טבלאות בעולם הפניות ושירות הלקוחות.}}</p></div>
+          <div class="scard"><i class="fa fa-bullseye"></i><h3>{{מכירות}}</h3><p>{{הגדרת טבלאות בעולם המכירות והמוצרים.}}</p></div>
+          <div class="scard"><i class="fa fa-flag-checkered"></i><h3>{{משימות ופעילויות}}</h3><p>{{הגדרת טבלאות בעולם המשימות והפעילויות.}}</p></div>
+          <div class="scard"><i class="fa fa-user-circle-o"></i><h3>{{משתמשים}}</h3><p>{{הגדרה ועריכת משתמשי המערכת.}}</p></div>
+          <div class="scard"><i class="fa fa-id-badge"></i><h3>{{תפקידים}}</h3><p>{{הגדרת תפקידים לניהול הרשאות מתקדם.}}</p></div>
+          <div class="scard"><i class="fa fa-envelope-open-o"></i><h3>{{תבניות}}</h3><p>{{הגדרת תבניות לשליחת מיילים והצעות מחיר.}}</p></div>
+          <div class="scard"><i class="fa fa-sitemap"></i><h3>{{כללים ותהליכים עסקיים}}</h3><p>{{הגדרת כללים ותהליכים עסקיים מתקדמים.}}</p></div>
+        </div>
+
+        <div class="secttitle"><h2>מודלים <b>נוספים</b></h2></div>
+        <div class="cards">
+          <div class="scard"><i class="fa fa-desktop"></i><h3>{{מודול}}</h3><p>{{תיאור קצר.}}</p></div>
+          <div class="scard"><i class="fa fa-shopping-cart"></i><h3>{{מודול}}</h3><p>{{תיאור קצר.}}</p></div>
+          <div class="scard"><i class="fa fa-envelope-o"></i><h3>{{מודול}}</h3><p>{{תיאור קצר.}}</p></div>
+          <div class="scard"><i class="fa fa-file-text-o"></i><h3>{{מודול}}</h3><p>{{תיאור קצר.}}</p></div>
+        </div>
+
+      </div>
+      <!-- ===== /CONTENT ===== -->
+    </div>
+  </div>
+
+  <div class="mocktag">מוקאפ — אינו מסך חי</div>
+</body>
+</html>

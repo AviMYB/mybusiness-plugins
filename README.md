@@ -8,7 +8,7 @@
 
 <div dir="ltr">
 
-![AI agents](https://img.shields.io/badge/AI_agents-plugin-d97757) ![Agent Plugins](https://img.shields.io/badge/Agent_Plugins-1.0-24292e) ![version](https://img.shields.io/badge/version-1.3.0-007ec6) ![skills](https://img.shields.io/badge/skills-22-007ec6) ![ISO 27001](https://img.shields.io/badge/security-ISO_27001-2ea44f)
+![AI agents](https://img.shields.io/badge/AI_agents-plugin-d97757) ![Agent Plugins](https://img.shields.io/badge/Agent_Plugins-1.0-24292e) ![version](https://img.shields.io/badge/version-1.4.0-007ec6) ![skills](https://img.shields.io/badge/skills-23-007ec6) ![ISO 27001](https://img.shields.io/badge/security-ISO_27001-2ea44f)
 
 </div>
 
@@ -70,7 +70,7 @@ The plugin supplies skills; configure the personal MCP separately in Codex Setti
 - **חיבור למערכת שלכם:** ב-Codex מוסיפים Custom MCP אישי דרך ההגדרות המובנות; הפלאגין מספק את הסקילים וההנחיות. ב-Claude נשמר מסלול החיבור הייעודי שלו.
 - **לא נעולים על ספק אחד** — התוסף ארוז בשני פורמטים באותה תיקייה: גם כתוסף של Claude Code וגם כחבילת [Agent Plugins 1.0](https://agent-plugins.org/specification), התקן הפתוח שהוכרז ב-6.8.2026 על ידי OpenAI יחד עם AWS, Cursor, GitHub, VS Code ו-Vercel. אותם סקילים בדיוק עובדים ב-Codex, Cursor, GitHub Copilot, VS Code ו-Kiro.
 - **בסיס ידע מוצרי** (`myb-p-kb`) — יכולות המוצר, מודל הנתונים, מגבלות ידועות ומתודולוגיית הטמעה. שואלים "האם המערכת יודעת X?" ומקבלים תשובה מהתיעוד — לא ניחוש.
-- **21 סקילים ביצועיים** שמתכננים ומבצעים עבודה אמיתית על המערכת דרך שרת ה-MCP הרשמי:
+- **סקילים ליישום וליצירת אבות טיפוס** שמתכננים ומבצעים עבודה אמיתית על המערכת דרך שרת ה-MCP הרשמי:
 
 | תחום | סקילים |
 |---|---|
@@ -153,7 +153,7 @@ plugins/mybusiness-implementor/
 ├── mcp.json                         Agent Plugins MCP config     ← other clients
 ├── .claude-plugin/plugin.json       Claude Code manifest (+ its two configuration fields)
 ├── .mcp.json                        Claude Code MCP config
-└── skills/                          22 skills, each a folder with SKILL.md + references/
+└── skills/                          23 skills, each a folder with SKILL.md + references/
 ```
 
 </div>
@@ -169,3 +169,8 @@ plugins/mybusiness-implementor/
 [האתר שלנו](https://www.mybusiness.co.il) · [פתיחת מערכת חדשה — 14 יום חינם](https://sub.mybusiness.co.il/landingreg/) · [שרת ה-MCP של MyBusiness](https://www.mybusiness.co.il/mcp-server/) · תמיכה: [support@mybusiness-crm.com](mailto:support@mybusiness-crm.com)
 
 </div>
+
+
+## מוקאפים אינטראקטיביים מקומיים
+
+הסקיל `myb-p-mockup-templates` יוצר אב טיפוס שאפשר להפעיל מקומית, עם **12 דפוסי מסך אינטראקטיביים ו־14 תבניות עיצוב מקוריות**: רשימות, כרטיסים, לוחות, יומן, אשף, מסמכים, שיחות, דוחות, קליטת נתונים, פעילות ומרכז ידע. הנתונים פיקטיביים; השמירה והאיפוס פועלים בדפדפן, ללא צורך בחיבור CRM. בקשו: "בנה מוקאפ אינטראקטיבי מקומי לתהליך הזה".

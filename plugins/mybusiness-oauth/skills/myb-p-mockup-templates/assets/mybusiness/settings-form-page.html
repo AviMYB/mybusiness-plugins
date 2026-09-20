@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<!-- TEMPLATE: full-page settings editor / configuration form (chrome verified vs live demo 2026-07-17).
+     Section cards with gray band headers; 3-col field grids; toggles/radios/criteria rows; sticky save footer. -->
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>תבנית — עורך הגדרות (טופס מלא)</title>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&family=Heebo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+<style>
+  :root{
+    --navy:#252C57;--navy2:#3D4993;--blue:#62A6FF;--info:#369BCD;
+    --border:#E8E8E8;--line:#F0F0F0;--strip:#F4F4F4;--muted:#8B93A8;
+    --red:#F44336;--softred:#F18483;--orange:#F5A623;--green:#4CAE4C;--purple:#6336BE;
+    --pencil:#00618C;--sel:#EAF1FF;--shadow:-4px 3px 13px 0 rgba(76,76,76,.1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Assistant',Arial,sans-serif;font-size:14px;color:#333;background:#fff}
+  a{text-decoration:none;color:inherit} button{font-family:inherit;cursor:pointer}
+  .topbar{height:64px;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+  .brand{direction:ltr;display:flex;align-items:center;gap:9px;font-family:'Heebo',sans-serif;font-weight:700;font-size:21px;color:var(--navy)}
+  .brand .fa{color:var(--info);font-size:25px}
+  .brand b{color:var(--info)}
+  .topcluster{display:flex;align-items:center;gap:20px;color:var(--navy)}
+  .topcluster > .fa{font-size:20px}
+  .userchip{font-size:13px;font-weight:600;text-align:center;line-height:1.15}
+  .app{display:flex;align-items:stretch;min-height:calc(100vh - 64px)}
+  .sidemenu{width:232px;flex:none;background:var(--navy);display:flex;flex-direction:column;padding:12px 0 10px}
+  .sidemenu a{display:flex;align-items:center;gap:13px;height:62px;padding:0 20px 0 25px;color:#fff;font-size:13px}
+  .sidemenu a .circ{width:44px;height:44px;border-radius:50%;background:var(--navy2);display:flex;align-items:center;justify-content:center;font-size:17px;color:#fff;flex:none}
+  .sidemenu a.cur .circ{background:var(--blue)}
+  .sidemenu .collapse{margin-top:auto;padding:16px 26px;color:#fff;font-size:20px}
+  .content{flex:1;min-width:0;display:flex;flex-direction:column}
+  .pagehead{background:var(--strip);display:flex;align-items:center;justify-content:space-between;padding:13px 22px}
+  .pagehead .t{display:flex;align-items:center;gap:11px;color:var(--navy)}
+  .pagehead .t .fa{font-size:22px}
+  .pagehead h2{font-family:'Heebo',sans-serif;font-size:24px;font-weight:600;color:var(--navy)}
+  .btn{border:none;font-weight:600;font-size:13px;border-radius:6px;padding:8px 18px;display:inline-flex;align-items:center;gap:8px}
+  .btn-navy{background:var(--navy);color:#fff}
+  .btn-outline{background:#fff;color:var(--navy);border:1px solid var(--navy);border-radius:7px;padding:7px 14px}
+  .card{background:#fff;border:1px solid #f0f0f0;border-radius:7px;box-shadow:var(--shadow);margin-bottom:18px}
+  .band{background:var(--strip);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;border-radius:7px 7px 0 0}
+  .band h3{font-family:'Heebo',sans-serif;font-size:18px;font-weight:500;color:var(--navy)}
+  .band .hint{font-size:12.5px;color:var(--muted);font-weight:400}
+  .bd{padding:18px 20px}
+  .field label{display:block;font-size:13px;font-weight:600;color:var(--navy);margin-bottom:6px}
+  .field input,.field select{width:100%;height:42px;border:1px solid var(--border);border-radius:7px;padding:0 12px;font:inherit;color:var(--navy);background:#fff}
+  .field input:focus,.field select:focus{outline:none;border-color:var(--blue)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px 22px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px 22px}
+  .req{color:var(--red)}
+  .hint{font-size:12px;color:var(--muted);margin-top:5px}
+  .switch{width:38px;height:21px;border-radius:999px;background:#D6D9E6;position:relative;display:inline-block;vertical-align:middle;flex:none}
+  .switch::after{content:"";position:absolute;top:2.5px;inset-inline-start:3px;width:16px;height:16px;border-radius:50%;background:#fff}
+  .switch.on{background:var(--green)}
+  .switch.on::after{inset-inline-start:19px}
+  .togline{display:inline-flex;align-items:center;gap:9px;font-size:13.5px;color:var(--navy)}
+  .chk{display:inline-flex;align-items:center;gap:7px;font-size:13.5px;color:var(--navy);margin-inline-end:18px}
+  .box{width:16px;height:16px;border-radius:3px;border:1.5px solid #C3C8DA;background:#fff;position:relative;flex:none}
+  .box.on{background:var(--navy);border-color:var(--navy)}
+  .box.on::after{content:"";position:absolute;left:4.5px;top:1.5px;width:4px;height:8px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+  .radio{display:flex;align-items:flex-start;gap:9px;margin-bottom:10px;font-size:13.5px;color:var(--navy)}
+  .rd{width:16px;height:16px;border-radius:50%;border:1.5px solid #C3C8DA;background:#fff;flex:none;margin-top:2px;position:relative}
+  .rd.on{border-color:var(--navy)}
+  .rd.on::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--navy)}
+  .radio .d{color:var(--muted);font-size:12px}
+  .critrow{display:grid;grid-template-columns:76px 1fr 160px 1fr 38px;gap:10px;align-items:center;margin-bottom:10px}
+  .critrow .andor{font-size:12px;font-weight:700;color:var(--muted);text-align:center;background:var(--strip);border-radius:4px;padding:9px 0}
+  .critrow select{height:42px;border:1px solid var(--border);border-radius:7px;padding:0 10px;font:inherit;color:var(--navy);background:#fff}
+  .critrow .del{border:1px solid var(--border);background:#fff;border-radius:4px;color:var(--softred);font-weight:700;height:42px}
+  .addline{display:inline-block;color:var(--info);font-weight:700;font-size:13px}
+  .notebox{background:#F4F8FF;border:1px dashed #C8DCFF;border-radius:6px;padding:10px 13px;font-size:12.5px;color:var(--navy);margin-top:12px}
+  .formwrap{padding:22px;max-width:1060px}
+  .foot{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--border);padding:11px 22px;display:flex;gap:10px;align-items:center;box-shadow:0 -3px 10px rgba(76,76,76,.06)}
+  .foot .side{margin-inline-start:auto;color:var(--muted);font-size:12.5px}
+  .mocktag{position:fixed;bottom:64px;left:12px;background:var(--navy);color:#fff;font-size:11px;padding:4px 10px;border-radius:4px;opacity:.85;z-index:99}
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="brand"><i class="fa fa-cubes"></i>MyBusiness <b>CRM</b></div>
+    <div class="topcluster">
+      <i class="fa fa-bell-o"></i>
+      <i class="fa fa-th"></i>
+      <div class="userchip">הדגמה <i class="fa fa-caret-down"></i><br>משתמש לדוגמה</div>
+    </div>
+  </div>
+
+  <div class="app">
+    <aside class="sidemenu">
+      <a href="#"><span class="circ"><i class="fa fa-bar-chart"></i></span><span>מבט-על</span> <i class="fa fa-caret-down" style="font-size:11px"></i></a>
+      <a href="#"><span class="circ"><i class="fa fa-search"></i></span><span>חיפוש לקוחות ולידים</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-bullhorn"></i></span><span>לידים</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-building"></i></span><span>לקוחות</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-user"></i></span><span>אנשי קשר</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-th-list"></i></span><span>משימות</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-calendar"></i></span><span>יומן</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-briefcase"></i></span><span>פעילויות</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-handshake-o"></i></span><span>מכירות</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-headphones"></i></span><span>פניות</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-file-text-o"></i></span><span>דוחות</span></a>
+      <a href="#" class="cur"><span class="circ"><i class="fa fa-cog"></i></span><span>הגדרות</span></a>
+      <div class="collapse"><i class="fa fa-arrow-left"></i></div>
+    </aside>
+
+    <div class="content">
+      <div class="pagehead">
+        <div class="t"><i class="fa fa-cog"></i><h2>{{כותרת העורך}}</h2></div>
+        <a class="btn btn-outline" href="#">‹ חזרה</a>
+      </div>
+
+      <!-- ===== CONTENT ===== -->
+      <div class="formwrap">
+
+        <div class="card">
+          <div class="band"><h3>{{סקשן 1 — פרטים}}</h3><span class="togline"><span class="switch on"></span> פעיל</span></div>
+          <div class="bd">
+            <div class="grid3">
+              <div class="field" style="grid-column:span 2"><label>{{שדה טקסט}} <span class="req">*</span></label><input type="text" value="{{ערך}}"></div>
+              <div class="field"><label>{{שדה בחירה}}</label><select><option>{{אפשרות}}</option></select></div>
+              <div class="field"><label>{{שדה נוסף}}</label><select><option>{{אפשרות}}</option></select></div>
+              <div class="field"><label>{{אפשרויות סימון}}</label><div style="padding-top:9px"><span class="chk"><span class="box on"></span> {{אפשרות א}}</span><span class="chk"><span class="box"></span> {{אפשרות ב}}</span></div></div>
+              <div class="field"><label>{{מתג}}</label><div style="padding-top:9px"><span class="togline"><span class="switch on"></span> {{תיאור המתג}}</span></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="band"><h3>{{סקשן 2 — תנאים}}</h3><span class="hint">{{הסבר קצר}}</span></div>
+          <div class="bd">
+            <div class="critrow">
+              <div class="andor">כאשר</div>
+              <select><option>{{שדה}}</option></select>
+              <select><option>שווה ל-</option><option>שונה מ-</option></select>
+              <select><option>{{ערך}}</option></select>
+              <button class="del">×</button>
+            </div>
+            <div class="critrow">
+              <div class="andor">וגם</div>
+              <select><option>{{שדה}}</option></select>
+              <select><option>שווה ל-</option></select>
+              <select><option>{{ערך}}</option></select>
+              <button class="del">×</button>
+            </div>
+            <a class="addline" href="#">+ הוסף תנאי</a>
+            <div class="notebox">{{משפט המדגים את משמעות ההגדרה בשפה פשוטה}}</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="band"><h3>{{סקשן 3 — התנהגות}}</h3></div>
+          <div class="bd">
+            <div class="radio"><span class="rd on"></span><div>{{אפשרות נבחרת}}<div class="d">{{הסבר}}</div></div></div>
+            <div class="radio"><span class="rd"></span><div>{{אפשרות}}<div class="d">{{הסבר}}</div></div></div>
+          </div>
+        </div>
+
+      </div>
+      <!-- ===== /CONTENT ===== -->
+
+      <div class="foot">
+        <button class="btn btn-navy"><i class="fa fa-check"></i> שמור וסגור</button>
+        <button class="btn btn-outline">שמור</button>
+        <span class="side">{{הערת שוליים על השמירה}}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="mocktag">מוקאפ — אינו מסך חי</div>
+</body>
+</html>

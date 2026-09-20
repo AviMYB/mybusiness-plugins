@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "mybusiness-implementor",
-  "version": "1.3.2",
-  "description": "MyBusiness CRM implementation skills. In Codex, connect your own CRM using the built-in Custom MCP settings with Application ID and API token; see setup guide.",
+  "version": "1.4.0",
+  "description": "MyBusiness CRM implementation skills. In Codex, connect your own CRM using the built-in Custom MCP settings with Application ID and API token; see setup guide. Includes interactive local mockup templates with synthetic data.",
   "author": {
     "name": "MyBusiness CRM",
     "email": "support@mybusiness-crm.com",
@@ -17,7 +17,9 @@
     "israel",
     "no-code",
     "implementation",
-    "mcp"
+    "mcp",
+    "mockups",
+    "prototyping"
   ],
   "extensions": {
     "com.openai": {

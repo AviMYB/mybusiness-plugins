@@ -1,0 +1,4 @@
+@font-face{font-family:Assistant;font-style:normal;font-weight:100 900;font-display:swap;src:url('./assistant-latin.woff2') format('woff2');unicode-range:U+0000-00FF,U+2000-206F,U+20AC,U+2191,U+2193,U+2212,U+FFFD}
+@font-face{font-family:Assistant;font-style:normal;font-weight:100 900;font-display:swap;src:url('./assistant-hebrew.woff2') format('woff2');unicode-range:U+0590-05FF,U+FB1D-FB4F,U+20AA}
+@font-face{font-family:Heebo;font-style:normal;font-weight:100 900;font-display:swap;src:url('./heebo-latin.woff2') format('woff2');unicode-range:U+0000-00FF,U+2000-206F,U+20AC,U+2191,U+2193,U+2212,U+FFFD}
+@font-face{font-family:Heebo;font-style:normal;font-weight:100 900;font-display:swap;src:url('./heebo-hebrew.woff2') format('woff2');unicode-range:U+0590-05FF,U+FB1D-FB4F,U+20AA}

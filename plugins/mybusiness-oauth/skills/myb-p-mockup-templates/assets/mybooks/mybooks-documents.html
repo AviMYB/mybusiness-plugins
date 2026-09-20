@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<!-- TEMPLATE: MyBooks documents list (verified vs live apps/mybooks/Documents 2026-07-17).
+     Light-gray page, blue title, FOLDER TABS attached to a white card, outline action buttons,
+     plain-header table, "סה"כ שורות" count. -->
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>תבנית — MyBooks מסמכים</title>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&family=Heebo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+<style>
+  :root{
+    --modnavy:#132458;--mblue:#2263C4;--icoblue:#2F80D0;
+    --border:#E3E5EC;--muted:#8B93A8;--text:#39404F;--pagebg:#F0F2F6;
+    --pink:#E5476E;--shadow:0 1px 4px rgba(40,50,80,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Assistant',Arial,sans-serif;font-size:14px;color:var(--text);background:var(--pagebg)}
+  a{text-decoration:none;color:inherit} button{font-family:inherit;cursor:pointer}
+  .topbar{height:70px;background:var(--modnavy);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 26px}
+  .brand{direction:ltr;display:flex;align-items:center;gap:8px;font-family:'Heebo',sans-serif;font-weight:700;font-size:26px}
+  .brand .fa{font-size:24px}
+  .topcluster{display:flex;align-items:center;gap:22px}
+  .topcluster .fa{font-size:20px;color:#fff}
+  .userchip{font-size:14px;font-weight:600}
+  .app{display:flex;align-items:stretch;min-height:calc(100vh - 70px)}
+  .sidemenu{width:170px;flex:none;background:#FBFBFD;border-inline-start:1px solid var(--border);padding:10px 0}
+  .sidemenu a{display:flex;align-items:center;gap:9px;padding:12px 16px;color:#2B3A63;font-size:13.5px}
+  .sidemenu a .fa{color:var(--icoblue);font-size:15px;width:18px;text-align:center}
+  .sidemenu a.cur{background:#EEF0F5;font-weight:700}
+  .content{flex:1;min-width:0;padding:26px 34px}
+  .ptitle{display:flex;align-items:center;gap:9px;color:var(--mblue);font-family:'Heebo',sans-serif;font-size:24px;font-weight:600;margin-bottom:18px}
+  /* folder tabs attached to card */
+  .ftabs{display:flex;justify-content:flex-end;padding:0 2px}
+  .ftabs a{padding:10px 26px;font-size:13.5px;border:1px solid var(--border);border-bottom:none;border-radius:6px 6px 0 0;background:#E9EBF1;color:#5A6478;margin-inline-start:4px}
+  .ftabs a.on{background:#fff;color:var(--mblue);font-weight:700}
+  .card{background:#fff;border:1px solid var(--border);border-radius:8px 0 8px 8px;box-shadow:var(--shadow);padding:20px 24px 14px}
+  .cardhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .cardhead .t{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:700;color:#2B3A63}
+  .cardhead .t .fa{color:var(--icoblue)}
+  .actions{display:flex;gap:10px}
+  .btn-navyout{background:#fff;border:1.5px solid var(--modnavy);color:var(--modnavy);border-radius:4px;font-size:13.5px;font-weight:600;padding:8px 16px;display:inline-flex;align-items:center;gap:8px}
+  .btn-blueout{background:#fff;border:1px solid var(--icoblue);color:var(--icoblue);border-radius:4px;font-size:13.5px;padding:8px 16px;display:inline-flex;align-items:center;gap:7px}
+  .tip{position:relative;display:inline-block;background:var(--pink);color:#fff;font-size:12.5px;border-radius:4px;padding:6px 12px;margin-top:8px}
+  .tip::after{content:"";position:absolute;top:-6px;inset-inline-start:24px;border:6px solid transparent;border-bottom-color:var(--pink);border-top:none}
+  .tip .x{margin-inline-start:10px;opacity:.8}
+  .ptbl{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:14px}
+  .ptbl th{color:#5A6478;font-weight:600;text-align:right;padding:11px 14px;border-bottom:1px solid var(--border);white-space:nowrap}
+  .ptbl th .fa{font-size:10px;margin-inline-start:5px;color:#9AA3B5}
+  .ptbl td{padding:10px 14px;border-bottom:1px solid #F0F1F5}
+  .count{color:var(--muted);font-size:13px;padding:12px 2px}
+  .empty{text-align:center;padding:26px 0 10px;color:var(--mblue);font-size:14px}
+  .empty .frame{display:block;width:110px;height:74px;border:2px solid var(--modnavy);border-radius:6px;margin:0 auto 14px;position:relative}
+  .empty .frame::before{content:"\25B6";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--modnavy)}
+  .empty a{text-decoration:underline}
+  .mocktag{position:fixed;bottom:12px;left:12px;background:var(--modnavy);color:#fff;font-size:11px;padding:4px 10px;border-radius:4px;opacity:.85;z-index:99}
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="brand"><i class="fa fa-th-large"></i>mybooks</div>
+    <div class="topcluster">
+      <i class="fa fa-bell-o"></i>
+      <i class="fa fa-th"></i>
+      <div class="userchip">mb <i class="fa fa-caret-down"></i></div>
+    </div>
+  </div>
+
+  <div class="app">
+    <aside class="sidemenu">
+      <a href="#"><i class="fa fa-bar-chart"></i>מבט על</a>
+      <a href="#"><i class="fa fa-address-book-o"></i>לקוחות</a>
+      <a href="#" class="cur"><i class="fa fa-file-text-o"></i>מסמכי הנהח"ש</a>
+      <a href="#"><i class="fa fa-money"></i>גבייה</a>
+      <a href="#"><i class="fa fa-refresh"></i>חיוב ריטיינר</a>
+      <a href="#"><i class="fa fa-credit-card"></i>דפי תשלום</a>
+      <a href="#"><i class="fa fa-folder-open-o"></i>דוחות</a>
+      <a href="#"><i class="fa fa-cogs"></i>הגדרות</a>
+    </aside>
+
+    <div class="content">
+      <!-- ===== CONTENT ===== -->
+      <div class="ptitle"><i class="fa fa-file-text-o"></i>{{מסמכים}}</div>
+
+      <div class="ftabs">
+        <a href="#" class="on">{{מסמכים}}</a>
+        <a href="#">{{טיוטות}}</a>
+      </div>
+
+      <div class="card">
+        <div class="cardhead">
+          <div class="t"><i class="fa fa-file-text-o"></i>{{מסמכים}}</div>
+          <div class="actions">
+            <button class="btn-blueout">חיפוש <i class="fa fa-search"></i></button>
+            <button class="btn-navyout"><i class="fa fa-plus"></i> {{הוסף מסמך}}</button>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end"><span class="tip">{{ליצירת מסמך חדש יש ללחוץ כאן.}} <span class="x">×</span></span></div>
+
+        <table class="ptbl">
+          <thead>
+            <tr><th>מספר מסמך</th><th>סוג מסמך</th><th>שם לקוח</th><th>אימייל</th><th>תאריך הפקה</th><th>סכום <i class="fa fa-caret-down"></i></th><th>מספר הקצאה</th><th>מסמך</th><th>שם לקוח</th><th>...</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>{{1001}}</td><td>{{חשבונית מס}}</td><td>{{לקוח}}</td><td>{{demo@example.com}}</td><td>17/07/2026</td><td>1,200</td><td>—</td><td><i class="fa fa-file-pdf-o" style="color:var(--icoblue)"></i></td><td>{{לקוח}}</td><td>...</td></tr>
+          </tbody>
+        </table>
+        <div class="count">סה"כ שורות: <b>1</b></div>
+
+        <div class="empty">
+          <span class="frame"></span>
+          <a href="#">{{לצפייה בסרטון הדרכה להפקת מסמכים}}</a>
+        </div>
+      </div>
+      <!-- ===== /CONTENT ===== -->
+    </div>
+  </div>
+
+  <div class="mocktag">מוקאפ — אינו מסך חי</div>
+</body>
+</html>

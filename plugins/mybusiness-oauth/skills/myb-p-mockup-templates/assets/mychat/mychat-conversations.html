@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<!-- TEMPLATE: MyChat conversations screen (verified vs live apps/mychat/conversations 2026-07-17).
+     CRM-style chrome (white top bar + navy side menu with chat items, user chip shows Availability),
+     3 panes: conversations list (right), chat + composer (middle), record details (left). -->
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>תבנית — MyChat שיחות</title>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&family=Heebo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+<style>
+  :root{
+    --navy:#252C57;--navy2:#3D4993;--blue:#62A6FF;--info:#369BCD;
+    --border:#E8E8E8;--line:#F0F0F0;--strip:#F4F4F4;--muted:#8B93A8;
+    --green:#4CAE4C;--wa:#25D366;--shadow:-4px 3px 13px 0 rgba(76,76,76,.1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Assistant',Arial,sans-serif;font-size:14px;color:#333;background:#fff}
+  a{text-decoration:none;color:inherit} button{font-family:inherit;cursor:pointer}
+  .topbar{height:64px;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+  .brand{direction:ltr;display:flex;align-items:center;gap:9px;font-family:'Heebo',sans-serif;font-weight:700;font-size:21px;color:var(--navy)}
+  .brand .fa{color:var(--info);font-size:25px}
+  .brand b{color:var(--info)}
+  .topcluster{display:flex;align-items:center;gap:20px;color:var(--navy)}
+  .topcluster > .fa{font-size:22px}
+  .topcluster .wa{color:var(--wa)}
+  .userchip{font-size:13px;font-weight:600;text-align:center;line-height:1.15}
+  .userchip small{display:block;font-weight:400;color:var(--muted);font-size:11px}
+  .app{display:flex;align-items:stretch;height:calc(100vh - 64px)}
+  .sidemenu{width:210px;flex:none;background:var(--navy);display:flex;flex-direction:column;padding:12px 0 10px}
+  .sidemenu a{display:flex;align-items:center;gap:13px;height:60px;padding:0 18px 0 22px;color:#fff;font-size:13px}
+  .sidemenu a .circ{width:42px;height:42px;border-radius:50%;background:var(--navy2);display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;flex:none}
+  .sidemenu a.cur .circ{background:var(--blue)}
+  .sidemenu .foot{margin-top:auto;display:flex;justify-content:space-between;padding:16px 22px;color:#fff;font-size:19px}
+  /* 3 panes */
+  .panes{flex:1;min-width:0;display:flex;align-items:stretch}
+  .listpane{width:320px;flex:none;border-inline-end:1px solid var(--line);padding:16px 14px;overflow:auto}
+  .search{display:flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:7px;height:44px;padding:0 12px;color:var(--muted);background:#fff}
+  .filters{margin-top:16px}
+  .filters .lbl{font-size:13px;color:#333;margin-bottom:6px}
+  .filters .row{display:flex;gap:10px}
+  .f{flex:1}
+  .f label{display:block;font-size:11.5px;color:var(--muted);margin-bottom:3px}
+  .f select{width:100%;height:42px;border:1px solid var(--border);border-radius:7px;padding:0 8px;font:inherit;color:var(--navy);background:#fff}
+  .chk{display:flex;align-items:center;justify-content:flex-end;gap:6px;font-size:12.5px;color:#333;margin-top:10px}
+  .box{width:14px;height:14px;border:1.5px solid #C3C8DA;border-radius:3px;background:#fff}
+  .convitem{display:flex;gap:10px;padding:12px 8px;border-bottom:1px solid var(--line);cursor:pointer}
+  .convitem.on{background:#EAF1FF;border-radius:7px}
+  .convitem .av{width:38px;height:38px;border-radius:50%;background:var(--navy2);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex:none}
+  .convitem .nm{font-weight:700;color:var(--navy);font-size:13.5px}
+  .convitem .prev{color:var(--muted);font-size:12.5px;margin-top:2px}
+  .convitem .meta{margin-inline-start:auto;text-align:left;font-size:11px;color:var(--muted)}
+  .convitem .badge{display:inline-flex;align-items:center;justify-content:center;min-width:19px;height:19px;border-radius:50%;background:var(--wa);color:#fff;font-size:11px;font-weight:700;margin-top:5px}
+  /* chat pane */
+  .chatpane{flex:1;min-width:0;background:#F6F6F6;display:flex;flex-direction:column}
+  .chathead{background:#F1F1F1;padding:12px 16px}
+  .chathead .search{background:#fff}
+  .chatacts{display:flex;gap:8px;padding:10px 16px;border-bottom:1px solid var(--border);background:#F1F1F1}
+  .chatacts button{width:44px;height:40px;border:1px solid var(--border);border-radius:7px;background:#FAFAFA;color:#B9BFCE;font-size:15px}
+  .msgs{flex:1;overflow:auto;padding:18px 22px;display:flex;flex-direction:column;gap:10px}
+  .bub{max-width:60%;padding:9px 13px;border-radius:9px;font-size:13.5px;box-shadow:0 1px 1px rgba(0,0,0,.06)}
+  .bub.in{background:#fff;align-self:flex-start}
+  .bub.out{background:#D9FDD3;align-self:flex-end}
+  .bub .tm{display:block;font-size:10.5px;color:var(--muted);margin-top:4px;text-align:left}
+  /* composer */
+  .composer{background:#fff;border-top:1px solid var(--border);margin:0 16px 14px;border:1px solid var(--border);border-radius:9px}
+  .comptools{display:flex;align-items:center;gap:16px;padding:9px 12px;border-bottom:1px solid var(--line);color:#6B7280}
+  .comptools .quick{width:36px;height:34px;border-radius:7px;background:var(--navy);color:#fff;border:none;font-size:14px}
+  .comptools .fa{font-size:15px}
+  .compbody{padding:14px 14px 10px;color:var(--muted);font-size:13.5px;min-height:54px}
+  .compfoot{display:flex;align-items:center;justify-content:space-between;padding:0 12px 10px;color:#6B7280;font-size:12.5px}
+  .compfoot .send{width:40px;height:34px;border:1px solid var(--border);border-radius:7px;background:#F6F7FB;color:#9AA3B5}
+  /* details pane */
+  .detpane{width:400px;flex:none;border-inline-start:1px solid var(--line);padding:16px 18px;overflow:auto}
+  .sect{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:16px}
+  .sect h4{font-family:'Heebo',sans-serif;font-size:14.5px;font-weight:600;color:#4A5568;margin-bottom:10px;text-align:right}
+  .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
+  .f2 label{display:block;font-size:11.5px;color:var(--muted);margin-bottom:3px}
+  .f2 select,.f2 input{width:100%;height:40px;border:1px solid var(--border);border-radius:7px;padding:0 8px;font:inherit;color:var(--navy);background:#F4F5F8}
+  .withplus{display:flex;gap:6px}
+  .withplus .plus{width:26px;height:40px;border:none;background:transparent;color:#C3C8DA;font-size:17px}
+  .tabsline{display:flex;gap:16px;justify-content:flex-end;font-size:13px;color:var(--muted);margin-bottom:10px}
+  .tabsline a.on{color:#333;font-weight:700;border-bottom:2px solid #4A5568;padding-bottom:3px}
+  .mocktag{position:fixed;bottom:12px;left:12px;background:var(--navy);color:#fff;font-size:11px;padding:4px 10px;border-radius:4px;opacity:.85;z-index:99}
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="brand"><i class="fa fa-cubes"></i>MyBusiness <b>CRM</b></div>
+    <div class="topcluster">
+      <i class="fa fa-envelope-o"></i>
+      <i class="fa fa-whatsapp wa"></i>
+      <i class="fa fa-bell-o"></i>
+      <i class="fa fa-th"></i>
+      <div class="userchip">mb <i class="fa fa-caret-down"></i><small>Availability</small></div>
+    </div>
+  </div>
+
+  <div class="app">
+    <aside class="sidemenu">
+      <a href="#"><span class="circ"><i class="fa fa-pie-chart"></i></span><span>מבט על</span></a>
+      <a href="#" class="cur"><span class="circ"><i class="fa fa-commenting-o"></i></span><span>השיחות שלי</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-clock-o"></i></span><span>שיחות ממתינות בתור</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-comments-o"></i></span><span>שיחות שטרם הוקצו</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-inbox"></i></span><span>כל השיחות</span> <i class="fa fa-caret-down" style="font-size:11px"></i></a>
+      <a href="#"><span class="circ"><i class="fa fa-users"></i></span><span>לקוחות</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-cog"></i></span><span>הגדרות</span></a>
+      <div class="foot"><i class="fa fa-bullhorn"></i><i class="fa fa-arrow-left"></i></div>
+    </aside>
+
+    <div class="panes">
+      <!-- ===== conversations list (right) ===== -->
+      <div class="listpane">
+        <div class="search"><i class="fa fa-search"></i>{{חיפוש לפי שם, טלפון, מייל...}}</div>
+        <div class="filters">
+          <div class="lbl">סנן לפי</div>
+          <div class="row">
+            <div class="f"><label>ערוץ פניה</label><select><option>{{ערוץ פניה}}</option></select></div>
+            <div class="f"><label>סטטוס</label><select><option>{{שיחות פתוחות}}</option></select></div>
+          </div>
+          <div class="chk"><span class="box"></span> עדכון גורף</div>
+        </div>
+        <div style="margin-top:12px">
+          <div class="convitem on">
+            <span class="av">{{שא}}</span>
+            <div><div class="nm">{{שיר אדרי}}</div><div class="prev">{{היי, אשמח לפרטים על...}}</div></div>
+            <div class="meta">13:12<br><span class="badge">2</span></div>
+          </div>
+          <div class="convitem">
+            <span class="av" style="background:#00A396">{{אט}}</span>
+            <div><div class="nm">{{אלון טל}}</div><div class="prev">{{תודה רבה!}}</div></div>
+            <div class="meta">12:58</div>
+          </div>
+          <div class="convitem">
+            <span class="av" style="background:#6336BE">{{מי}}</span>
+            <div><div class="nm">{{מ.ג יזמות בע"מ}}</div><div class="prev">{{מתי אפשר לדבר?}}</div></div>
+            <div class="meta">אתמול</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== chat (middle) ===== -->
+      <div class="chatpane">
+        <div class="chathead"><div class="search"><i class="fa fa-search"></i>{{חיפוש לפי מילות מפתח}}</div></div>
+        <div class="chatacts">
+          <button><i class="fa fa-times"></i></button>
+          <button><i class="fa fa-user-plus"></i></button>
+          <button><i class="fa fa-users"></i></button>
+          <button><i class="fa fa-flag-o"></i></button>
+          <button><i class="fa fa-hand-paper-o"></i></button>
+        </div>
+        <div class="msgs">
+          <div class="bub in">{{היי, אשמח לפרטים על השירות שלכם}}<span class="tm">13:10</span></div>
+          <div class="bub out">{{בשמחה! אפשר לקבוע שיחה קצרה היום?}}<span class="tm">13:11</span></div>
+          <div class="bub in">{{כן, אחרי 16:00 נוח לי}}<span class="tm">13:12</span></div>
+        </div>
+        <div class="composer">
+          <div class="comptools">
+            <button class="quick"><i class="fa fa-bolt"></i></button>
+            <i class="fa fa-smile-o"></i><i class="fa fa-align-right"></i><i class="fa fa-align-left"></i><i class="fa fa-strikethrough"></i><i class="fa fa-italic"></i><i class="fa fa-bold"></i>
+          </div>
+          <div class="compbody">Enter לשליחת הודעה</div>
+          <div class="compfoot"><span><i class="fa fa-paperclip"></i> הוספת קובץ</span><button class="send"><i class="fa fa-arrow-left"></i></button></div>
+        </div>
+      </div>
+
+      <!-- ===== record details (left) ===== -->
+      <div class="detpane">
+        <div class="sect">
+          <div class="g2">
+            <div class="f2"><label>מספר שיחה</label><input value="{{10432}}"></div>
+            <div class="f2"><label>סטטוס</label><select><option>{{פתוחה}}</option></select></div>
+          </div>
+        </div>
+        <div class="sect">
+          <h4>פרטי לקוח</h4>
+          <div class="g2">
+            <div class="f2"><label>לקוח</label><div class="withplus"><select style="flex:1"><option>{{בחר לקוח}}</option></select><button class="plus"><i class="fa fa-plus-circle"></i></button></div></div>
+            <div class="f2"><label>איש קשר</label><div class="withplus"><select style="flex:1"><option>{{בחר איש קשר}}</option></select><button class="plus"><i class="fa fa-plus-circle"></i></button></div></div>
+          </div>
+        </div>
+        <div class="sect">
+          <h4>פתיחת תהליך מערכת</h4>
+          <div class="tabsline"><a href="#" class="on">{{פניה}}</a><a href="#">{{מכירה}}</a></div>
+          <div class="g2">
+            <div class="f2"><label>סוג</label><select><option></option></select></div>
+            <div class="f2"><label>סטטוס</label><select><option></option></select></div>
+            <div class="f2"><label>תאריך</label><input type="date"></div>
+            <div class="f2"><label>עדיפות</label><select><option></option></select></div>
+          </div>
+        </div>
+        <div class="sect" style="border-bottom:none">
+          <h4>ריכוז אירועים</h4>
+          <div class="tabsline"><a href="#" class="on">{{פניות}}</a><a href="#">{{מכירות}}</a><a href="#">{{היסטוריית שיחות}}</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mocktag">מוקאפ — אינו מסך חי</div>
+</body>
+</html>

@@ -1,0 +1,7 @@
+import { esc, field, options } from '../ui.js';
+export default function wizard({ui}) {
+ if(ui.wizardDone) return `<section class="empty"><h2>התהליך הושלם בהדגמה</h2><p>הבקשה נוספה למרכז הפעילות המקומי.</p><div class="actions" style="justify-content:center"><button data-action="wizard-restart">תהליך נוסף</button><a class="outline" href="#activity">למרכז הפעילות</a></div></section>`;
+ const step=ui.wizardStep;
+ const content=step===0 ? `<div class="form-grid">${field('שם התהליך','title',ui.wizard.title,'required maxlength="80"')}${field('אימייל לדוגמה','email',ui.wizard.email,'required type="email"')}</div>` : step===1 ? `<div class="form-grid"><label class="field"><span>צוות מטפל</span><select name="owner">${options(['צוות 1','צוות 2','צוות 3'],ui.wizard.owner)}</select></label>${field('תאריך יעד','date',ui.wizard.date,'type="date" required')}</div>` : `<h2>סקירה לפני סיום</h2><p><b>תהליך:</b> ${esc(ui.wizard.title)}</p><p><b>אימייל:</b> ${esc(ui.wizard.email)}</p><p><b>צוות:</b> ${esc(ui.wizard.owner)}</p><p><b>תאריך יעד:</b> ${esc(ui.wizard.date)}</p><div class="notice">הסיום מוסיף בקשת הדגמה מקומית בלבד.</div>`;
+ return `<div class="steps">${['פרטים','הגדרות','סקירה'].map((s,i)=>`<span class="step ${i===step?'active':''}" ${i===step?'aria-current="step"':''}>${i+1}. ${s}</span>`).join('')}</div><form class="card" data-form="wizard">${content}<div class="form-actions">${step?'<button type="button" class="outline" data-action="wizard-back">חזרה</button>':''}<button>${step===2?'סיום התהליך':'המשך'}</button></div></form>`;
+}

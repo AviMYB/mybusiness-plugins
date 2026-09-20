@@ -30,9 +30,11 @@ All product facts live in `references/` (generated from the canonical docs — d
 | External form intake (web2lead/web2table) | `references/40-integrations-api/03-web2lead-web2table.md` |
 | Server-side extension model | `references/40-integrations-api/04-cloud-functions.md` |
 | Messaging (email/SMS/WhatsApp) & files | `references/40-integrations-api/05-messaging-channels.md`, `06-files-and-storage.md` |
+| Interactive local mockups and historical visual baseline | `references/50-ui-walkthrough/03-mockup-visual-baseline.md`; procedure: `../myb-p-mockup-templates/SKILL.md` |
 | What the UI looks like (screenshots) | `references/50-ui-walkthrough/01-runtime-app-tour.md`, `02-admin-builder-tour.md` |
 | Run a discovery (אפיון) / fit-gap / write a technical spec / build an implementation plan | `references/60-implementation-methodology/01`–`06` + fill-in templates under `references/60-implementation-methodology/templates/` |
 | Published user guides & FAQ | `references/90-appendices/01-support-site-catalog.md`, `02-faq-troubleshooting.md` |
+
 
 ## Usage rules (binding)
 

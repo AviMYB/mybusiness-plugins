@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<!-- TEMPLATE: sales-manager dashboard (verified vs live DashboardSalesManager 2026-07-17):
+     head strip with date-range + הפעל and ערוך; KPI tiles; DONUT card with legend; LINE chart card;
+     navy active-tab pill + card with inner filter + table; vertical BAR chart with y-axis. -->
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>תבנית — דאשבורד מכירות-מנהל (דונאט/קו/עמודות)</title>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&family=Heebo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+<style>
+  :root{
+    --navy:#252C57;--navy2:#3D4993;--blue:#62A6FF;--info:#369BCD;
+    --border:#E8E8E8;--line:#F0F0F0;--strip:#F4F4F4;--muted:#8B93A8;
+    --red:#F44336;--softred:#F18483;--orange:#F5A623;--green:#1FBFA5;--wongreen:#4CAE4C;--purple:#6336BE;
+    --pencil:#00618C;--sel:#EAF1FF;--shadow:-4px 3px 13px 0 rgba(76,76,76,.1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Assistant',Arial,sans-serif;font-size:14px;color:#333;background:#fff}
+  a{text-decoration:none;color:inherit} button{font-family:inherit;cursor:pointer}
+  .topbar{height:64px;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+  .brand{direction:ltr;display:flex;align-items:center;gap:9px;font-family:'Heebo',sans-serif;font-weight:700;font-size:21px;color:var(--navy)}
+  .brand .fa{color:var(--info);font-size:25px}
+  .brand b{color:var(--info)}
+  .topcluster{display:flex;align-items:center;gap:20px;color:var(--navy)}
+  .topcluster > .fa{font-size:20px}
+  .userchip{font-size:13px;font-weight:600;text-align:center;line-height:1.15}
+  .app{display:flex;align-items:stretch;min-height:calc(100vh - 64px)}
+  .sidemenu{width:232px;flex:none;background:var(--navy);display:flex;flex-direction:column;padding:12px 0 10px}
+  .sidemenu a{display:flex;align-items:center;gap:13px;height:62px;padding:0 20px 0 25px;color:#fff;font-size:13px}
+  .sidemenu a .circ{width:44px;height:44px;border-radius:50%;background:var(--navy2);display:flex;align-items:center;justify-content:center;font-size:17px;color:#fff;flex:none}
+  .sidemenu a.cur .circ{background:var(--blue)}
+  .sidemenu .collapse{margin-top:auto;padding:16px 26px;color:#fff;font-size:20px}
+  .content{flex:1;min-width:0;display:flex;flex-direction:column}
+  .pagehead{background:var(--strip);display:flex;align-items:center;justify-content:space-between;padding:13px 22px;gap:18px;flex-wrap:wrap}
+  .pagehead .t{display:flex;align-items:center;gap:11px;color:var(--navy)}
+  .pagehead .t .fa{font-size:22px}
+  .pagehead h2{font-family:'Heebo',sans-serif;font-size:24px;font-weight:600;color:var(--navy)}
+  .headfilters{display:flex;align-items:flex-end;gap:14px}
+  .hfield label{display:block;font-size:12.5px;font-weight:600;color:var(--navy);margin-bottom:4px}
+  .hfield input{height:38px;border:1px solid var(--border);border-radius:7px;padding:0 10px;font:inherit;color:var(--navy);width:160px}
+  .btn{border:none;font-weight:600;font-size:13px;border-radius:6px;padding:9px 20px;display:inline-flex;align-items:center;gap:8px}
+  .btn-navy{background:var(--navy);color:#fff}
+  .btn-outline{background:#fff;color:var(--navy);border:1px solid var(--navy);border-radius:7px;padding:7px 14px}
+  .dashwrap{padding:20px 22px;max-width:1400px;display:grid;grid-template-columns:300px 1fr;gap:18px;align-items:start}
+  .card{background:#fff;border:1px solid #f0f0f0;border-radius:7px;box-shadow:var(--shadow);margin-bottom:18px}
+  .band{background:#fff;padding:14px 18px 4px;display:flex;align-items:center;justify-content:space-between}
+  .band h3{font-family:'Heebo',sans-serif;font-size:15.5px;font-weight:600;color:var(--navy);border-bottom:1px solid var(--line);padding-bottom:8px;width:100%}
+  .bd{padding:14px 18px}
+  /* KPI tile (plain, like the product's currency/count tiles) */
+  .kpi{background:#fff;border:1px solid #f0f0f0;border-radius:7px;box-shadow:var(--shadow);padding:16px 18px;margin-bottom:18px}
+  .kpi .row1{display:flex;align-items:center;justify-content:space-between}
+  .kpi .row1 .fa{font-size:24px;color:var(--navy)}
+  .kpi .num{font-family:'Heebo',sans-serif;font-size:30px;font-weight:400;color:var(--navy)}
+  .kpi .lbl{font-size:13.5px;color:var(--navy);margin-top:4px;text-align:center}
+  /* donut */
+  .donut{width:170px;height:170px;border-radius:50%;margin:14px auto;background:conic-gradient(var(--orange) 0 62%,var(--green) 62% 100%);position:relative}
+  .donut::after{content:"";position:absolute;inset:32%;background:#fff;border-radius:50%}
+  .dlegend{display:flex;gap:16px;justify-content:center;font-size:12.5px;color:var(--navy);padding-bottom:6px}
+  .dlegend i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-inline-end:5px;vertical-align:-1px}
+  /* line chart (inline SVG holder) */
+  .linewrap{padding:6px 10px 12px}
+  /* tabs pill row */
+  .tabs{display:inline-flex;background:#F6F7FB;border-radius:7px;margin-bottom:14px}
+  .tabs a{padding:11px 20px;font-size:14px;color:var(--navy);white-space:nowrap}
+  .tabs a.on{background:var(--navy);color:#fff;border-radius:7px;font-weight:600}
+  /* inner filter + table */
+  .filters{display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;padding:14px 18px 4px}
+  .field label{display:block;font-size:13px;font-weight:600;color:var(--navy);margin-bottom:6px}
+  .field input,.field select{width:200px;height:40px;border:1px solid var(--border);border-radius:7px;padding:0 12px;font:inherit;color:var(--navy);background:#fff}
+  .tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+  .tbl th{background:var(--navy);color:#fff;font-weight:700;padding:12px 14px;text-align:right;white-space:nowrap}
+  .tbl td{padding:11px 14px;color:var(--navy);border-bottom:1px solid var(--line)}
+  .pager{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;font-size:13px}
+  .pager .grp{display:flex;gap:6px;align-items:center}
+  .pgbox{min-width:32px;height:28px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:4px;padding:0 7px;color:#333}
+  .pgbox.on{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:700}
+  /* vertical bar chart with axis */
+  .chartwrap{direction:ltr;display:flex;gap:12px;padding:12px 12px 0}
+  .yaxis{display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end;height:200px;font-size:10.5px;color:var(--muted);flex:none;width:34px}
+  .plot{position:relative;flex:1;height:200px;display:flex;align-items:flex-end;justify-content:space-around;border-bottom:1px solid #D9DDEA}
+  .gline{position:absolute;left:0;right:0;height:1px;background:#EEF0F6}
+  .colb{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;z-index:1}
+  .colb i{display:block;width:48px;border-radius:3px 3px 0 0;background:var(--green)}
+  .colb i.alt{background:var(--orange)}
+  .xrow{direction:ltr;display:flex;justify-content:space-around;padding:7px 12px 12px;margin-inline-start:46px}
+  .xrow span{width:100px;text-align:center;font-size:12.5px;color:#6B7280}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .mocktag{position:fixed;bottom:12px;left:12px;background:var(--navy);color:#fff;font-size:11px;padding:4px 10px;border-radius:4px;opacity:.85;z-index:99}
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="brand"><i class="fa fa-cubes"></i>MyBusiness <b>CRM</b></div>
+    <div class="topcluster">
+      <i class="fa fa-bell-o"></i>
+      <i class="fa fa-th"></i>
+      <div class="userchip">הדגמה <i class="fa fa-caret-down"></i><br>משתמש לדוגמה</div>
+    </div>
+  </div>
+
+  <div class="app">
+    <aside class="sidemenu">
+      <a href="#" class="cur"><span class="circ"><i class="fa fa-bar-chart"></i></span><span>מבט-על</span> <i class="fa fa-caret-down" style="font-size:11px"></i></a>
+      <a href="#"><span class="circ"><i class="fa fa-search"></i></span><span>חיפוש לקוחות ולידים</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-bullhorn"></i></span><span>לידים</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-building"></i></span><span>לקוחות</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-user"></i></span><span>אנשי קשר</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-th-list"></i></span><span>משימות</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-calendar"></i></span><span>יומן</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-briefcase"></i></span><span>פעילויות</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-handshake-o"></i></span><span>מכירות</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-headphones"></i></span><span>פניות</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-file-text-o"></i></span><span>דוחות</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-cog"></i></span><span>הגדרות</span></a>
+      <div class="collapse"><i class="fa fa-arrow-left"></i></div>
+    </aside>
+
+    <div class="content">
+      <div class="pagehead">
+        <div class="t"><i class="fa fa-bar-chart"></i><h2>{{דאשבורד מכירות - מנהל}}</h2></div>
+        <div class="headfilters">
+          <div class="hfield"><label>מתאריך</label><input type="date" value="2026-06-17"></div>
+          <div class="hfield"><label>עד תאריך</label><input type="date" value="2026-07-17"></div>
+          <button class="btn btn-navy">הפעל</button>
+        </div>
+        <button class="btn btn-outline"><i class="fa fa-wrench"></i> ערוך</button>
+      </div>
+
+      <!-- ===== CONTENT ===== -->
+      <div class="dashwrap">
+
+        <!-- narrow column (left in RTL = second visually; DOM first renders right) -->
+        <div>
+          <div class="kpi"><div class="row1"><i class="fa fa-shekel"></i><span class="num">950</span></div><div class="lbl">{{הכנסות ממכירות בתאריכים הנבחרים}}</div></div>
+          <div class="kpi"><div class="row1"><i class="fa fa-hand-peace-o"></i><span class="num">1</span></div><div class="lbl">{{מכירות שנסגרו בתאריכים הנבחרים}}</div></div>
+
+          <div class="card">
+            <div class="band"><h3>{{מכירות פתוחות לפי שלב}}</h3></div>
+            <div class="dlegend"><span><i style="background:var(--orange)"></i>{{חדש}}</span><span><i style="background:var(--green)"></i>{{פגישת מצגת}}</span></div>
+            <div class="donut"></div>
+          </div>
+
+          <div class="card">
+            <div class="band"><h3>{{הכנסות ממכירות לפי חודש}}</h3></div>
+            <div class="linewrap">
+              <svg viewBox="0 0 260 150" width="100%" height="150">
+                <g stroke="#EEF0F6" stroke-width="1">
+                  <line x1="30" y1="10" x2="30" y2="130"/><line x1="30" y1="130" x2="250" y2="130"/>
+                  <line x1="30" y1="100" x2="250" y2="100"/><line x1="30" y1="70" x2="250" y2="70"/><line x1="30" y1="40" x2="250" y2="40"/>
+                </g>
+                <g fill="#8B93A8" font-size="8" text-anchor="end">
+                  <text x="26" y="133">0</text><text x="26" y="103">300</text><text x="26" y="73">600</text><text x="26" y="43">900</text>
+                </g>
+                <polyline points="60,35 130,80 200,95" fill="none" stroke="#369BCD" stroke-width="2"/>
+                <circle cx="60" cy="35" r="4" fill="#369BCD"/><circle cx="130" cy="80" r="3" fill="#369BCD"/><circle cx="200" cy="95" r="3" fill="#369BCD"/>
+                <g fill="#8B93A8" font-size="8" text-anchor="middle"><text x="60" y="143">5/26</text><text x="130" y="143">6/26</text><text x="200" y="143">7/26</text></g>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- wide column -->
+        <div>
+          <div class="tabs">
+            <a href="#" class="on">{{הצעות מחיר פתוחות בתאריכים נבחרים}}</a>
+            <a href="#">{{משימות בתאריכים נבחרים}}</a>
+          </div>
+
+          <div class="card">
+            <div class="filters">
+              <div class="field"><label>{{סנן לפי נציג}}</label><select><option></option></select></div>
+              <div class="field"><label>{{סכום גדול מ}}</label><input type="number"></div>
+              <button class="btn btn-navy">סנן</button>
+            </div>
+            <div class="bd">
+              <table class="tbl">
+                <thead><tr><th>{{תאריך יצירה}} <i class="fa fa-caret-down" style="font-size:10px"></i></th><th>{{מספר הצעה}}</th><th>{{לקוח}}</th><th>{{סטאטוס}}</th><th>{{אחראי מכירה}}</th><th>{{סכום הצעה}}</th></tr></thead>
+                <tbody>
+                  <tr><td>17/07/2026</td><td>1043</td><td>{{לקוח}}</td><td>{{נשלחה}}</td><td>{{משתמש}}</td><td>4,800</td></tr>
+                </tbody>
+              </table>
+              <div class="pager">
+                <div class="grp"><a class="pgbox on" href="#">10</a><a class="pgbox" href="#">25</a><a class="pgbox" href="#">50</a><a class="pgbox" href="#">100</a></div>
+                <div class="grp"><a class="pgbox" href="#">«</a><a class="pgbox on" href="#">1</a><a class="pgbox" href="#">»</a></div>
+                <div>מספר רשומות: <b>1</b></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row2">
+            <div class="card">
+              <div class="band"><h3>{{סה"כ מכירות לפי שלב}}</h3></div>
+              <div class="chartwrap">
+                <div class="yaxis"><span>5000</span><span>4000</span><span>3000</span><span>2000</span><span>1000</span><span>0</span></div>
+                <div class="plot">
+                  <span class="gline" style="bottom:20%"></span><span class="gline" style="bottom:40%"></span>
+                  <span class="gline" style="bottom:60%"></span><span class="gline" style="bottom:80%"></span>
+                  <div class="colb"><i class="alt" style="height:184px"></i></div>
+                  <div class="colb"><i style="height:44px"></i></div>
+                </div>
+              </div>
+              <div class="xrow"><span>{{פגישת מצגת}}</span><span>{{חדש}}</span></div>
+            </div>
+            <div class="card">
+              <div class="band"><h3>{{סך מכירות לפי מוצר}}</h3></div>
+              <div class="chartwrap">
+                <div class="yaxis"><span>1</span><span>0.8</span><span>0.6</span><span>0.4</span><span>0.2</span><span>0</span></div>
+                <div class="plot">
+                  <span class="gline" style="bottom:20%"></span><span class="gline" style="bottom:40%"></span>
+                  <span class="gline" style="bottom:60%"></span><span class="gline" style="bottom:80%"></span>
+                </div>
+              </div>
+              <div class="xrow"><span></span></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <!-- ===== /CONTENT ===== -->
+    </div>
+  </div>
+
+  <div class="mocktag">מוקאפ — אינו מסך חי</div>
+</body>
+</html>

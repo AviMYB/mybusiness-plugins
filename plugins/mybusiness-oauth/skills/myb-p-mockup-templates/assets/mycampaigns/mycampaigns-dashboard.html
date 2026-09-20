@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<!-- TEMPLATE: MyCampaigns מבט-על (verified vs live apps/mycampaigns/Dashboard 2026-07-17).
+     MODULE chrome (dark-navy top bar + white side menu); colored-circle KPI cards (number left,
+     multiline label, circle right); second KPI row with blue line icons; package/pricing sections. -->
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>תבנית — MyCampaigns מבט-על</title>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&family=Heebo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+<style>
+  :root{
+    --modnavy:#132458;--mblue:#2263C4;--icoblue:#2F80D0;
+    --border:#E3E5EC;--muted:#8B93A8;--text:#39404F;
+    --cyan:#1EC9E8;--wagreen:#2FBE6F;--magenta:#E2196E;--purple:#8E24AA;
+    --shadow:0 1px 4px rgba(40,50,80,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Assistant',Arial,sans-serif;font-size:14px;color:var(--text);background:#fff}
+  a{text-decoration:none;color:inherit} button{font-family:inherit;cursor:pointer}
+  .topbar{height:70px;background:var(--modnavy);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 26px}
+  .brand{direction:ltr;display:flex;align-items:center;gap:8px;font-family:'Heebo',sans-serif;font-weight:700;font-size:26px}
+  .brand .fa{font-size:24px}
+  .topcluster{display:flex;align-items:center;gap:22px}
+  .topcluster .fa{font-size:20px;color:#fff}
+  .userchip{font-size:14px;font-weight:600}
+  .app{display:flex;align-items:stretch;min-height:calc(100vh - 70px)}
+  .sidemenu{width:170px;flex:none;background:#FBFBFD;border-inline-start:1px solid var(--border);padding:10px 0}
+  .sidemenu a{display:flex;align-items:center;gap:9px;padding:12px 16px;color:#2B3A63;font-size:13.5px}
+  .sidemenu a .fa{color:var(--icoblue);font-size:15px;width:18px;text-align:center}
+  .sidemenu a.cur{background:#EEF0F5;font-weight:700}
+  .content{flex:1;min-width:0;padding:24px 30px}
+  .ptitle{display:flex;align-items:center;gap:9px;color:var(--mblue);font-family:'Heebo',sans-serif;font-size:24px;font-weight:600;margin-bottom:14px}
+  .filters{display:flex;align-items:flex-end;gap:34px;margin-bottom:22px}
+  .uf{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:13.5px}
+  .uf input{border:none;border-bottom:1px solid #9AA3B5;background:transparent;font:inherit;font-size:15px;color:var(--text);padding:2px 4px;width:150px}
+  .btn-fill{background:var(--modnavy);color:#fff;border:none;border-radius:4px;font-size:13.5px;font-weight:600;padding:8px 24px}
+  /* colored-circle KPI card (number left, label, circle right) */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:8px}
+  .kpic{background:#fff;border:1px solid var(--border);border-radius:6px;box-shadow:var(--shadow);padding:20px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .kpic .num{font-family:'Heebo',sans-serif;font-size:34px;color:#2B3A63}
+  .kpic .lbl{flex:1;font-size:13.5px;color:#5A6478;text-align:end;line-height:1.35}
+  .kpic .cc{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;flex:none}
+  .cc.cyan{background:var(--cyan)} .cc.wa{background:var(--wagreen)} .cc.mag{background:var(--magenta)} .cc.pur{background:var(--purple)}
+  .sep{border-top:1px solid var(--border);margin:20px 0}
+  .kpic .ico{color:var(--icoblue);font-size:34px;flex:none}
+  .kpis3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  /* sections */
+  .rows2{display:grid;grid-template-columns:1.6fr 1fr;gap:20px;margin-top:22px}
+  .card{background:#fff;border:1px solid var(--border);border-radius:6px;box-shadow:var(--shadow)}
+  .card .t{font-size:15.5px;font-weight:700;color:#2B3A63;padding:14px 18px 10px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+  .card .t .link{color:#E8A33D;font-size:12.5px;text-decoration:underline}
+  .pkgs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:22px 16px;text-align:center}
+  .pkg .fa{font-size:44px;color:var(--icoblue);display:block;margin-bottom:10px}
+  .pkg{font-size:14.5px;color:#2B3A63;font-weight:600}
+  .prices{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:22px 16px;text-align:center}
+  .price .fa{font-size:40px;color:var(--icoblue);display:block;margin-bottom:10px}
+  .price{font-size:13.5px;color:#2B3A63}
+  .mocktag{position:fixed;bottom:12px;left:12px;background:var(--modnavy);color:#fff;font-size:11px;padding:4px 10px;border-radius:4px;opacity:.85;z-index:99}
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="brand"><i class="fa fa-th-large"></i>mycampaigns</div>
+    <div class="topcluster">
+      <i class="fa fa-bell-o"></i>
+      <i class="fa fa-th"></i>
+      <div class="userchip">mb <i class="fa fa-caret-down"></i></div>
+    </div>
+  </div>
+
+  <div class="app">
+    <aside class="sidemenu">
+      <a href="#" class="cur"><i class="fa fa-bar-chart"></i>מבט-על</a>
+      <a href="#"><i class="fa fa-bullhorn"></i>לידים</a>
+      <a href="#"><i class="fa fa-address-book-o"></i>לקוחות</a>
+      <a href="#"><i class="fa fa-users"></i>קבוצות</a>
+      <a href="#"><i class="fa fa-paper-plane-o"></i>דיוורים</a>
+      <a href="#"><i class="fa fa-clone"></i>דפי נחיתה</a>
+      <a href="#"><i class="fa fa-whatsapp"></i>תבניות לווטסאפ</a>
+      <a href="#"><i class="fa fa-cogs"></i>הגדרות</a>
+    </aside>
+
+    <div class="content">
+      <!-- ===== CONTENT ===== -->
+      <div class="ptitle"><i class="fa fa-bar-chart"></i>מבט-על</div>
+
+      <div class="filters">
+        <span class="uf">מתאריך <input type="date" value="2026-06-17"></span>
+        <span class="uf">עד תאריך <input type="date" value="2026-07-17"></span>
+        <button class="btn-fill">החל</button>
+      </div>
+
+      <div class="kpis">
+        <div class="kpic"><div class="cc cyan"><i class="fa fa-bullhorn"></i></div><div class="lbl">{{סה"כ הודעות שנשלחו בתאריכים נבחרים}}</div><div class="num">0</div></div>
+        <div class="kpic"><div class="cc wa"><i class="fa fa-whatsapp"></i></div><div class="lbl">{{סה"כ הודעות וואטסאפ שנשלחו בתאריכים נבחרים}}</div><div class="num">0</div></div>
+        <div class="kpic"><div class="cc mag"><i class="fa fa-mobile"></i></div><div class="lbl">{{סה"כ סמסים שנשלחו בתאריכים נבחרים}}</div><div class="num">0</div></div>
+        <div class="kpic"><div class="cc pur"><i class="fa fa-envelope-o"></i></div><div class="lbl">{{סה"כ אימיילים שנשלחו בתאריכים נבחרים}}</div><div class="num">0</div></div>
+      </div>
+
+      <div class="sep"></div>
+
+      <div class="kpis3">
+        <div class="kpic"><i class="fa fa-envelope-open-o ico"></i><div class="lbl">{{כמות אימיילים שנשלחו מתחילת החודש}}</div><div class="num">0</div></div>
+        <div class="kpic"><i class="fa fa-envelope-o ico"></i><div class="lbl">{{יתרת אימיילים לפי החבילה שנרכשה}}</div><div class="num">10,000</div></div>
+        <div class="kpic"><i class="fa fa-credit-card ico"></i><div class="lbl">{{יתרת קרדיט (ללא מע"מ)}}</div><div class="num">0.00<small>₪</small></div></div>
+      </div>
+
+      <div class="rows2">
+        <div class="card">
+          <div class="t">{{מיילים כלולים לפי חבילה}}</div>
+          <div class="pkgs">
+            <div class="pkg"><i class="fa fa-cube"></i>{{Advanced}}</div>
+            <div class="pkg"><i class="fa fa-cubes"></i>{{Enterprise}}</div>
+            <div class="pkg"><i class="fa fa-th-large"></i>{{MyBooks Small Business}}</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="t">{{מחירון}} <a class="link" href="#"><i class="fa fa-credit-card"></i> {{רכישת קרדיט}}</a></div>
+          <div class="prices">
+            <div class="price"><i class="fa fa-file-text-o"></i>{{מחיר ל-sms}}</div>
+            <div class="price"><i class="fa fa-envelope-open-o"></i>{{מחיר למייל}}</div>
+          </div>
+        </div>
+      </div>
+      <!-- ===== /CONTENT ===== -->
+    </div>
+  </div>
+
+  <div class="mocktag">מוקאפ — אינו מסך חי</div>
+</body>
+</html>

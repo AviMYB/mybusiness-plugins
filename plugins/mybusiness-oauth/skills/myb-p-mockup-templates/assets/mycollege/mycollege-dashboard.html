@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<!-- TEMPLATE: MyCollege general dashboard (verified vs live apps/mycollege/dashboard 2026-07-17).
+     CRM-style chrome with the MyCollege side menu (courses/students/scheduling/calendars/lecturers/
+     lessons/exams); gray strip title; navy tab pill; filter panel; navy-header table; KPI + chart column. -->
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>תבנית — MyCollege דאשבורד</title>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&family=Heebo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+<style>
+  :root{
+    --navy:#252C57;--navy2:#3D4993;--blue:#62A6FF;--info:#369BCD;
+    --border:#E8E8E8;--line:#F0F0F0;--strip:#F4F4F4;--muted:#8B93A8;
+    --green:#1FBFA5;--shadow:-4px 3px 13px 0 rgba(76,76,76,.1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Assistant',Arial,sans-serif;font-size:14px;color:#333;background:#fff}
+  a{text-decoration:none;color:inherit} button{font-family:inherit;cursor:pointer}
+  .topbar{height:64px;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+  .brand{direction:ltr;display:flex;align-items:center;gap:9px;font-family:'Heebo',sans-serif;font-weight:700;font-size:21px;color:var(--navy)}
+  .brand .fa{color:var(--info);font-size:25px}
+  .brand b{color:var(--info)}
+  .topcluster{display:flex;align-items:center;gap:20px;color:var(--navy)}
+  .topcluster > .fa{font-size:20px}
+  .userchip{font-size:13px;font-weight:600;text-align:center;line-height:1.15}
+  .app{display:flex;align-items:stretch;min-height:calc(100vh - 64px)}
+  .sidemenu{width:232px;flex:none;background:var(--navy);display:flex;flex-direction:column;padding:12px 0 10px}
+  .sidemenu a{display:flex;align-items:center;gap:13px;height:62px;padding:0 20px 0 25px;color:#fff;font-size:13px}
+  .sidemenu a .circ{width:44px;height:44px;border-radius:50%;background:var(--navy2);display:flex;align-items:center;justify-content:center;font-size:17px;color:#fff;flex:none}
+  .sidemenu a.cur .circ{background:var(--blue)}
+  .sidemenu .collapse{margin-top:auto;padding:16px 26px;color:#fff;font-size:20px}
+  .content{flex:1;min-width:0;display:flex;flex-direction:column}
+  .pagehead{background:var(--strip);display:flex;align-items:center;justify-content:space-between;padding:13px 22px}
+  .pagehead .t{display:flex;align-items:center;gap:11px;color:var(--navy)}
+  .pagehead .t .fa{font-size:22px}
+  .pagehead h2{font-family:'Heebo',sans-serif;font-size:24px;font-weight:600;color:var(--navy)}
+  .dashwrap{padding:20px 22px;max-width:1400px;display:grid;grid-template-columns:300px 1fr;gap:18px;align-items:start}
+  .tabs{display:inline-flex;background:#F6F7FB;border-radius:7px;margin-bottom:14px}
+  .tabs a{padding:11px 20px;font-size:14px;color:var(--navy);white-space:nowrap}
+  .tabs a.on{background:var(--navy);color:#fff;border-radius:7px;font-weight:600}
+  .card{background:#fff;border:1px solid #f0f0f0;border-radius:7px;box-shadow:var(--shadow);margin-bottom:18px}
+  .band{background:#fff;padding:14px 18px 4px}
+  .band h3{font-family:'Heebo',sans-serif;font-size:15.5px;font-weight:600;color:var(--navy);border-bottom:1px solid var(--line);padding-bottom:8px}
+  .filters{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 18px;padding:16px 18px 6px}
+  .field label{display:block;font-size:13px;font-weight:600;color:var(--navy);margin-bottom:6px}
+  .field input,.field select{width:100%;height:42px;border:1px solid var(--border);border-radius:7px;padding:0 12px;font:inherit;color:var(--navy);background:#fff}
+  .filteract{display:flex;justify-content:flex-end;padding:6px 18px 16px}
+  .btn{border:none;font-weight:600;font-size:13px;border-radius:6px;padding:9px 24px;background:var(--navy2);color:#fff}
+  .tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+  .tbl th{background:var(--navy);color:#fff;font-weight:700;padding:12px 14px;text-align:right;white-space:nowrap}
+  .tbl td{padding:11px 14px;color:var(--navy);border-bottom:1px solid var(--line)}
+  .pager{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;font-size:13px}
+  .pager .grp{display:flex;gap:6px}
+  .pgbox{min-width:32px;height:28px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:4px;padding:0 7px;color:#333}
+  .pgbox.on{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:700}
+  .kpi{background:#fff;border:1px solid #f0f0f0;border-radius:7px;box-shadow:var(--shadow);padding:16px 18px;margin-bottom:18px}
+  .kpi .row1{display:flex;align-items:center;justify-content:space-between}
+  .kpi .row1 .fa{font-size:24px;color:var(--info)}
+  .kpi .num{font-family:'Heebo',sans-serif;font-size:30px;font-weight:400;color:var(--navy)}
+  .kpi .lbl{font-size:13.5px;color:var(--navy);margin-top:4px;text-align:center}
+  .linewrap{padding:6px 10px 12px}
+  .dlegend{display:flex;gap:14px;justify-content:center;font-size:12px;color:var(--navy);padding:8px 0 0}
+  .dlegend i{display:inline-block;width:20px;height:10px;background:var(--green);margin-inline-end:6px}
+  .mocktag{position:fixed;bottom:12px;left:12px;background:var(--navy);color:#fff;font-size:11px;padding:4px 10px;border-radius:4px;opacity:.85;z-index:99}
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="brand"><i class="fa fa-cubes"></i>MyBusiness <b>CRM</b></div>
+    <div class="topcluster">
+      <i class="fa fa-bell-o"></i>
+      <i class="fa fa-th"></i>
+      <div class="userchip">הדגמה <i class="fa fa-caret-down"></i><br>משתמש לדוגמה</div>
+    </div>
+  </div>
+
+  <div class="app">
+    <aside class="sidemenu">
+      <a href="#" class="cur"><span class="circ"><i class="fa fa-bar-chart"></i></span><span>מבט על</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-graduation-cap"></i></span><span>קורסים</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-users"></i></span><span>סטודנטים</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-random"></i></span><span>שיבוץ לקורסים</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-calendar"></i></span><span>יומן לפי כיתה</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-building"></i></span><span>יומן לפי מתקן</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-user"></i></span><span>מרצים</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-list-ul"></i></span><span>שיעורים</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-file-text-o"></i></span><span>בחינות</span></a>
+      <a href="#"><span class="circ"><i class="fa fa-cogs"></i></span><span>הגדרות</span> <i class="fa fa-caret-down" style="font-size:11px"></i></a>
+      <div class="collapse"><i class="fa fa-arrow-left"></i></div>
+    </aside>
+
+    <div class="content">
+      <div class="pagehead">
+        <div class="t"><i class="fa fa-bar-chart"></i><h2>{{דאשבורד כללי}}</h2></div>
+      </div>
+
+      <!-- ===== CONTENT ===== -->
+      <div class="dashwrap">
+
+        <!-- narrow column -->
+        <div>
+          <div class="kpi"><div class="row1"><i class="fa fa-male"></i><span class="num">2</span></div><div class="lbl">{{סטודנטים פעילים לא מקושרים לפורטל}}</div></div>
+          <div class="kpi"><div class="row1"><i class="fa fa-headphones"></i><span class="num">0</span></div><div class="lbl">{{פניות פתוחות מהפורטל}}</div></div>
+          <div class="card">
+            <div class="band"><h3>{{סך הכנסות מקורסים לפי חודשים}}</h3></div>
+            <div class="dlegend"><span><i></i>{{שנה נוכחית}}</span></div>
+            <div class="linewrap">
+              <svg viewBox="0 0 260 150" width="100%" height="150">
+                <g stroke="#EEF0F6" stroke-width="1">
+                  <line x1="30" y1="10" x2="30" y2="130"/><line x1="30" y1="130" x2="250" y2="130"/>
+                  <line x1="30" y1="100" x2="250" y2="100"/><line x1="30" y1="70" x2="250" y2="70"/><line x1="30" y1="40" x2="250" y2="40"/>
+                </g>
+                <polyline points="40,120 100,90 160,100 220,60" fill="none" stroke="#1FBFA5" stroke-width="2"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- wide column -->
+        <div>
+          <div class="tabs">
+            <a href="#" class="on">{{שיעורים להיום}}</a>
+            <a href="#">{{מבחנים להיום}}</a>
+          </div>
+          <div class="card">
+            <div class="filters">
+              <div class="field"><label>{{תאריך תחילת קורס החל מ}}</label><input type="date" value="2026-07-17"></div>
+              <div class="field"><label>{{תאריך תחילת קורס עד}}</label><input type="date" value="2026-07-18"></div>
+              <div class="field"><label>{{מתקן}}</label><select><option></option></select></div>
+              <div class="field"><label>{{כיתה}}</label><select><option></option></select></div>
+              <div class="field"><label>{{קורס}}</label><select><option></option></select></div>
+            </div>
+            <div class="filteract"><button class="btn">סנן</button></div>
+            <table class="tbl">
+              <thead><tr><th>{{שיעור}}</th><th>{{זמן התחלה}}</th><th>{{זמן סיום}}</th><th>{{קורס}}</th><th>{{מרצה ראשי}}</th><th>{{מתקן}}</th><th>{{כיתה}}</th></tr></thead>
+              <tbody>
+                <tr><td>{{שיעור 1}}</td><td>09:00</td><td>10:30</td><td>{{קורס}}</td><td>{{מרצה}}</td><td>{{מתקן}}</td><td>{{כיתה}}</td></tr>
+              </tbody>
+            </table>
+            <div class="pager">
+              <div class="grp"><a class="pgbox on" href="#">10</a><a class="pgbox" href="#">25</a><a class="pgbox" href="#">50</a><a class="pgbox" href="#">100</a></div>
+              <div class="grp"><a class="pgbox" href="#">«</a><a class="pgbox on" href="#">1</a><a class="pgbox" href="#">»</a></div>
+              <div>מספר רשומות: <b>1</b></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <!-- ===== /CONTENT ===== -->
+    </div>
+  </div>
+
+  <div class="mocktag">מוקאפ — אינו מסך חי</div>
+</body>
+</html>

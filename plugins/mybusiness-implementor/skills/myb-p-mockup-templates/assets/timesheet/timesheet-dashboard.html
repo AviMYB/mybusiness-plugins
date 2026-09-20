@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<!-- TEMPLATE: TimeSheet projects dashboard (verified vs live apps/timesheet/DashboardTimeSheet 2026-07-17).
+     MODULE chrome (dark-navy top bar + "mybusiness" logo; white side menu); blue title + wrench;
+     underline date filters + הפעל outline; KPI cards; folder-tab card with select + plain table; chart cards. -->
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>תבנית — TimeSheet דשבורד פרויקטים</title>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&family=Heebo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+<style>
+  :root{
+    --modnavy:#132458;--mblue:#2263C4;--icoblue:#2F80D0;
+    --border:#E3E5EC;--muted:#8B93A8;--text:#39404F;
+    --shadow:0 1px 4px rgba(40,50,80,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Assistant',Arial,sans-serif;font-size:14px;color:var(--text);background:#F7F8FA}
+  a{text-decoration:none;color:inherit} button{font-family:inherit;cursor:pointer}
+  .topbar{height:70px;background:var(--modnavy);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 26px}
+  .brand{direction:ltr;display:flex;align-items:center;gap:8px;font-family:'Heebo',sans-serif;font-weight:700;font-size:26px}
+  .brand .fa{font-size:24px}
+  .topcluster{display:flex;align-items:center;gap:22px}
+  .topcluster .fa{font-size:20px;color:#fff}
+  .userchip{font-size:14px;font-weight:600}
+  .app{display:flex;align-items:stretch;min-height:calc(100vh - 70px)}
+  .sidemenu{width:170px;flex:none;background:#FBFBFD;border-inline-start:1px solid var(--border);padding:10px 0}
+  .sidemenu a{display:flex;align-items:center;gap:9px;padding:12px 16px;color:#2B3A63;font-size:13.5px}
+  .sidemenu a .fa{color:var(--icoblue);font-size:15px;width:18px;text-align:center}
+  .sidemenu a.cur{background:#EEF0F5;font-weight:700}
+  .content{flex:1;min-width:0;padding:24px 30px}
+  .headrow{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;gap:20px;flex-wrap:wrap}
+  .ptitle{display:flex;align-items:center;gap:9px;color:var(--mblue);font-family:'Heebo',sans-serif;font-size:24px;font-weight:600}
+  .filters{display:flex;align-items:flex-end;gap:30px}
+  .uf{text-align:center;color:var(--muted);font-size:13px}
+  .uf input{display:block;border:none;border-bottom:1px solid #9AA3B5;background:transparent;font:inherit;font-size:15px;color:var(--text);padding:2px 4px;width:150px;margin-top:3px}
+  .btn-out{background:#fff;border:1px solid #C6CBDA;border-radius:4px;color:var(--text);font-size:13.5px;padding:7px 22px}
+  .edit{color:var(--text);font-size:13.5px}
+  .grid{display:grid;grid-template-columns:1fr 2.2fr;gap:20px;align-items:start}
+  .kpis{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px}
+  .kpi{background:#fff;border:1px solid var(--border);border-radius:6px;box-shadow:var(--shadow);padding:18px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .kpi .fa{font-size:26px;color:var(--icoblue)}
+  .kpi .num{font-family:'Heebo',sans-serif;font-size:30px;color:#2B3A63}
+  .kpi .lbl{flex:1;font-size:13px;color:#5A6478;text-align:end}
+  .card{background:#fff;border:1px solid var(--border);border-radius:6px;box-shadow:var(--shadow);margin-bottom:18px}
+  .card .t{font-size:14.5px;font-weight:700;color:#2B3A63;padding:13px 16px 9px;border-bottom:1px solid var(--border)}
+  .chartbody{height:190px;padding:10px 14px}
+  /* folder tabs card */
+  .ftabs{display:flex;justify-content:flex-end;padding:0 2px}
+  .ftabs a{padding:10px 22px;font-size:13.5px;border:1px solid var(--border);border-bottom:none;border-radius:6px 6px 0 0;background:#EDEFF4;color:#5A6478;margin-inline-start:4px}
+  .ftabs a.on{background:#fff;color:var(--mblue);font-weight:700}
+  .tabcard{background:#fff;border:1px solid var(--border);border-radius:8px 0 8px 8px;box-shadow:var(--shadow);padding:18px 22px}
+  .selrow{display:flex;align-items:flex-end;gap:14px;justify-content:flex-end;margin-bottom:14px}
+  .f label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:4px}
+  .f select{width:260px;height:40px;border:1px solid var(--border);border-radius:5px;padding:0 10px;font:inherit;color:var(--text);background:#fff}
+  .ptbl{width:100%;border-collapse:collapse;font-size:13.5px}
+  .ptbl th{color:#5A6478;font-weight:600;text-align:right;padding:11px 14px;border-bottom:1px solid var(--border)}
+  .ptbl td{padding:10px 14px;border-bottom:1px solid #F0F1F5}
+  .count{color:var(--muted);font-size:13px;padding:12px 2px}
+  .mocktag{position:fixed;bottom:12px;left:12px;background:var(--modnavy);color:#fff;font-size:11px;padding:4px 10px;border-radius:4px;opacity:.85;z-index:99}
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="brand"><i class="fa fa-th-large"></i>mybusiness</div>
+    <div class="topcluster">
+      <i class="fa fa-bell-o"></i>
+      <i class="fa fa-th"></i>
+      <div class="userchip">mb <i class="fa fa-caret-down"></i></div>
+    </div>
+  </div>
+
+  <div class="app">
+    <aside class="sidemenu">
+      <a href="#" class="cur"><i class="fa fa-bar-chart"></i>מבט-על</a>
+      <a href="#"><i class="fa fa-address-book-o"></i>לקוחות</a>
+      <a href="#"><i class="fa fa-cube"></i>פרויקטים</a>
+      <a href="#"><i class="fa fa-cubes"></i>תת פרויקטים</a>
+      <a href="#"><i class="fa fa-calendar"></i>גליון שעות</a>
+      <a href="#"><i class="fa fa-clock-o"></i>שעון נוכחות</a>
+      <a href="#"><i class="fa fa-file-text-o"></i>דוחות</a>
+      <a href="#"><i class="fa fa-question-circle-o"></i>מרכז הדרכה</a>
+    </aside>
+
+    <div class="content">
+      <!-- ===== CONTENT ===== -->
+      <div class="headrow">
+        <div class="ptitle"><i class="fa fa-bar-chart"></i>{{דשבורד פרויקטים}}</div>
+        <div class="filters">
+          <span class="uf">מתאריך <input type="date" value="2026-07-01"></span>
+          <span class="uf">עד תאריך <input type="date" value="2026-07-31"></span>
+          <button class="btn-out">הפעל</button>
+        </div>
+        <span class="edit"><i class="fa fa-wrench"></i> ערוך</span>
+      </div>
+
+      <div class="grid">
+        <!-- narrow column -->
+        <div>
+          <div class="kpis">
+            <div class="kpi"><i class="fa fa-binoculars"></i><div class="lbl">{{פרויקטים פעילים בצפיה בין תאריכים}}</div><div class="num">0</div></div>
+            <div class="kpi"><i class="fa fa-clock-o"></i><div class="lbl">{{שעות שדווחו בין תאריכים}}</div><div class="num">0</div></div>
+          </div>
+          <div class="card">
+            <div class="t">{{דיווח שעות לפי תת פרויקט בין תאריכים}}</div>
+            <div class="chartbody">
+              <svg viewBox="0 0 260 160" width="100%" height="160">
+                <g stroke="#EEF0F6" stroke-width="1">
+                  <line x1="30" y1="10" x2="30" y2="140"/><line x1="30" y1="140" x2="250" y2="140"/>
+                  <line x1="30" y1="105" x2="250" y2="105"/><line x1="30" y1="70" x2="250" y2="70"/><line x1="30" y1="35" x2="250" y2="35"/>
+                </g>
+                <g fill="#8B93A8" font-size="8" text-anchor="end"><text x="26" y="143">0</text><text x="26" y="108">0.5</text><text x="26" y="73">1</text></g>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- wide column: folder-tab card -->
+        <div>
+          <div class="ftabs">
+            <a href="#" class="on">{{דיווחי שעות לפי פרויקט}}</a>
+            <a href="#">{{דיווח שעות לפי תת פרויקט}}</a>
+          </div>
+          <div class="tabcard">
+            <div class="selrow">
+              <button class="btn-out">סנן</button>
+              <div class="f"><label>{{פרויקט}}</label><select><option></option></select></div>
+            </div>
+            <table class="ptbl">
+              <thead><tr><th>{{פרויקט}}</th><th>{{לקוח}}</th><th>{{שעת דיווח}}</th><th>{{זמן}}</th></tr></thead>
+              <tbody>
+                <tr><td>{{פרויקט א}}</td><td>{{לקוח}}</td><td>09:00</td><td>2:30</td></tr>
+              </tbody>
+            </table>
+            <div class="count">מספר רשומות: <b>1</b></div>
+          </div>
+        </div>
+      </div>
+      <!-- ===== /CONTENT ===== -->
+    </div>
+  </div>
+
+  <div class="mocktag">מוקאפ — אינו מסך חי</div>
+</body>
+</html>
