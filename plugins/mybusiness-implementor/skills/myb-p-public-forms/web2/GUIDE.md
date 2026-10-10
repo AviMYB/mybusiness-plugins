@@ -194,7 +194,7 @@ The special keys (`phone`, `email`, `idnum`) drive duplicate detection; the API 
 | Pointer | the 10-character objectId string | **never** a `{__type:"Pointer",className,objectId}` object — the API expects just the id |
 | Array | JSON array (e.g., array of objectIds for `array_*_Pointer_*` fields) | |
 | Object | JSON object | rare in form submissions |
-| File | a File **object** `{"__type":"File","name":"<name returned by the upload>","url":"<url>"}` | upload first with `POST https://api.mbapps.co.il/parse/files/<name>` (App ID header only, raw bytes, no session header) → use its `name`/`url`; a string in the field fails with a schema mismatch (measured 2026-10-09) |
+| File | a File **object** `{"__type":"File","name":"<name returned by the upload>","url":"<url>"}` | upload first with `POST https://api.mbapps.co.il/parse/files/<name>` (App ID header only, raw bytes, no session header) → use its `name`/`url`; a string in the field fails with a schema mismatch (measured 2026-10-09); a File object for a name that was **never uploaded** answers `400 {"code":1}` after ~5 s and leaves 5 duplicate target rows — upload first, then send what the upload returned (measured 2026-10-10) |
 
 The Pointer rule is the single biggest gotcha — Parse REST uses the wrapped form, web2lead/web2table use a bare objectId **for a single Pointer**. If you copy a Parse-REST snippet by reflex, the request will silently leave the Pointer field null. Arrays of pointers are the one exception (next section).
 

@@ -1,7 +1,7 @@
 # Web2Lead / Web2Table — External Form → CRM Intake
 
 > **Purpose**: Complete mechanics of capturing external HTML forms (landing pages, registration forms, partner systems) into MyBusiness CRM via the `getLead` ("web2lead") and `web2table` cloud functions — endpoints, field naming, pointer handling, duplicate detection, config gates, and production-ready code.
-> **Last updated**: 2026-10-09 (live re-test: getlead answer wrapped in `result`, errors are 400, phone format, File objects, pointer-object arrays, injected columns; §11 superseded by [../30-customization/15-public-forms.md](../30-customization/15-public-forms.md)) · previously 2026-09-27 (`Config` reachable from MCP) · previously 2026-08-10 (§11 anonymous-write security model added — CAPTCHA gate, CLP bypass, create-only) · **Status**: draft
+> **Last updated**: 2026-10-10 (§5 File row: a never-uploaded File object → code 1 + 5 duplicate rows) · previously 2026-10-09 (live re-test: getlead answer wrapped in `result`, errors are 400, phone format, File objects, pointer-object arrays, injected columns; §11 superseded by [../30-customization/15-public-forms.md](../30-customization/15-public-forms.md)) · previously 2026-09-27 (`Config` reachable from MCP) · previously 2026-08-10 (§11 anonymous-write security model added — CAPTCHA gate, CLP bypass, create-only) · **Status**: draft
 
 ---
 
@@ -158,7 +158,7 @@ POST https://api.mbapps.co.il/functions/{appId}/web2table
 | Date | flat ISO string, ≥10 chars (`"2026-06-10"` or full ISO) | Parse `{__type:"Date",iso}` object |
 | Pointer | bare 10-char objectId string | `{__type:"Pointer",className,objectId}` — silently leaves the field null |
 | Array (multi-select `array_*_Pointer_*`) | JSON array of **pointer objects** `{"__type":"Pointer","className","objectId"}` | bare ids — stored, but the CRM draws empty chips and `containedIn` criteria do not match (both forms verified 2026-10-09) |
-| File | a File **object** `{"__type":"File","name":"<name from the upload>","url":"<url>"}` after a separate upload `POST /parse/files/<name>` (App ID header only, raw body, no session header) | a string → `schema mismatch expected File but got String` (verified 2026-10-09) |
+| File | a File **object** `{"__type":"File","name":"<name from the upload>","url":"<url>"}` after a separate upload `POST /parse/files/<name>` (App ID header only, raw body, no session header) | a string → `schema mismatch expected File but got String` (verified 2026-10-09); a File object naming a file that was **never uploaded** → `400 {"code":1}` after ~5 s, and the target rows are already written — 5 duplicates plus the contact (verified 2026-10-10) |
 
 The Pointer rule is the #1 gotcha: Parse REST uses the wrapped form, web2lead/web2table want the bare id. Copying a Parse-REST snippet by reflex produces a 200 response with a null pointer field.
 
@@ -336,5 +336,5 @@ Corollaries an implementer should carry into design:
 - **web2lead always inserts** — duplicates become new lead rows flagged with the duplicate status; there is no merge.
 - **`IsFirst` semantics** depend on the request flag `isExistsAccountCheck` — without it, every row is marked `IsFirst: true`.
 - **Diagnose a 403 from the Config gate** with `Get-Data` on `Config` (`Name` = `AcceptWebLeads` / `AcceptWebToTable`) — a missing row, `false`, or duplicate rows all disable the endpoint.
-- **Files**: upload first (`POST /parse/files/<name>`), then send a File **object** in `table_<FileField>` — a string fails (§5).
+- **Files**: upload first (`POST /parse/files/<name>`), then send a File **object** in `table_<FileField>` — a string fails (§5). The upload must really have happened: a File object for a never-uploaded name answers `{"code":1}` after ~5 s and leaves 5 duplicate target rows.
 - Customer forks of these functions exist with hard-coded appId behavior switches — when supporting a specific customer, read THEIR deployed variant before assuming the generic contract.

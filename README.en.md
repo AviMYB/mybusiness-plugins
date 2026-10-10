@@ -27,7 +27,7 @@ No third variant. Install only one. OAuth discovery was checked; live sign-in st
 
 The plugin supplies skills; configure the personal MCP separately in Codex Settings. No custom window, Python or external vault is required. [Exact setup / הוראות מלאות](plugins/mybusiness-implementor/SETUP-CODEX.md). Upgrade the marketplace and reinstall to migrate from 1.2.0; existing personal MCP connections remain independent of the plugin.
 
-![AI agents](https://img.shields.io/badge/AI_agents-plugin-d97757) ![Agent Plugins](https://img.shields.io/badge/Agent_Plugins-1.0-24292e) ![version](https://img.shields.io/badge/version-1.5.0-007ec6) ![skills](https://img.shields.io/badge/skills-24-007ec6) ![ISO 27001](https://img.shields.io/badge/security-ISO_27001-2ea44f)
+![AI agents](https://img.shields.io/badge/AI_agents-plugin-d97757) ![Agent Plugins](https://img.shields.io/badge/Agent_Plugins-1.0-24292e) ![version](https://img.shields.io/badge/version-1.5.1-007ec6) ![skills](https://img.shields.io/badge/skills-24-007ec6) ![ISO 27001](https://img.shields.io/badge/security-ISO_27001-2ea44f)
 
 The official **[MyBusiness CRM](https://www.mybusiness.co.il)** plugin **for AI agents** — Claude Code, Codex, Claude Cowork, ChatGPT Work, Cursor, GitHub Copilot and the rest. MyBusiness is a Hebrew-first, Israeli business-management platform: CRM core (leads, accounts, sales, cases, tasks) plus the MyBooks (billing), MyCampaigns (marketing), MyChat (WhatsApp), MyCollege (courses) and TimeSheet modules.
 

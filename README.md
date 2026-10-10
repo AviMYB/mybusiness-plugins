@@ -8,7 +8,7 @@
 
 <div dir="ltr">
 
-![AI agents](https://img.shields.io/badge/AI_agents-plugin-d97757) ![Agent Plugins](https://img.shields.io/badge/Agent_Plugins-1.0-24292e) ![version](https://img.shields.io/badge/version-1.5.0-007ec6) ![skills](https://img.shields.io/badge/skills-24-007ec6) ![ISO 27001](https://img.shields.io/badge/security-ISO_27001-2ea44f)
+![AI agents](https://img.shields.io/badge/AI_agents-plugin-d97757) ![Agent Plugins](https://img.shields.io/badge/Agent_Plugins-1.0-24292e) ![version](https://img.shields.io/badge/version-1.5.1-007ec6) ![skills](https://img.shields.io/badge/skills-24-007ec6) ![ISO 27001](https://img.shields.io/badge/security-ISO_27001-2ea44f)
 
 </div>
 

@@ -1,7 +1,7 @@
 # Files & Storage
 
 > **Purpose**: How files work in MyBusiness CRM — upload paths (MCP tool, Parse REST), retrieval (tool + `file-storage:///` resource URIs), attaching files to records, public vs private files, page code files, and the storage-quota mechanism.
-> **Last updated**: 2026-10-09 (§2.3 corrected: `web2table` takes a File object; anonymous native-form uploads fail) · previously 2026-06-10 · **Status**: draft
+> **Last updated**: 2026-10-10 (§2.3: never-uploaded File object trap) · previously 2026-10-09 (§2.3 corrected: `web2table` takes a File object; anonymous native-form uploads fail) · previously 2026-06-10 · **Status**: draft
 
 ---
 
@@ -64,7 +64,7 @@ Deleting files: Parse supports `DELETE /parse/files/<name>` with the master key 
 
 ### 2.3 What does NOT take files
 
-- `web2lead` — no file fields. **`web2table` does take a file** (corrected 2026-10-09): upload it first (`POST /parse/files/<name>`, App ID header only, raw body, **no session header**), then send `table_<FileField>` as a File object `{"__type":"File","name":<returned name>,"url":<returned url>}`; a string fails with a schema mismatch ([03-web2lead-web2table.md](03-web2lead-web2table.md) §5).
+- `web2lead` — no file fields. **`web2table` does take a file** (corrected 2026-10-09): upload it first (`POST /parse/files/<name>`, App ID header only, raw body, **no session header**), then send `table_<FileField>` as a File object `{"__type":"File","name":<returned name>,"url":<returned url>}`; a string fails with a schema mismatch ([03-web2lead-web2table.md](03-web2lead-web2table.md) §5). The upload must really have happened: a File object for a never-uploaded name answers `{"code":1}` after ~5 s and leaves 5 duplicate target rows.
 - **Native Database forms for anonymous visitors** — the in-page upload sends `X-Parse-Session-Token: undefined`, is refused with `209 invalid session token`, and the page reloads, discarding the visitor's answers ([../30-customization/15-public-forms.md](../30-customization/15-public-forms.md) §3.9). The same upload without that header succeeds.
 - WhatsApp send uses its own inline transport: `fileBase64` **with** Data-URI prefix, or `fileDBName` to send a file already stored in the CRM ([05-messaging-channels.md](05-messaging-channels.md) §3.2). Note the prefix asymmetry: `Upload-Public-File.data` = bare base64; `Send-WhatsApp-Message.fileBase64` = `data:<mime>;base64,…`.
 
