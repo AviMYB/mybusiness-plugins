@@ -1,7 +1,5 @@
 # 4. Prove the connection, and read the failures
 
-> **Codex 1.3.0:** Follow [the installed variant guide](../../../SETUP-CODEX.md). OAuth uses the bundled MCP and Authenticate; the App ID/token variant uses personal MCP settings. Older availability notes below are historical, not a current Codex support verdict.
-
 ## 4.1 The three-call proof
 
 A green server status is not proof. The server answers `initialize` and lists its tools **without any

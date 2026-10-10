@@ -54,6 +54,17 @@ Document model: **Draft headers/lines → finalized headers/lines + balance trac
 | `RetainerPlans` | `Name`, `TotalBeforeDiscount` | plan presets |
 | `RetainerChargeLog` | Per-charge audit: `RetainerId`, `AccountId`, `ChargeDate`, `TotalSum`, `ChargeStatus:String`, `ChargeError:Object`, `DocumentError:Object`, `ChargeLogId:P→PaymentsLog`, `DocumentId:P→AccountingHeaders`, `DocTypeId`, `DocumentNumber` | charge results incl. failures |
 
+#### Bank direct debit (מס״ב — Masav)
+
+| Table | Key fields | Links |
+|---|---|---|
+| `MasavCharges` | The bank authorization (הרשאת חיוב): `AccountId`, `Name` (payer name as written to the file), `Active:Boolean`, schedule (`NextChargeDate`, `LastChargeDate`, `RetainerPeriod:Number` months, `ChargesLimit`, `ChargesCount`), bank block (`BankId:P→Banks`, `BranchNumber`, `AccountNumber`, `IdNumber`, `Reference` — payer reference), money (`TotalSum`, `TotalBeforeDiscount`, `TotalAfterDiscount`, `Discount`, `DiscountType`, `DiscountValue`, `VatPercent`, `VatValue`, `NoVat`, `IsPrecise`), doc config (`DocTypeId:P→AccountingDocsType`, `DocumentDetails`, `RetainerPlanId:P→RetainerPlans`, `RowsFromUrl`, `Email`), state (`LastChargeStatus:String`, `InProcess:Boolean`, `CalculatedErrorMessage:String` — why the charge did not enter a batch) | ← `RetainerRows.MasavChargeId`, `MasavChargesLog.MasavChargeId` |
+| `MasavGroups` | The batch (מקבץ): `Number:AutoIncrement`, `Name` (machine-generated), `Sum`, `ChargesCount`, `Status:P→MasavGroupStatuses`, `MarkedAsChargedAt:Date` | ← `MasavChargesLog.MasavGroupId` |
+| `MasavGroupStatuses` | Lookup: חדש · הופק קובץ · נשלח לחיוב | ← `MasavGroups.Status` |
+| `MasavChargesLog` | Per-charge snapshot inside a batch: `MasavGroupId`, `MasavChargeId`, `AccountId`, `Rows:Array` (frozen copy of the line items), bank block (`BankCode`, `BranchNumber`, `AccountNumber`, `CustomerId`, `CustomerName`), `Reference` (padded to 20 chars), `ChargePeriod`, money (`Total`, `TotalBeforeDiscount`, `DiscountValue`, `TotalAfterDiscount`, `VatPercent`, `VatValue`), `Charged:Boolean`, `DocumentId:P→AccountingHeaders` | the batch's line table |
+
+`RetainerRows` is shared with §7 retainers and carries `MasavChargeId:P→MasavCharges` alongside `RetainerId`; a row belongs to whichever parent is set.
+
 ### Online payment & clearing
 
 | Table | Key fields |

@@ -38,7 +38,7 @@ If the sketch trips a limitation — either adjust the sketch (often a blueprint
 
 1. **Build + maintain cost** over 3 years, not build alone (every custom artifact is a future support ticket).
 2. **Usability/performance impact** of the workaround vs the custom build.
-3. **Redundancy vs roadmap** — is the platform about to ship this? (expiring-ticket check; if "in QA" — Defer with revisit date beats building).
+3. **Redundancy vs roadmap** — is the platform about to ship this? If the capability is known to be coming, Defer with a revisit date beats building it now.
 4. **Connected-process impact** — use the discovery process maps: does the change ripple into other flows?
 5. **Supportability** — does the customization push the customer off the standard docs/guides?
 
@@ -59,7 +59,7 @@ If the sketch trips a limitation — either adjust the sketch (often a blueprint
 
 - Effort from the anchors doc; between two classes take the higher; blueprints inherit their listed class (SLA=L, import=M–L, portal=L–XL phased).
 - Custom-Server: never estimate alone — flag `dev-consult`, attach the REQ + sketch; integration-test time is additional.
-- Process-change disposition: effort S (training/doc note) but verify the customer's agreement is recorded — an unagreed process change resurfaces as a "bug" at UAT.
+- Process-change disposition: effort S (training/doc note) but verify the customer's agreement is recorded — an unagreed process change resurfaces as a complaint at UAT.
 
 ## 6. Traceability discipline
 

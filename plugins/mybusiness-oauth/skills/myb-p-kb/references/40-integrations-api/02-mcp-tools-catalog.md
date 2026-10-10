@@ -1,7 +1,7 @@
 # MCP Tools Catalog
 
 > **Purpose**: THE complete catalog of the MyBusiness MCP server tools (https://mcp.mbapps.co.il/) — per-tool purpose, spec-ready parameters, read-only/mutating classification, and gotchas — so an implementer (human or AI) can plan and execute work without trial-and-error.
-> **Last updated**: 2026-06-24 (added `Duplicate-Element`) · **Status**: draft
+> **Last updated**: 2026-09-27 (`Config` reachable from MCP) · previously 2026-06-24 (added `Duplicate-Element`) · **Status**: draft
 
 ---
 
@@ -155,10 +155,10 @@ Params: `pageId` or `pageName` (one required), `minimal` (Boolean, default false
 | Param | Notes |
 |---|---|
 | `pageId` ✔ | |
-| `actions[]` | `actionType` ∈ `change-existing-field-label` · `add-new-field` · `move-existing-field` · `set-field-required` · `remove-existing-field`; each action needs `fieldName` + `fieldType` (always, even for label changes), plus `label`, `targetClass` (Pointer), `toExistingRow`/`toExistingColumn` (0-based), `newRowAfterRow`, `isRequired`, `defaultValue` |
-| `cssCode` / `jsCode` | **replace** existing code (not append) |
+| `actions[]` | `actionType` ∈ `change-existing-field-label` · `add-new-field` · `move-existing-field` · `set-field-required` · `remove-existing-field` · `add-row` · `edit-row` · `delete-row` · `move-existing-object` · `set-html-content` (live schema, 2026-10-06). Field actions take `fieldName`; `add-new-field` also `fieldType` (+ `targetClass` for a Pointer); `move-existing-field` works without `fieldType` (measured). Position: `toExistingRow`/`toExistingColumn` (0-based), `newRowAfterRow`, or `intoExistingElemId`. Rows: `columnSize`. `set-html-content`: `intoExistingElemId` + `htmlContent`. Also `label`, `isRequired`, `defaultValue`, `autocomplete`, `subclassDepend` |
+| (no CSS/JS here) | page CSS/JS is `Edit-Page-CSS-JS` |
 
-Gotchas: field must exist in schema first; removing from page ≠ deleting from schema; to place several fields on one new row — add the first with `newRowAfterRow`, re-fetch the page, then target the new row's id.
+Gotchas: field must exist in schema first; removing from page ≠ deleting from schema; a new row's id comes back in the response as `info[].newRowId` (no re-fetch needed); moving into an occupied column stacks silently, and `edit-row` to fewer columns drops the fields in the removed columns — see [30/03](../30-customization/03-pages-and-layouts.md) §3.
 
 ### `Edit-Page-CSS-JS` 🔴 — replace page CSS and/or JS
 Params: `pageId` ✔, `cssCode`, `jsCode`. Overwrite semantics; omit a param to leave that part untouched; take a backup via `Get-Page-Content`/`Get-Page-Versions` first.
@@ -262,6 +262,19 @@ Params: `tableName` (filter) or `triggerId` (full object incl. `actions[]`) or n
 ### `Set-Trigger-Action` 🔴 — attach an action to a trigger (call once per action; ordered list)
 Params: `triggerId` ✔, `actionType` ✔, `actionData` ✔ (keyed by actionType), plus `tableName`, `triggerType` echo. Action types observed in guide: `update-object` (`connection: "current.objectId"` or `"target.<PointerField>"`, `targetClass`, `fieldsValue[]{field,type:static|dynamic,value,targetClass,timeGap}`), `create-object` (link back via `{field: <PointerField>, type:"dynamic", value:"currentObject", targetClass}`; `timeGap` in minutes for date math — 1440 = +24h), `http` (webhook: `method,url,headers[],useQueue`), `sms` (`toType:"field"|…, to, from, local:"IL", content` with `{{{placeholders}}}`), plus email / WhatsApp actions (email needs an SMTP account objectId from `Get-SMTP-Accounts`; WhatsApp params mirror `Send-WhatsApp-Message` — see [05-messaging-channels.md](05-messaging-channels.md)). ⚠️ The complete enum of actionTypes is not in the export; `update-object`, `create-object`, `http`, `sms`, email, WhatsApp, and server-side-code actions are evidenced (the last via deployed functions invoked from triggers — see [04-cloud-functions.md](04-cloud-functions.md)).
 
+## 8a. Record timeline (audit log) settings
+
+Controls which tables write `create`/`update`/`delete` rows into `_Timeline` — the store behind the **ציר הזמן** feed on record cards. Full mechanics, failure modes and query patterns: [20-data-model/04-system-tables-and-logs.md](../20-data-model/04-system-tables-and-logs.md) §1.
+
+| Tool | R/W | Params | Notes |
+|---|---|---|---|
+| `Get-Timeline-Settings` | 🟢 | `tableName` ✔ | Returns `{timeline:{index:{},displayFields:{}}}`. `{}` = the table logs nothing. Errors with `Table is restricted for Timeline Settings` on `_Timeline`, `_User`, `_GeneralLogs`, `_RequestLog`, `_syslog*`. |
+| `Set-Timeline-Settings` | 🔴 | `tableName` ✔, `timeline` ✔ `{index,displayFields}` | **Whole-object replace**, not a merge — always `Get` first and re-send the full map. `{}` disables logging. |
+
+`index` maps **Pointer** source fields (plus the pseudo-field `objectId`) to `_Timeline` Pointer columns and decides which record cards the entry appears on; `displayFields` maps **non-Pointer** source fields to value columns and supplies the entry's body text. Reuse the same `_Timeline` column name across every table that points at the same entity (`Tasks.AccountId` and `Cases.AccountId` both → `AccountId`) so one column carries that entity's whole history.
+
+**Validation is one-sided — read the return value.** Source-side violations are rejected atomically with a plain-string error (`Field X is not a Pointer in table T`, `Field X not found in table T`, `Class T does not exist.`), leaving the previous settings intact; a caller that ignores the result mistakes rejection for success. Target-side collisions are **not** validated: a type mismatch silently stores `null`, and mapping `objectId` onto a Pointer column of another class writes a permanently corrupt row that breaks full-row reads of `_Timeline` — unrepairable, because the table is read-only. Always `Get-Schema` on `_Timeline` and `Get-Timeline-Settings` on sibling tables before picking a column name.
+
 ## 9. Users, packages, roles, permissions
 
 | Tool | R/W | Params | Notes |
@@ -352,9 +365,9 @@ Full messaging architecture: [05-messaging-channels.md](05-messaging-channels.md
 
 ## 16. Read-only vs mutating summary
 
-**🟢 Read-only (19)**: Usage-Guide, Get-Data, Count-Data, Aggregate-Data, Get-Schema, Get-Site-Pages, Get-Page-Content, Get-Page-Settings, Get-Page-Versions, Get-Page-Version, Get-Optional-Fields, Get-Form-Rules, Get-Triggers, Get-Current-User, Get-all-Users, Get-Packages, Get-Roles, Get-Role-Users, Get-Table-Permissions, Get-Menus, Get-Menu-Items, Get-Reports, Get-Terminology-Dictionary, Get-Price-Quote-Templates, Get-File-Content, Get-SMTP-Accounts, Get-WhatsApp-Template-Params — *(27 listed; "Get-*" + Count/Aggregate/Usage-Guide)*.
+**🟢 Read-only (19)**: Usage-Guide, Get-Data, Count-Data, Aggregate-Data, Get-Schema, Get-Site-Pages, Get-Page-Content, Get-Page-Settings, Get-Page-Versions, Get-Page-Version, Get-Optional-Fields, Get-Form-Rules, Get-Triggers, Get-Current-User, Get-all-Users, Get-Packages, Get-Roles, Get-Role-Users, Get-Table-Permissions, Get-Menus, Get-Menu-Items, Get-Reports, Get-Terminology-Dictionary, Get-Price-Quote-Templates, Get-File-Content, Get-SMTP-Accounts, Get-WhatsApp-Template-Params, Get-Timeline-Settings — *(27 listed; "Get-*" + Count/Aggregate/Usage-Guide)*.
 
-**🔴 Mutating (37)**: Create-Data, Create-Many, Update-Data, Create-Table, Add-Field-to-Table, Edit-Page, Edit-Page-CSS-JS, Set-Page-Settings, Set-Page-Version, Create-Form-Page, Add-Container-to-Page, Duplicate-Element, Add-Edit-Text-Element, Add-Edit-Counter-Element, Add-Edit-Chart-Element, Add-Edit-Tabs-Element, Create-Table-View-Page, Edit-Table-View, Add-Table-View-to-Form-Page, Edit-Form-Rules, Set-Form-Rules, Set-Trigger, Set-Trigger-Action, Create-or-Update-User, Set-Package-for-User, Create-Role, Add-Users-to-Role, Remove-Users-from-Role, Set-Table-Permissions, Set-Menu-Items, Create-or-Update-Report, Set-Terminology-Dictionary, Replace-Terms, Create-Update-Price-Quote-Template, Create-Price-Quote, Upload-Public-File, Send-WhatsApp-Message.
+**🔴 Mutating (37)**: Create-Data, Create-Many, Update-Data, Create-Table, Add-Field-to-Table, Edit-Page, Edit-Page-CSS-JS, Set-Page-Settings, Set-Page-Version, Create-Form-Page, Add-Container-to-Page, Duplicate-Element, Add-Edit-Text-Element, Add-Edit-Counter-Element, Add-Edit-Chart-Element, Add-Edit-Tabs-Element, Create-Table-View-Page, Edit-Table-View, Add-Table-View-to-Form-Page, Edit-Form-Rules, Set-Form-Rules, Set-Trigger, Set-Trigger-Action, Create-or-Update-User, Set-Package-for-User, Create-Role, Add-Users-to-Role, Remove-Users-from-Role, Set-Table-Permissions, Set-Menu-Items, Create-or-Update-Report, Set-Terminology-Dictionary, Replace-Terms, Create-Update-Price-Quote-Template, Create-Price-Quote, Upload-Public-File, Send-WhatsApp-Message, Set-Timeline-Settings.
 
 (`Send-WhatsApp-Message` with only `getNumbers`/`getTemplates` is effectively read-only, but classify the tool as mutating for permission gating.)
 
@@ -362,17 +375,17 @@ Full messaging architecture: [05-messaging-channels.md](05-messaging-channels.md
 
 - **Guide vs live drift**: the 2026-02-07 export documents 50 product tools + 9 `internal-mcp` tools (Add-Tool-Docs, Create/Edit-Agent, Get-Agent(s), Get-Agent-Models, Get-Tool(s)) that belong to the AI-CRM-Implementor host app, NOT this MCP server. 14 live tools (Create-Many, Edit-Table-View, Add-Container-to-Page, Duplicate-Element, Add-Edit-Tabs-Element, Create-Role, Remove-Users-from-Role, Get/Set-Table-Permissions, Get/Set-Terminology-Dictionary, Replace-Terms, Get/Set-Page-Settings) are missing from the guide — their schemas above come from the live server and may still evolve.
 - **No delete tools**: no record-delete, no table-delete, no page-delete, no trigger-delete/disable tool (disable via `Set-Trigger` with `active:false` re-creation is ⚠️ UNVERIFIED — the guide doesn't document trigger update semantics).
-- **`Config` table is restricted** — `Get-Data`/`Create-Many` on `Config` return `Error: Table is restricted`. Web-lead toggles, PBX/Twilio/payment settings are unreachable from MCP (master-key REST only).
+- **`Config` table is reachable** — `Get-Data`/`Create-Data`/`Update-Data` on `Config` work, so web-lead toggles and PBX/Twilio/payment settings can be read and set from MCP. Earlier MCP versions returned `Error: Table is restricted`; if you still see it, fall back to master-key REST ( only).
 - **Replace-not-merge traps**: `Set-Form-Rules` (all rules), `Edit-Page`/`Edit-Page-CSS-JS` css/js (whole blob), `Set-Menu-Items` item `type` required on every update.
 - **MongoDB ids vs Parse ids**: menus/pages use Mongo `_id` (24-hex); data records use Parse `objectId` (10-char). Never feed names where ids are expected.
 - **`shcedulerHours`** is genuinely misspelled in the trigger API — sending `schedulerHours` silently does nothing.
 - **`Aggregate-Data.groupby` must be a String**; an object throws `groupby.includes is not a function`.
 - **Get-Data default limit is 5** — easy to mistake a truncated result for the full dataset; always set `limit` explicitly.
 - **Trigger chains max 3 levels**; design automations so bulk MCP writes don't fan out (use `Create-Many.skipTriggers` when importing).
-- **WhatsApp Identity rule**: `fromPhoneNumberId` = `Channels.Identity`, never `Channels.objectId` — the #1 WhatsApp integration bug.
+- **WhatsApp Identity rule**: `fromPhoneNumberId` = `Channels.Identity`, never `Channels.objectId` — the #1 WhatsApp integration mistake.
 - **Page edits need a browser refresh** to show; some tools explicitly tell you to ask the user to reload.
 - **One connection = one customer app**; there is no cross-app tool. Credential routing happens at MCP connection setup (per-customer `.mcp.json`/proxy), not per call.
 
 ### Authentication permission clarification — 2026-09-19
 
-Confirmed by the product owner with User Settings screenshots: API-token access is full access to the connected database and tools, without the OAuth per-user permission gate or the additional advanced-tools enablement step. OAuth is limited by the signed-in user’s existing role/table permissions and their enabled MCP Permissions (Read, Create, Update; save with Apply). Advanced tools are not fully enabled by default: customers must request enablement from MyBusiness. After enablement, Edit pages and schema requires Admin role and must be enabled for the user, then saved with Apply. Successful OAuth login alone does not imply advanced-tool access.
+Confirmed by the product owner with User Settings screenshots: API-token access is full access to the connected database and tools, without the OAuth per-user permission gate or the additional advanced-tools enablement step. OAuth is limited by the signed-in user’s existing role/table permissions and their enabled MCP Permissions (Read, Create, Update; save with Apply). Advanced tools are not fully enabled by default: customers must request enablement from MyBusiness. After enablement, Edit pages and schema requires Admin role and must be enabled for the user, then saved with Apply. Successful OAuth login alone does not imply advanced-tool access. (Back-ported 2026-10-09 from the public release 1.3.1, where it was added directly.)

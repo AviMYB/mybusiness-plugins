@@ -474,7 +474,7 @@ Timestamps are UTC; Israel = UTC+2 (winter) / UTC+3 (summer).
 3. `_syslogTriggers` for the record — errors (absence ≠ proof).
 4. `Get-Triggers(tableName)` — check `active` (absence of the key = active), `events`, `criterias` vs the record's actual values at event time, `onSetFields` vs which field changed, `oneachupdate` (false + already fired once = won't fire again).
 5. If `server-side-code` — read the function source; look for early-exit guards (`if (req.body.X) throw ...`) and hardcoded objectId lists.
-6. If `http` — identify the cloud function from the URL; some (e.g. `update_sum_count_obj`) are configured via the restricted `Config` table (`UpdateSumCountOnCls_<Table>` rows) reachable only via Parse REST with Master Key.
+6. If `http` — identify the cloud function from the URL; some (e.g. `update_sum_count_obj`) are configured via the `Config` table (reachable from MCP since 2026-09) (`UpdateSumCountOnCls_<Table>` rows) reachable only via Parse REST with Master Key.
 
 ### Trigger not firing — quick table
 

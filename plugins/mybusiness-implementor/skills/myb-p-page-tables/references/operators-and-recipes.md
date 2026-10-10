@@ -27,7 +27,7 @@ Lookup reference for parameter values plus copy-paste examples. Pair this with `
 | `row` | Edit form unfolds **under** the row inline. | Rare — used when you want all rows visible plus an inline form. |
 | `hidetable` | Hides the table and shows the edit form in its place. | Wizard-style flows. |
 
-When `useIframe: true` and `editView.page` doesn't exist (or is broken), the popup gets stuck on the loading spinner. If the page was created by `Create-Form-Page`, it uses `NewMaster` and won't load correctly via iframe — switch to `inline` or fix the form page first.
+When `useIframe: true` and `editView.page` does not exist (or does not load), the popup stays on the loading spinner. If the page was created by `Create-Form-Page`, it uses `NewMaster` and won't load correctly via iframe — switch to `inline` or fix the form page first.
 
 ## Search criteria operators
 

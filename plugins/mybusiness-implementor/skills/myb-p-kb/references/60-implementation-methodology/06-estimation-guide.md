@@ -20,6 +20,7 @@
 | New field incl. Hebrew label | S (minutes; batch per table) |
 | Lookup table + values | S |
 | Full custom entity (table + form page + list page + menu + data) | M–L |
+| Lifetime cost of a new table | counts against the table budget — [../20-data-model/06-native-before-new-table.md](../20-data-model/06-native-before-new-table.md) |
 | Form-page restructure | M per page |
 | Table view (columns/filters/formatting) | S–M |
 | Trigger (internal action) / scheduled trigger | S / S–M |

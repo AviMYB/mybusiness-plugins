@@ -46,8 +46,9 @@ Run in Hebrew. One meeting (60–90 min) for Low/Medium customers; two for High/
 
 **Interview discipline:**
 - Always ask for **volumes** (how many leads/month, how many open cases at once, how many users). Volumes drive design choices (views, dashboards, archiving) and package sizing.
-- Always ask for **exceptions** ("ומה קורה אם הלקוח לא משלם / מבטל / לא מגיע?") — exceptions become statuses, triggers, and scheduled reminders.
+- Always ask for **exceptions** ("ומה קורה אם הלקוח לא משלם / מבטל / לא מגיע?") — exceptions become *candidate* statuses and dates on an existing entity first; the reminders and automations they suggest are Release-2 candidates.
 - Collect **artifacts**: current spreadsheets, a sample quote/invoice, an example WhatsApp message they send today. Artifacts beat answers.
+- When a legacy system exists, collect **usage evidence** per field: fill-rate, last update, who fills it, who reads it (read-only counts from the old system). A field nobody fills or reads is not carried forward ([standing rule SR-05](09-standing-design-rules.md)).
 - When the customer describes a wish ("הייתי רוצה שכל ליד מהאתר ייכנס לבד"), record it as a **requirement** with their priority (must/nice), not as a promise.
 
 ### 2.3 Synthesis: translate to CRM constructs
@@ -74,7 +75,7 @@ This is the core skill. Every discovery fact lands in one of these buckets, usin
 
 Two practical rules learned from real implementations:
 
-- **Prefer renaming standard entities over creating custom tables.** The standard entities (Accounts, Sales, Cases, Tasks, Activities) carry module behavior (pipeline, timeline, calendar, billing links) that custom tables don't get for free. A "פרויקט" is usually a renamed Sale; a "משתתף" is usually a renamed Account. Create a custom table only when the noun is genuinely a different shape (e.g., apartments, vehicles, courses sessions) — see [../30-customization/02-tables-and-fields.md](../30-customization/02-tables-and-fields.md).
+- **Prefer renaming standard entities over creating custom tables — a gate, not a tip** (applied in phase 3b with the [D-rules](../20-data-model/06-native-before-new-table.md)). The standard entities (Accounts, Sales, Cases, Tasks, Activities) carry module behavior (pipeline, timeline, calendar, billing links) that custom tables don't get for free. A "פרויקט" is usually a renamed Sale; a "משתתף" is usually a renamed Account. Create a custom table only when the noun is genuinely a different shape (e.g., apartments, vehicles, courses sessions) — see [../30-customization/02-tables-and-fields.md](../30-customization/02-tables-and-fields.md).
 - **Statuses are lookup tables, not free text.** Capture the exact stage list and their order in the meeting; ask which stages are "terminal" (closed-won/lost equivalents) — triggers and reports hang off these.
 
 ### 2.4 Process mapping notation
@@ -103,7 +104,7 @@ Use this checklist; the [questionnaire template](templates/discovery-questionnai
 
 1. **פרטי הלקוח** — business, vertical, team, branches, contacts incl. גורם מאשר.
 2. **מילון מונחים של הלקוח** — their words → CRM entities (seed of the terminology plan).
-3. **ישויות ונתונים** — entity list with: name (HE), maps-to (standard table renamed / custom table), key fields, relationships, expected volumes.
+3. **ישויות ונתונים** — entity list with: name (HE), maps-to *candidate* (standard table renamed / field / lookup / custom table — decided in phase 3b, [08-solution-model.md](08-solution-model.md)), key fields, relationships, expected volumes.
 4. **תהליכי ליבה** — per process: mermaid map + narrative + actors + status list + automation wishes.
 5. **משתמשים והרשאות** — user list with roles; visibility rules; sensitive fields.
 6. **תקשורת ומסמכים** — outbound messages (channel, trigger moment, sample text), documents issued (with samples collected), sender accounts (SMTP/WhatsApp availability).
@@ -120,7 +121,7 @@ Discovery findings → constructs (real pattern from the installed base):
 | Finding | Construct |
 |---|---|
 | "כל ליד מגיע מקמפיין עם UTM ושייך למחלקה" | Fields on Accounts: `UTMSource` (Pointer), `UTMCampeign`, `UTMDepartment` (Pointer); trigger: route/assign by UTMDepartment |
-| "מכירה נוגעת בכמה מחלקות במקביל" | Child table `SaleDepartments`, auto-created rows per department on sale creation (trigger), rollup booleans on Accounts |
+| "מכירה נוגעת בכמה מחלקות במקביל" | One service record per sold service line on the vanilla Cases entity (renamed "שירות"), typed by a department lookup — not a per-department child table created by trigger (D-09) |
 | "כשנסגרת עסקה — מייל פנימי + מייל ברוכים הבאים" | Trigger on Sales: condition SaleStatus=עסקה, actions: email ×2 |
 | "ליד שלא טופל 48 שעות — התראה למנהל" | Scheduled trigger on Accounts.updatedAt +48h, condition status="ליד חדש" |
 | "מסנכרנים נתוני קמפיינים לכלי BI חיצוני" | Webhook (Zapier) on status change — External integration class |
@@ -130,4 +131,4 @@ Discovery findings → constructs (real pattern from the installed base):
 - Discovery documents written in English get rejected by Israeli SMB customers — the customer-facing document is **Hebrew**; only the internal construct annotations are English.
 - Don't promise solution shapes during discovery (that's fit-gap's job) — record needs, not designs, even when the design seems obvious.
 - Watch for the "Excel mirror" trap: customers often ask to replicate their spreadsheet 1:1. Capture the spreadsheet as a migration source and a field inventory, but model the *process*, not the sheet.
-- If the customer can't articulate statuses, derive a draft from their examples and validate — never leave a core entity without a status model.
+- If the customer can't articulate statuses, derive a draft from their examples and validate — reuse the vanilla status list where it fits and add values before designing a new status model (D-11).

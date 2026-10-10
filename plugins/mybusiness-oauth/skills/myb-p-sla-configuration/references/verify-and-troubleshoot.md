@@ -30,7 +30,7 @@ If this returns 0 (or very low compared to total `Cases` count), the trigger pip
 
 ### Symptom: "Case is in 'סגור' but SLADeadline still shows in red / appears overdue"
 
-This isn't a bug — `SLADeadline` is a static date set at creation time. It doesn't "clear" on close. The reports correctly hide already-closed cases via the `IsClosed = true/false` filter, but on the Case card itself the date is still there.
+This is by design — `SLADeadline` is a static date set at creation time. It doesn't "clear" on close. The reports correctly hide already-closed cases via the `IsClosed = true/false` filter, but on the Case card itself the date is still there.
 
 If the customer wants the card to *visually* soften on close, that's CSS/JS on the Case page (page `apps/mybusiness/Case`) — see the existing `checkSLA()` JS hook to add a "this case is closed" branch. Not a database fix.
 
@@ -73,12 +73,12 @@ Usually one of:
 
 Two possibilities:
 
-1. **The card page predates the SLA UI section.** Some legacy customers' Case page doesn't have the "SLA ומעקב" section. Use the `myb-p-page-builder` skill to add it.
+1. **The card page predates the SLA UI section.** Some legacy customers' Case page doesn't have the "SLA ומעקב" section. Use the `myb-p-card-design` skill to add it.
 2. **The fields are on the page but empty.** That means the Step-5 triggers aren't running — see the first symptom in this matrix.
 
-## When to escalate to product / dev
+## When the requirement needs custom development
 
-- **Customer needs true business-day computation.** The simple trigger pattern uses calendar days. Building the proper server-side `computeSLADeadline` function is dev work — escalate.
+- **Customer needs true business-day computation.** The simple trigger pattern uses calendar days. Building the proper server-side `computeSLADeadline` function is custom development — scope it as such.
 - **Customer needs multiple parallel working windows** (e.g., morning shift + evening shift on different schedules). Not supported by `BusinessHours`. Feature request, not config.
 - **Customer needs SLA on tables other than Cases** (Sales, Tasks, Activities). The platform mechanism is Cases-only. Build a custom equivalent via `myb-p-timestamp-field` + `myb-p-trigger-setup` + a calculated date field, scoped to the target table.
 
@@ -106,4 +106,4 @@ Read each and look for:
 - `Count-Data` with `SLADeadline $exists` returning 0 or near-0 → confirms triggers aren't populating.
 - No SLA-named reports in `Get-Reports` → customer has no surface to monitor SLA.
 
-Most "SLA is broken" tickets resolve at this stage without ever inspecting a specific case.
+Most "SLA is not working" reports resolve at this stage without ever inspecting a specific case.

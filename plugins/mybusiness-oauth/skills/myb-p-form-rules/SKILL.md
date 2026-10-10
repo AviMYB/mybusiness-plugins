@@ -1,6 +1,6 @@
 ---
 name: myb-p-form-rules
-description: "Configure form rules (חוקי טופס) on MyBusiness CRM form/card pages — conditional hide/show, conditional required, readonly/lock, fixed/dynamic values, formulas, validation messages, URL-prefill. Form rules have NO admin UI — MCP is the only authoring path — so invoke this skill for ANY form-rule request and for WP7 (חוקי טופס) of the build work plan. Triggers: 'שדה חובה רק כשסטטוס = X', 'תסתיר את השדה עד שנבחר סוג', 'תנעל את הכרטיס אחרי סגירה', 'ערך ברירת מחדל בטופס', 'הצג הודעת אזהרה בטופס', 'חוקי טופס', 'שדה לקריאה בלבד', 'make this field required when', 'hide the field unless', 'lock fields after closing', 'readonly when status is', 'form rules', 'conditional mandatory field', 'auto-fill from another field'. NOT for server-side automations/emails on save — use myb-p-trigger-setup; NOT for page layout/sections — use myb-p-page-builder; NOT for access control/CLP — use myb-p-users-roles-permissions; NOT for table-view columns or row coloring — use myb-p-page-tables."
+description: "Configure form rules (חוקי טופס) on MyBusiness CRM form/card pages — conditional hide/show, conditional required, readonly/lock, fixed/dynamic values, formulas, validation messages, URL-prefill. Form rules have NO admin UI — MCP is the only authoring path — so invoke this skill for ANY form-rule request and for WP7 (חוקי טופס) of the build work plan. Triggers: 'שדה חובה רק כשסטטוס = X', 'תסתיר את השדה עד שנבחר סוג', 'תנעל את הכרטיס אחרי סגירה', 'ערך ברירת מחדל בטופס', 'הצג הודעת אזהרה בטופס', 'חוקי טופס', 'שדה לקריאה בלבד', 'make this field required when', 'hide the field unless', 'lock fields after closing', 'readonly when status is', 'form rules', 'conditional mandatory field', 'auto-fill from another field'. NOT for server-side automations/emails on save — use myb-p-trigger-setup; NOT for page layout/sections — use myb-p-card-design; NOT for access control/CLP — use myb-p-users-roles-permissions; NOT for table-view columns or row coloring — use myb-p-page-tables."
 ---
 
 # Form Rules / חוקי טופס
@@ -16,7 +16,7 @@ Author client-side field behavior on MyBusiness CRM form (card) pages: condition
 | The ask | Route to |
 |---|---|
 | Act on save / send email / create-update other records / server-side enforcement | `myb-p-trigger-setup` (form rules are client-side UX only — API writes bypass them; KB doc §1) |
-| Add/move fields, sections, tabs, widgets on the card | `myb-p-page-builder` |
+| Add/move fields, sections, tabs, widgets on the card | `myb-p-card-design` |
 | Who may read/write a table or field (CLP, roles) | `myb-p-users-roles-permissions` |
 | Table-view columns, filters, conditional row coloring | `myb-p-page-tables` |
 | Filter a Pointer dropdown's options by another field | Not a rule action — native parent/child mechanism; `myb-p-parent-child-fields` (KB doc §6) |
@@ -38,6 +38,9 @@ Standalone requests (no pipeline) follow the same workflow, minus the ledger row
 3. **Rule `name` is the identity** — `edit`/`delete` match by name; duplicates break targeting. Unique, descriptive Hebrew names.
 4. **Scope is per page + form** — desktop and `Mobile-*` pages of the same entity have independent rule sets; replicate deliberately (KB doc §1).
 5. **Not a security boundary** — `hidden`/`readonly` do nothing against API writes, imports, or triggers. If the requirement is enforcement, say so and route to triggers/CLP.
+6. **Unconditional `required` is a field property, not a rule.** If the field must always be filled, set `required` on the field itself (page editor / `Edit-Page`) — a rule adds a moving part for nothing. Use a `required` **rule** only when the obligation is conditional. And never write validation JS for a mandatory field: the one verified case where native `required` does not hold is the autocomplete picker (see Known limitations).
+7. **Options-filtering is not a form rule.** No rule action filters a Pointer dropdown. The parent-child case is the native cascade (`myb-p-parent-child-fields`, including `data-parent-elem` inside inline table rows); any other condition goes through the platform's `before-autocomplete-query` event — never a helper query or DOM filtering.
+8. **A `hidden` action changes the card's layout.** It hides the field but leaves its grid column standing: a hidden field in column 0 or the middle of a row leaves a visible hole (KB `30-customization/07-form-rules.md` §8). Before adding or changing a `hidden` action, run the aesthetics pass of `myb-p-card-design` (rules A4–A8: conditional fields continue the flow after the always-visible ones) — **layout first, then the rule**, then the browser probe in both states.
 
 ## Workflow
 
@@ -45,7 +48,7 @@ Standalone requests (no pipeline) follow the same workflow, minus the ledger row
 
 `Get-Site-Pages` (no params) → match by path. Naming convention: singular page name = form page, plural = list view, `Mobile-*` = mobile variant (tools catalog, `Get-Site-Pages` entry).
 
-- **0 matches:** the card page doesn't exist yet. Stop — build it first (WP4 / `myb-p-page-builder`), then return here.
+- **0 matches:** the card page doesn't exist yet. Stop — build it first (WP4 / `myb-p-card-design`), then return here.
 - **1 match:** proceed; echo the resolved path + `_id` in the plan preview so the user confirms the right page.
 - **Many matches** (desktop + mobile, or several cards over the same table): ask the user which pages are in scope. Each page needs its own copy of the rules.
 
@@ -86,7 +89,7 @@ Translate the customer's ask into `conditions[]` + `actions[]` in the canonical 
 | Customer ask | Rule sketch | KB §5 |
 |---|---|---|
 | "שדה חובה רק כשסטטוס = X" | Pair: `hidden` when status `notEqualTo` X + `required` when `equalTo` X | 5.1 |
-| "תסתיר את השדות עד שנבחר סוג" | `hidden` actions (one per field) while the type field `notEqualTo` the enabling value — §5.1 hide leg. Rules act on **fields**; a section *header* is page layout (`myb-p-page-builder`) | 5.1 |
+| "תסתיר את השדות עד שנבחר סוג" | `hidden` actions (one per field) while the type field `notEqualTo` the enabling value — §5.1 hide leg. Rules act on **fields**; a section *header* is page layout (`myb-p-card-design`) | 5.1 |
 | "תנעל את הכרטיס אחרי סגירה" | OR group of final statuses (`condOr: true` ×2+) → `readonly` per locked field | 5.3 |
 | "העתק פרטים מהלקוח לטופס" | `conditions: []` + `dynamic-value` per field (e.g. `"AccountId.Email"` — one pointer hop) | 5.2 |
 | "תאריך סיום אוטומטי בסגירה" | status `equalTo` done → `fixed-value` `"today"` (client-side; server-side stamp = `myb-p-timestamp-field`) | 5.4 |
@@ -141,6 +144,7 @@ Notes: `edit` fully replaces the named rule's conditions+actions (not a merge); 
 - [ ] `Get-Form-Rules` read-back matches the plan on every touched page (desktop + mobile if in scope)
 - [ ] Rule count = baseline + added − deleted (no collateral loss)
 - [ ] Behavior probe passed in the browser (agent-observed, or user-confirmed and recorded)
+- [ ] `hidden` rules: the card has no hole in either state (layout placed per `myb-p-card-design` A4–A8 before the rule went live)
 - [ ] No rule silently duplicates an existing rule's name
 - [ ] WP7 builds: ledger row per RULE item updated with read-back + probe evidence
 - [ ] Enforcement-grade requirements were routed to triggers/CLP, not left as form rules
@@ -153,6 +157,7 @@ Read on demand — never from memory:
 - `../myb-p-kb/references/40-integrations-api/02-mcp-tools-catalog.md` — §7 form-rules tools (exact params), `Get-Site-Pages` / `Get-Page-Content` entries.
 - `../myb-p-kb/references/30-customization/06-triggers-and-automations.md` — condition-shape grammar; when the requirement is actually a trigger.
 - `../myb-p-kb/references/30-customization/11-field-patterns.md` — parent/child dropdown filtering; form-rule stamp vs timestamp trigger.
+- `../myb-p-kb/references/30-customization/03-pages-and-layouts.md` §10 — the native-before-code rule table: which requirements have a native mechanism and must not become page JS (read before proposing a code workaround for anything a rule cannot do).
 - `the work-plan playbook` — WP7 contract and sequencing rules.
 
 MCP tools used: `mcp__MyBusiness__Get-Site-Pages`, `mcp__MyBusiness__Get-Form-Rules`, `mcp__MyBusiness__Edit-Form-Rules`, `mcp__MyBusiness__Set-Form-Rules` (last resort, read-merge-write only), `mcp__MyBusiness__Get-Schema`, `mcp__MyBusiness__Get-Data`, `mcp__MyBusiness__Get-Page-Content` (multi-form pages), `mcp__MyBusiness__Usage-Guide` (when tool semantics are unclear).
@@ -165,4 +170,7 @@ MCP tools used: `mcp__MyBusiness__Get-Site-Pages`, `mcp__MyBusiness__Get-Form-Ru
 - **No documented rule ordering/priority** — conflicting actions on one field have undefined resolution (⚠️ UNVERIFIED); keep conditions mutually exclusive by design.
 - **`formula-value` is a black box** — syntax undocumented; only safe move is copying a live working rule.
 - **Behavior verification requires a browser** — `Get-Form-Rules` proves storage, not behavior; without a browser probe (agent or user), the rule is unverified.
+- **`required` is not enforced on an autocomplete picker of an existing record** — the selected value is appended *after* the placeholder option, and browser validation only blocks while the placeholder is first (a regular `selectPointer` keeps it first and works natively). A `required` rule on such a field therefore stores fine and does nothing at runtime. → Until the platform fix, back it with a short guard in `simblaobjectbeforesave` (`throw "stop"`), and say so in the handover. This is the one documented exception to "no validation code for a mandatory field". (`../myb-p-kb/references/80-capability-matrix/02-known-limitations.md` §16 item 75)
+- **A radio group can never be a condition** — the evaluator needs exactly one element with the field's name and skips the condition silently; plain `select`/text conditions are strict **string** comparisons (`equalTo`/`notEqualTo` only, pass `"1"` not `1`); numeric operators work on `input type=number` only (KB `30-customization/07-form-rules.md` §9).
+- **`value-from-url` reads the URL parameter named like the field** (or its lowercase form); the rule's `value` is ignored (KB §9). It is the native way to prefill a public form from a link (`myb-p-public-forms`).
 - **Legacy operator strings** (`empty`, `equealTo`) exist in stored rules created via older paths; audits must tolerate them, writes must normalize to canonical operators.

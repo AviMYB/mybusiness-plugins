@@ -81,7 +81,7 @@ Outbound messages are written to the **`SMS`** table (`From, To, timestamp, Cont
 
 ### 3.1 Channels & the Identity rule (CRITICAL)
 
-Sender phone numbers live in the **`Channels`** table. **Always use the `Identity` field value (e.g. `"100000000000000"` — the WhatsApp phone-number-id) as `fromPhoneNumberId` — NEVER the channel row's `objectId`.** This is the #1 WhatsApp integration bug (project rule + tool guide). Discover available numbers at runtime: `Send-WhatsApp-Message { "getNumbers": true }`.
+Sender phone numbers live in the **`Channels`** table. **Always use the `Identity` field value (e.g. `"100000000000000"` — the WhatsApp phone-number-id) as `fromPhoneNumberId` — NEVER the channel row's `objectId`.** This is the #1 WhatsApp integration mistake. Discover available numbers at runtime: `Send-WhatsApp-Message { "getNumbers": true }`.
 
 ### 3.2 Send-WhatsApp-Message — full parameter shape (live schema; do NOT call casually — sends real messages)
 
@@ -191,7 +191,7 @@ Input: `{agent | extension, destination}` + logged-in `user.sessionToken` (403 w
 - **`fileBase64` must carry the Data-URI prefix** (`data:<mime>;base64,`) — raw base64 fails.
 - **Send tools are irreversible** — `Send-WhatsApp-Message` without `getNumbers`/`getTemplates` sends a real message to a real customer. Gate it in agent permission models.
 - **SMTP accounts may be empty** on a fresh app (live playground = `[]`) — email triggers configured before an SMTP account exists will fail; check `Get-SMTP-Accounts` first.
-- **Provider credentials live in the restricted `Config` table** — channel debugging (missing pbx/twilio settings) requires master-key REST, not MCP.
+- **Provider credentials live in the `Config` table** — readable over MCP (`Get-Data` on `Config`, since 2026-09) for channel debugging (missing pbx/twilio settings); check presence and shape, never echo the values.
 - **Phone matching in CDR is last-7-digit endsWith** — collisions possible (shared office lines, short numbers); mis-linked calls are a known support theme.
 - **Two WhatsApp stacks coexist** (Meta Cloud API channels vs Twilio-WhatsApp functions) — per customer, verify which one is live before debugging.
 - **Multiple log tables**: `SMS`, `_syslogWA`, MyChat conversation tables, `CallRecords` — there is no single unified message log; investigations must check the right table per channel.

@@ -216,7 +216,29 @@ Then grep the dump for `data-subclass-depend="<ParentTable>"` on the child field
 - Form fields on `Sales`: `DepartmentId`+`SubDepartmentId` (pair 1), `ChannelId`+`SubChannelId` (pair 2)
 - `subclassDepend` set via MCP `Edit-Page(add-new-field, ...)` — see the HTML for `data-subclass-depend="SalesDepartments"` and `data-subclass-depend="SalesChannels"`.
 
+## When the cascade "doesn't work" in an inline table row — `data-parent-elem`
+
+The single most expensive failure mode of this mechanism, and the reason people abandon it for custom JS.
+
+**Symptom.** The child field sits in an **inline row of a child table** (`tr.inline-form`) — a product line, a sub-item — while the parent field lives on the **parent form** (the card itself). The cascade does nothing, and the console carries `more than 2 fields found for parent`.
+
+**Cause.** To find the parent field, the runtime walks up from the child `<select>` with `closest('form…, tr.inline-form')`. Inside an inline row that walk **stops at the row**, never reaching the parent form, so it either finds no parent pointer or resolves ambiguously.
+
+**Fix — native, no JavaScript.** Point the child field at its parent element explicitly:
+
+```html
+<select data-subclass-depend="ParentTable" data-parent-elem="#ParentFieldOnTheCard">
+```
+
+`data-parent-elem` takes a selector for the element (or its container) holding the parent value. With it set, the native cascade resolves across the row boundary and behaves exactly as it does on a flat form — pagination and type-ahead intact.
+
+This attribute is not in the platform's public documentation; it is verified in the `simbla.js` source (2026-08). There is no MCP parameter for it — set it in the Simbla page editor, or write the attribute into the page HTML.
+
+**Rule: do not fall back to JavaScript option-filtering before you have tried `data-parent-elem`.** Custom filtering of a picker's options is an anti-pattern in this platform — where a native path genuinely does not exist, the correct tool is the `before-autocomplete-query` event (which shapes the platform's *own* options query, preserving pagination and search), never a helper query or post-load DOM filtering. Full rule set: `../myb-p-kb/references/30-customization/03-pages-and-layouts.md` §10; the trap itself is `../myb-p-kb/references/80-capability-matrix/02-known-limitations.md` §16 item 74.
+
 ## Common Pitfalls
+
+- **Concluding "the native cascade doesn't work here" from inside an inline table row.** It does — the parent lookup just stops at `tr.inline-form`. Add `data-parent-elem` (see the section above) before considering any JS alternative.
 
 - **Setting `subclassDepend` to the form field name instead of the parent table name.** It's the **table class name** (e.g., `"SalesDepartments"`), not the form's Pointer field name (e.g., `"DepartmentId"`). Simbla figures out which form field by scanning for a Pointer with `targetClass === subclassDepend`.
 
@@ -236,7 +258,7 @@ Then grep the dump for `data-subclass-depend="<ParentTable>"` on the child field
 
 1. ~~No way to set `Define Parent` via MCP~~ — **closed**: use `subclassDepend` on `Edit-Page(add-new-field, ...)`.
 
-2. **No way to set `subclassDepend` on a field that already exists on the page.** Workaround is remove + add, which is fine but clobbers any position/styling tweaks made manually. A `set-field-subclass-depend` action (or generic `set-field-attribute`) would be cleaner.
+2. **`subclassDepend` cannot be set on a field that already exists on the page.** The route is remove + add, which works but clobbers any position/styling tweaks made manually — so set it when the field is first added where you can.
 
 3. **No structured way to read `subclassDepend` from a page.** Must dump the rendered HTML and parse. A field-level read in `Get-Page-Content` would help.
 

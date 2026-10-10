@@ -75,7 +75,7 @@ Charts:        P52, P45, P51, P211, P42
 Title texts:   P71, P65, P70, P64, P130, P214
 Captions:      P62, P55
 Table:         P217
-Form (broken): P199 (genericform with FromDate/ToDate)
+Form (overwritten by the clone): P199 (genericform with FromDate/ToDate)
 ```
 
 ## What to also know

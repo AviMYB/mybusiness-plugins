@@ -77,7 +77,7 @@ Before creating records, resolve all text values to objectIds. Read `references/
 2. **Source values** (e.g., "ניוזלטר", "דאטה", "ליד חדש") → query SaleSourceList or C_LeadSourceList
 3. **User names** (e.g., "בר בכור", "ירון גרוסמן") → search _User table
 
-**User lookup is tricky:** `Get-all-Users` only returns the first 100 users (documented tool limitation). If the user isn't in those results, don't work around the tool-permission layer — mark the affected rows as blocked and escalate to the MyBusiness team to resolve the user's objectId (internal ops path; credentials only via get-secret at runtime).
+**User lookup is tricky:** `Get-all-Users` only returns the first 100 users (documented tool limitation). If the user isn't in those results, don't work around the tool-permission layer — mark the affected rows as blocked and ask MyBusiness support to resolve the user's objectId.
 
 ## Step 4: Identify and Match Accounts
 
@@ -117,7 +117,7 @@ Use **Create-Many** MCP tool for batch creation — it accepts an array of recor
 ### Batch sizing
 - Create-Many handles up to ~50 records comfortably per call
 - For larger sets, split into batches of 46-50
-- For very large sets (500+), keep batching sequentially through Create-Many; if the volume makes that impractical, escalate to the MyBusiness team for a server-side bulk load (internal ops path; credentials only via get-secret at runtime)
+- For very large sets (500+), keep batching sequentially through Create-Many; if the volume makes that impractical, ask MyBusiness support for a server-side bulk load
 
 ### Two-phase creation (Leads + Sales)
 When creating both leads and sales:
@@ -201,5 +201,5 @@ Read `references/pitfalls.md` for detailed explanations of each pitfall and how 
 1. **`$in` query silent truncation**: When searching with `$in` and one value returns many results, it consumes the limit and silently drops other results. Always verify the count of found records matches expectations.
 2. **Phone normalization**: Israeli phones come in dozens of formats. Always strip to 9-digit core.
 3. **Name search false positives**: Searching by last name "כהן" will match many unrelated accounts.
-4. **Get-all-Users limit**: Only returns first 100 users. If a user isn't found there, mark the row blocked and escalate to the MyBusiness team.
+4. **Get-all-Users limit**: Only returns first 100 users. If a user isn't found there, mark the row blocked and ask MyBusiness support.
 5. **Create-Many batch size**: Keep under 50 records per call to avoid timeouts.

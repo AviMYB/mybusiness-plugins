@@ -2,7 +2,7 @@
 
 > **Purpose:** The end-to-end process for taking a new MyBusiness CRM customer from signed deal to stable production, with named deliverables, owners, and entry/exit criteria per phase.
 > **Audience:** Implementers, developers, and AI agents who run pre-implementation and implementation work.
-> **Last updated:** 2026-07-06 · **Status:** draft
+> **Last updated:** 2026-09-28 (solution-model stage) · **Status:** draft
 
 ---
 
@@ -28,7 +28,7 @@ flowchart TD
     P0[0 · Pre-sale & qualification<br/>מכירה וסיווג] --> P1[1 · Kickoff & environment setup<br/>קיק-אוף והקמת סביבה]
     P1 --> P2[2 · Business discovery<br/>אפיון תהליכים עסקיים]
     P2 --> P3[3 · Fit-Gap analysis<br/>ניתוח התאמה ופערים]
-    P3 --> P4[4 · Technical Requirements Spec<br/>מסמך דרישות טכניות]
+    P3 --> P3b[3b · Solution model<br/>מודל פתרון נייטיבי] --> P4[4 · Technical Requirements Spec<br/>מסמך דרישות טכניות]
     P4 --> P5[5 · Implementation plan<br/>תוכנית מימוש]
     P5 --> P6[6 · Build & configure<br/>הקמה והגדרה]
     P6 --> P7[7 · Data migration<br/>הסבת נתונים]
@@ -40,6 +40,8 @@ flowchart TD
 ```
 
 Phases 2–5 are the **pre-implementation block**; everything downstream consumes their outputs. In small (Low-complexity) deals, phases 3–5 can be merged into a single combined document, but all three questions must still be answered explicitly: *what fits, what gaps, who builds what, in what order*.
+
+Phase **3b — the native solution model** is never merged away: even when phases 3–5 become one document, the owner approves the one-page data model (entities, relations, lookups, statuses) before any screen, mockup or automation is designed — see [08-solution-model.md](08-solution-model.md) and the [standing design rules](09-standing-design-rules.md).
 
 ---
 
@@ -66,7 +68,7 @@ Phases 2–5 are the **pre-implementation block**; everything downstream consume
 - **Owner:** implementer (with AI support). Customer side: process owners per department.
 - **Activities:** structured discovery meeting(s) using the [Hebrew questionnaire](templates/discovery-questionnaire.he.md); collect current tools, spreadsheets, sample documents; map processes; capture terminology preferences; identify data-migration sources.
 - **Output:** **Business Discovery Document** — see [02-discovery-and-process-mapping.md](02-discovery-and-process-mapping.md) for method and required content.
-- **Exit criteria:** customer validates the discovery document ("כן, ככה אנחנו עובדים"). Every core process has: actors, steps, entities, statuses, communications, and reports identified.
+- **Exit criteria:** customer validates the discovery document ("כן, ככה אנחנו עובדים"). Every core process has: actors, steps, candidate entities and statuses, communications, and reports identified (entities and statuses are *candidates* here — they are decided in phase 3b).
 
 ### Phase 3 — Fit-Gap analysis (ניתוח התאמה ופערים)
 - **Owner:** implementer; developer consulted for anything tending toward custom code.
@@ -74,15 +76,21 @@ Phases 2–5 are the **pre-implementation block**; everything downstream consume
 - **Output:** **Fit-Gap workbook** (CSV/spreadsheet) + scope decision.
 - **Exit criteria:** every requirement has a classification and effort class; customer (and approver, for paid items) signed off on scope.
 
+### Phase 3b — Native solution model (מודל פתרון נייטיבי)
+- **Owner:** implementer (with AI support); the customer's decision-maker approves.
+- **Activities:** read the standing design rules; baseline the tenant read-only and reconcile every candidate entity (REUSE / ADD-FIELD / CREATE — default REUSE); map every entity, field, status and behaviour to a named native mechanism (`native-map.csv`); cut legacy fields without usage evidence; count new data tables against the budget; tag every row Release 1 (structure) or Release 2 (automation); render the one-page data model; for M/L engagements build the R1 slice in the tenant and walk it with the owner.
+- **Output:** **Solution model** — `docs/model/data-model.html` + `native-map.csv` — see [08-solution-model.md](08-solution-model.md), rules in [../20-data-model/06-native-before-new-table.md](../20-data-model/06-native-before-new-table.md).
+- **Exit criteria:** the owner approved the one-page model by name; every element has a native mechanism or a written custom cost; new tables within budget and justified.
+
 ### Phase 4 — Technical Requirements Specification (מסמך דרישות טכניות)
 - **Owner:** implementer authors; developer reviews Custom-Server items; customer approves.
-- **Activities:** translate every in-scope fit-gap line into an **executable spec**: tables/fields with exact types, pages with section layouts, table views with columns/filters, triggers with event-condition-action JSON, form rules, roles/permissions, terminology replacements, reports/dashboards, integrations, migration mapping. Each item carries acceptance criteria.
+- **Activities:** copy the approved data model (phase 3b) into §2 — entities are not re-decided here — then translate every in-scope fit-gap line into an **executable spec**: tables/fields with exact types, pages with section layouts, table views with columns/filters, triggers with event-condition-action JSON, form rules, roles/permissions, terminology replacements, reports/dashboards, integrations, migration mapping. Each item carries acceptance criteria.
 - **Output:** **TRS** — see [04-technical-requirements-spec.md](04-technical-requirements-spec.md).
 - **Exit criteria:** an implementer (or AI agent) who never attended the meetings can build the system from the TRS alone; custom-dev items have tickets drafted in your implementation tracker.
 
 ### Phase 5 — Implementation plan (תוכנית מימוש)
 - **Owner:** implementer.
-- **Activities:** order the TRS items along the **canonical build order** (see [../30-customization/01-customization-overview.md](../30-customization/01-customization-overview.md)); assign owners (implementer / developer / AI agent); set milestones; define the test plan, training plan, migration window, and go-live checklist.
+- **Activities:** split the TRS items into **Release 1 (structure: tables, lookups, cards, lists, form rules)** and **Release 2 (automations, templates, integrations)** by default, and order each along the **canonical build order** (see [../30-customization/01-customization-overview.md](../30-customization/01-customization-overview.md)); assign owners (implementer / developer / AI agent); set milestones; define the test plan, training plan, migration window, and go-live checklist.
 - **Output:** **Implementation Plan** — see [05-implementation-plan.md](05-implementation-plan.md).
 - **Exit criteria:** dated milestones; every TRS item has an owner; customer knows what is expected from them (data files, approvals, training attendance).
 
@@ -90,7 +98,7 @@ Phases 2–5 are the **pre-implementation block**; everything downstream consume
 - **Owner:** implementer + AI agents (config), developers (custom).
 - **Activities:** execute the TRS in build order, mostly via MCP tools; custom server functions developed in the `server-side-code` repo and wired through triggers; design/branding applied (quote templates, CSS); QA checklist generated and executed (the team has a QA-task generation practice — turn the TRS acceptance criteria into QA tasks).
 - **Verification:** after each domain, re-query state (`Get-Schema`, `Get-Triggers`, `Get-Form-Rules`, `Get-Site-Pages`) and tick the TRS item.
-- **Exit criteria:** all TRS items built and self-verified; custom-dev tickets in QA/Done.
+- **Exit criteria:** all TRS items built and self-verified; any custom development completed and accepted.
 
 ### Phase 7 — Data migration (הסבת נתונים)
 - **Owner:** implementer.
@@ -153,6 +161,8 @@ This documentation package is the knowledge base for the **deployed** pre-implem
 |---|---|---|---|
 | `business-discovery` | 2 | Produces the BRD + `req-register.csv` | 02 + questionnaire template, [10-modules](../10-modules/01-crm-core.md) |
 | `myb-p-fit-gap` | 3 | Classifies every requirement against the capability matrix → fit-gap report + `fit-gap.csv` | 03 + [80-capability-matrix](../80-capability-matrix/01-capability-matrix.md), [80 known limitations](../80-capability-matrix/02-known-limitations.md), internal implementation evidence |
+| `solution-model` | 3b | The one-page native data model + `native-map.csv` + table budget; owner approval; the thin R1 slice in the tenant | [08-solution-model.md](08-solution-model.md), [09-standing-design-rules.md](09-standing-design-rules.md), [20-data-model/06](../20-data-model/06-native-before-new-table.md), [80 known limitations](../80-capability-matrix/02-known-limitations.md) |
+| `myb-p-mockup-templates` | 3b–4 (optional) | Clickable mockups generated from `native-map.csv`, or mirroring the built slice; every element tagged with its native mechanism | [20-data-model/06](../20-data-model/06-native-before-new-table.md) §6 |
 | `functional-spec` | 4–5 | Executable functional/technical spec + work plan + UAT checklist | 04 + 05 + spec template, [20-data-model](../20-data-model/01-data-model-overview.md), [30-customization](../30-customization/01-customization-overview.md), [40-integrations-api](../40-integrations-api/02-mcp-tools-catalog.md), [06-estimation-guide.md](06-estimation-guide.md) |
 | `plan-summary-for-approval` | approval gate | Distills the pre-implementation deliverables into one executive approval summary; emits `approval.json` | all upstream deliverables, [07-pipeline-contract.md](07-pipeline-contract.md) |
 | `build` | 6 | Executes the approved spec in the live tenant; **checks `approval.json` before its first write** | the spec set + [07-pipeline-contract.md](07-pipeline-contract.md) |

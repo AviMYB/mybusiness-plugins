@@ -40,7 +40,7 @@ TRIGGER (When)                    ACTIONS (What) -- one or more
 - **Deleting triggers entirely** -- MCP can only deactivate, not delete. To delete: user must go to Admin > Databases > Tables > [Table] > Triggers and remove manually
 - **"Add to Timeline" trigger type** -- only available in the UI, not via MCP
 - **Suppressing triggers on single-record writes** -- triggers DO fire from API/MasterKey operations (verified live: `Create-Data`, `Update-Data`, `Create-Many` all fire create/update triggers), so testing via MCP is valid. The only opt-in suppression is `Create-Many(skipTriggers: true)` (master-key only; `skipTimeline: true` similarly suppresses Timeline entries); single-record tools have NO skip flag. ⚠️ Bulk writes storm automations by default. See the Testing section below
-- **Viewing trigger execution logs in real-time** -- use `Get-Data` on `_syslogTriggers` table as a workaround
+- **Viewing trigger execution logs in real-time** -- read the `_syslogTriggers` table with `Get-Data` instead
 - **Editing email templates** -- templates must be created via the CRM UI first; the trigger only references an existing template by objectId
 - **Creating/managing SMTP accounts** -- use `Get-SMTP-Accounts` to list existing ones; creation is done in UI
 - **Creating/managing WhatsApp templates** -- templates must be pre-approved in Meta; use `Send-WhatsApp-Message` with `getTemplates: true` to list available ones

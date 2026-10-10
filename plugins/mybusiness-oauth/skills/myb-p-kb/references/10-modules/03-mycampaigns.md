@@ -129,7 +129,7 @@ The landing-page form posts straight into the CRM as a **Lead** (Accounts with `
 |---|---|
 | `Name` | שם |
 | `F_name` | שם פרטי |
-| `F_name` | שם משפחה — ⚠️ the source guide lists `F_name` twice (documentation bug; last-name key likely `L_name`, UNVERIFIED) |
+| `F_name` | שם משפחה — ⚠️ the source guide lists `F_name` twice; the last-name key is likely `L_name`, UNVERIFIED — confirm on a test lead |
 | `Email` | אימייל |
 | `PhoneNumber` | טלפון |
 | `Address` | כתובת |

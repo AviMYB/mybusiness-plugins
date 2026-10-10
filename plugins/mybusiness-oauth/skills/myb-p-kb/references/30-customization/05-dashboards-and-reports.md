@@ -101,7 +101,7 @@ Tabs on dashboards/pages: `Add-Edit-Tabs-Element(pageId, rowId, columnNumber, ne
 ```
 
 - `type` is REQUIRED even when updating an existing item (`_id`); delete = `{_id, removeThisItem: true}`; hierarchy via `parent`.
-- **Icon bug (X2):** pass the bare class `fa-truck` — the system prepends `fa `; passing `"fa fa-truck"` yields broken `fa fa fa-truck`.
+- **Icon prefix (X2):** pass the bare class `fa-truck` — the system prepends `fa ` itself; passing `"fa fa-truck"` yields `fa fa fa-truck`, which renders no icon.
 - `visibility: []` matches existing items; `["loggedIn"]`/role arrays may filter the item out — mirror what's already there. The same `Set-Menu-Items` contract (incl. `_id` updates, `removeThisItem`, `parent` hierarchy, MongoDB-format item IDs) applies to the main side menu.
 
 ## A7. Tooling-gap register (from `myb-p-dashboards/references/tooling-gaps.md`, re-checked 2026-06-10)
@@ -114,7 +114,7 @@ Tabs on dashboards/pages: `Add-Edit-Tabs-Element(pageId, rowId, columnNumber, ne
 | B1 ⭐ | No container-wrapper creation → new elements render bare | open | **CLOSED** — `Add-Container-to-Page` exists; element tools accept `intoExistingElemId` (exactly the wishlist item) |
 | B2 | No `Delete-Element` (only `delete-row`) | open | open — hide via CSS `#elemId{display:none!important}` |
 | B3/C2 | No tool to create/edit a Database Search form (`dbFormQuery`) or its inputs | open | open — clone a page that has one; JS for input fixes |
-| B5 | `add-row toExistingColumn` mis-nests for columns ≥ 1 | open (bug report filed) | **reported FIXED** by platform (a nested-row fix) — ⚠️ re-verify on first use |
+| B5 | `add-row toExistingColumn` mis-nests for columns ≥ 1 | later addressed — ⚠️ re-verify on first use | prefer `Add-Container-to-Page` |
 | C1/C3 | No blank-page-with-master creation; `Set-Page-Settings` has no `masterPageId` | open | open (confirmed: live `Set-Page-Settings` schema has no master param) — always start from a clone |
 | X1 | No `Delete-Page` | open | open (no such tool in the live tool list) — rename `_old_*` |
 | X2 | Menu icon double-prefix | open | open (workaround stable) |
@@ -234,7 +234,7 @@ Rules: every referenced report (base + up to 3 secondary) **must be aggregated**
 "ScheduleSendTo": "manager@company.com,team@company.com"
 ```
 
-`occurrence`: `[]` daily · `[0..6]` weekly days (0=Sunday) · `[1,15]` month days. Live-verified on the demo (4 scheduled reports). **Known bug:** creating with scheduling can throw `Simbla is not defined` in some environments (and when `ScheduleSendTo` is empty) — create the report without scheduling first, then add the schedule via the CRM UI; always provide a recipient.
+`occurrence`: `[]` daily · `[0..6]` weekly days (0=Sunday) · `[1,15]` month days. Live-verified on the demo (4 scheduled reports). **Environment note:** creating with scheduling can return `Simbla is not defined` in some environments (and when `ScheduleSendTo` is empty) — create the report without scheduling first, then add the schedule via the CRM UI, and always provide a recipient.
 
 **Activation requires a UI save (live-verified 2026-07-21):** the schedule depends on a front-end component that is only initialized when the report is saved from the report generator UI. A scheduled report created or updated tool-side (`Create-or-Update-Report` / direct `_DynamicQueries` write) never sends — even with correct `PageId`/`FormName`/recipients — until a user opens that specific report in the report generator and clicks Save. Always hand the user this activation step and treat the schedule as inactive until the save is confirmed.
 

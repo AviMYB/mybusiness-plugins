@@ -6,7 +6,7 @@
 
 | # | Section | Content | S | M/L |
 |---|---|---|---|---|
-| 1 | תקציר מנהלים | `.kpi-row`: REQ count · per-class counts (chips) · tier · effort rollup · in-scope/phase-2/out counts; one-paragraph recommendation | ✔ | ✔ |
+| 1 | תקציר מנהלים | `.kpi-row`: REQ count · per-class counts (chips) · tier · effort rollup · in-scope/phase-2/out counts · **footprint** (new data tables vs budget · new fields · triggers); one-paragraph recommendation | ✔ | ✔ |
 | 2 | עקרון העבודה | 3 lines: fit-to-standard first, ladder, evidence-based — so the customer understands the philosophy | ✔ | ✔ |
 | 3 | טבלת הסיווג המלאה | the workbook (§2 below) as a styled table; class as colored chip; effort as chip s/m/l/xl. **Preceded by a legend (מקרא) and an interactive filter bar — both mandatory; see §5.** Rows carry `data-*` attributes and each process group is wrapped in a `.domain-block` so the filter can hide empty groups | ✔ | ✔ |
 | 4 | רישום פערים (Gap register) | per Gap/Custom row: linked process, business need, disposition + justification (decision factors), connected-process impact, resolution | inline in table | ✔ dedicated |
@@ -20,7 +20,7 @@ Order the classification table by **process/event** (catalog-ordered, not REQ-nu
 ## 2. Workbook schema (HTML table + `fit-gap.csv` — identical columns)
 
 ```
-REQ ID,Process,Requirement (HE),Priority,Class,Disposition,Solution sketch,Evidence (matrix/blueprint/demo),Components,Effort,Owner,Dev-consult,Risk/Limitations,Decision,Phase,Actual effort,Variance note
+REQ ID,Process,Requirement (HE),Priority,Class,Disposition,Solution sketch,Evidence (matrix/blueprint/demo),Components,Effort,Owner,Dev-consult,Risk/Limitations,Decision,Phase,Actual effort,Variance note,Footprint,Usage evidence
 ```
 
 - `Class`: Native/Config/Custom-JS/Custom-Server/External/Gap (chips: native/config/custom-js/custom-server/external/gap).
@@ -29,7 +29,9 @@ REQ ID,Process,Requirement (HE),Priority,Class,Disposition,Solution sketch,Evide
 - `Components`: tables/pages/triggers/roles… touched (feeds spec grouping).
 - `Decision`: In scope / Phase 2 / Workaround / Out — must be filled before the doc leaves draft.
 - `Actual effort`,`Variance note`: empty at authoring — **`build` fills them at its completion gate** (per-REQ rollup from the build-ledger, joined on REQ ID); variances >1 size class feed back into the estimation anchors.
-- CSV is the **contract with `functional-spec`** — exact header, UTF-8.
+- `Footprint`: Vanilla / New-table / Automation / Custom / — (KB `20-data-model/06`). `New-table` rows carry their justification in `Risk/Limitations`; `Automation` rows default to Phase 2.
+- `Usage evidence`: for a row that keeps a legacy field or table — fill-rate · who fills · who reads, or `none` (from discovery's usage evidence). Columns 18–19 are appended, so older 17-column readers keep working.
+- CSV is the **contract with the solution model and `functional-spec`** — exact header, UTF-8.
 
 ## 3. Visual rules
 

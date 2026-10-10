@@ -56,8 +56,8 @@ When using `$in` with emails, if ANY single email matches many accounts (e.g., g
 ```
 
 **Data quality issues seen in practice:**
-- Extra quotes: `'yonathan.david1@gmail.com'` — strip quotes before searching
-- Invalid domains: `edri.lea@il/zim.com` — flag as error, skip
+- Extra quotes: `'yaron.levi1@example.com'` — strip quotes before searching
+- Invalid domains: `lea.a@il/example.com` — flag as error, skip
 - Case sensitivity: Parse Email field may be case-sensitive — search with exact case from file
 
 ---

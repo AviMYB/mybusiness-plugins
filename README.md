@@ -8,7 +8,7 @@
 
 <div dir="ltr">
 
-![AI agents](https://img.shields.io/badge/AI_agents-plugin-d97757) ![Agent Plugins](https://img.shields.io/badge/Agent_Plugins-1.0-24292e) ![version](https://img.shields.io/badge/version-1.4.0-007ec6) ![skills](https://img.shields.io/badge/skills-23-007ec6) ![ISO 27001](https://img.shields.io/badge/security-ISO_27001-2ea44f)
+![AI agents](https://img.shields.io/badge/AI_agents-plugin-d97757) ![Agent Plugins](https://img.shields.io/badge/Agent_Plugins-1.0-24292e) ![version](https://img.shields.io/badge/version-1.5.0-007ec6) ![skills](https://img.shields.io/badge/skills-24-007ec6) ![ISO 27001](https://img.shields.io/badge/security-ISO_27001-2ea44f)
 
 </div>
 
@@ -76,11 +76,11 @@ The plugin supplies skills; configure the personal MCP separately in Codex Setti
 |---|---|
 | חיבור והתחלה | `myb-p-getting-started` (פתיחת חשבון, התחברות ראשונה, Application Id ומפתח API, אימות, ולקוחות AI אחרים) |
 | ידע וניתוח | `myb-p-kb` · `myb-p-fit-gap` (ניתוח התאמה לדרישות) |
-| מודל נתונים | `myb-p-create-entity` (ישות חדשה מקצה לקצה) · `myb-p-multi-select-field` · `myb-p-parent-child-fields` · `myb-p-timestamp-field` · `myb-p-rename-terms` (התאמת מונחים לעסק) |
-| דפים וממשק | `myb-p-page-builder` (דפי כרטיס) · `myb-p-page-tables` (טבלאות) · `myb-p-create-settings-page` · `myb-p-dashboards` · `myb-p-create-update-reports` |
-| אוטומציה | `myb-p-trigger-setup` (טריגרים) · `myb-p-form-rules` · `myb-p-sla-configuration` |
-| נתונים ואינטגרציות | `myb-p-data-import` (יבוא נתונים) · `myb-p-web2lead-web2table` (טפסים מהאתר) |
-| איכות שירות | `myb-p-csat-survey` (סקר שביעות רצון בסגירת פנייה) |
+| מודל נתונים | `myb-p-create-entity` (ישות חדשה מקצה לקצה) · `myb-p-multi-select-field` · `myb-p-parent-child-fields` · `myb-p-timestamp-field` · `myb-p-record-timeline` (ציר זמן ותיעוד שינויים ברשומה) · `myb-p-rename-terms` (התאמת מונחים לעסק) |
+| דפים וממשק | `myb-p-card-design` (דפי כרטיס, עיצוב ואסתטיקה) · `myb-p-page-tables` (טבלאות) · `myb-p-create-settings-page` · `myb-p-dashboards` · `myb-p-create-update-reports` |
+| אוטומציה | `myb-p-trigger-setup` (טריגרים) · `myb-p-form-rules` · `myb-p-sla-configuration` · `myb-p-chatbots` (בוטים ב-MyChat) |
+| נתונים ואינטגרציות | `myb-p-data-import` (יבוא נתונים) · `myb-p-public-forms` (טפסים פומביים: מהאתר, בדף CRM, בלחיצה אחת) |
+| איכות שירות | `myb-p-public-forms` → `csat/` (סקר שביעות רצון בסגירת פנייה) |
 | חיובים והצעות מחיר | `myb-p-mybooks-setup` · `myb-p-price-quote-template` |
 | משתמשים והרשאות | `myb-p-users-roles-permissions` |
 

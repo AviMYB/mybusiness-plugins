@@ -1,7 +1,7 @@
 # Parse REST API
 
 > **Purpose**: Canonical reference for the MyBusiness CRM Parse REST API — authentication, CRUD, queries, batch, users, files, aggregates, and product-specific conventions — for developers/implementers integrating external systems.
-> **Last updated**: 2026-06-10 · **Status**: draft
+> **Last updated**: 2026-09-27 (`Config` reachable from MCP) · previously 2026-06-10 · **Status**: draft
 
 ---
 
@@ -177,7 +177,7 @@ The same pattern creates `Activities` (meetings: `Subject`, `Type`, `StartDate`,
 
 System fields on **every** record: `objectId`, `createdAt`, `updatedAt`, `ACL`, plus product-added `createdBy` and `updatedBy` (Pointers to `_User`).
 
-System tables: `_User` (users), `_Role` (roles), `_Session`, `_Timeline` (audit log — query by `objectIdValue` + `objectClass`), `_Dictionary` (field label translations: `tblName`, `field`, `value`), `_syslogTriggers`, `_syslogEvents`, `_syslogWA` (WhatsApp log), `Config` (per-app integration settings; **restricted from MCP**, master-key REST only).
+System tables: `_User` (users), `_Role` (roles), `_Session`, `_Timeline` (audit log — query by `objectIdValue` + `objectClass`), `_Dictionary` (field label translations: `tblName`, `field`, `value`), `_syslogTriggers`, `_syslogEvents`, `_syslogWA` (WhatsApp log), `Config` (per-app integration settings; reachable from MCP `Get-Data`/`Create-Data`/`Update-Data`, or master-key REST).
 
 ## 6. Queries — `GET /parse/classes/<Table>` with URL params
 
@@ -301,7 +301,7 @@ Returns table definitions: field names, types, `targetClass` for Pointers. On th
 Two patterns exist:
 
 1. **Standard Parse**: `POST /parse/functions/<name>` with auth headers (ParseDocs 14-cloud-code). ⚠️ UNVERIFIED on this deployment — product functions are not registered this way.
-2. **Product pattern (the Parse Server backend)**: `POST https://api.mbapps.co.il/functions/{appId}/{functionName}` with header `X-Parse-Application-Id: {appId}`; the platform injects `applicationId` and `masterKey` into the function's `req.body` server-side. This is how `web2lead`, `web2table`, `mychat`, etc. are called. Full reference: [04-cloud-functions.md](04-cloud-functions.md).
+2. **Product pattern (the Parse Server backend)**: `POST https://api.mbapps.co.il/functions/{appId}/{functionName}` with header `X-Parse-Application-Id: {appId}`; the platform injects `applicationId` and `masterKey` into the function's `req.body` server-side. This is how `getLead` (the web2lead pattern), `web2table`, `mychat`, etc. are called — `{functionName}` is the **deployed function's own name**, so the URL segment for lead intake is `getlead`, not `web2lead`. Full reference: [04-cloud-functions.md](04-cloud-functions.md).
 
 ## 13. Account-level operations (vendor-side)
 
@@ -326,7 +326,7 @@ Account-level operations — package/seat management, storage status, and app re
 - **Field-name drift**: `Phone` vs `PhoneNumber`, custom fields per customer — never hard-code a field list without a schema fetch.
 - **Trigger storms**: REST updates fire `data change` triggers; bulk REST writes can cascade automations (trigger chains are capped at 3 levels, but each record still fires). Coordinate bulk loads with trigger owners or use MCP `Create-Many` with `skipTriggers: true` (master key only).
 - **Aggregate requires master key**; aggregate `groupby` paths through Pointers use dot notation but only via the MCP tool / dynamic-table layer, not raw Mongo pipelines.
-- **`Config` table is restricted** from the MCP layer; reading/writing it (e.g. `AcceptWebLeads`, `pbx`, `twilio-settings`, `Payment`) requires master-key REST.
+- **`Config` table is reachable from MCP** — `Get-Data`/`Create-Data`/`Update-Data` read and write its rows (e.g. `AcceptWebLeads`, `pbx`, `twilio-settings`, `Payment`). Earlier MCP versions answered `Table is restricted`; if a connection still does, use master-key REST.
 - **Batch size 50** (product-documented); larger arrays must be chunked client-side. Batch responses can be per-item partial failures — always check each element.
 - **No rate limits documented** for api.mbapps.co.il. ⚠️ UNVERIFIED — assume reasonable throttling and batch/chunk accordingly.
 - **Account/reseller operations live on a separate vendor-side host** with a different key — Parse master keys do not work there.

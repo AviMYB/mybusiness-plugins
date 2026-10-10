@@ -1,14 +1,14 @@
 # MyBooks Module — apps/mybooks (Billing & Israeli Accounting)
 
 > **Purpose:** Deep reference for the MyBooks billing module — document types and lifecycle, linked documents, collection (גבייה), payments & clearing, payment pages, retainers, inventory, reports, Israeli tax compliance (מבנה אחיד, חשבונית ישראל), settings, and its relation to CRM Core — for implementers running pre-implementation discovery.
-> **Last updated:** 2026-08-02 (line-level subscription period & discount — §4.1) · **Status:** draft
+> **Last updated:** 2026-08-27 (bank direct debit / מס״ב — §7.1) · **Status:** draft
 
 ## 1. What this module is
 
 `apps/mybooks/` is the invoicing/receipts/billing app. It runs on the **same Parse database** as CRM Core — same `Accounts` (לקוחות) and `Products` (מוצרים) tables — and is reached from the CRM via the top-bar app switcher or installed via `apps/mybusiness/install-mybooks`. It is also sold standalone as **mybooks.co.il** ("מקבוצת קו-מנחה"), and is **registered accounting software with the Israeli Tax Authority** (אישור רישום תוכנה במס הכנסה — PDF linked from every mybooks.co.il guide footer).
 
 - **Runtime URL pattern:** `https://<numericId>.mbapps.co.il/apps/mybooks/<pageName>`.
-- **Navigation** (guide ניווט-ותפריטים + live menu "Menu-15"): side menu — מבט על, לקוחות, מסמכי הנהח"ש, גבייה, חיוב ריטיינר, דפי תשלום, דוחות (הכנסות/תקבולים/קבלת דחויים), הגדרות, שיווק, עזרה. Same list-page pattern as the CRM: table + query form (שאילתא) + add button; blue links open record cards.
+- **Navigation** (guide ניווט-ותפריטים + live menu "Menu-15"): side menu — מבט על, לקוחות, מסמכי הנהח"ש, גבייה, חיוב ריטיינר, חיובי מס״ב, דפי תשלום, דוחות (הכנסות/תקבולים/קבלת דחויים), הגדרות, שיווק, עזרה. Same list-page pattern as the CRM: table + query form (שאילתא) + add button; blue links open record cards.
 
 ## 2. Entity map (DB tables)
 
@@ -177,6 +177,43 @@ flowchart TD
 
 Charge history: per-retainer header shows last-charge fields; דוח חיובים tab lists every charge with status + links to the produced documents (`RetainerChargeLog.DocumentId`). Customer card-token renewal via `update-retainer-token` page.
 
+### 7.1 Bank direct debit — Masav charges (חיובי מס״ב) (2026-08)
+
+Pages `MasavCharges` (list), `MasavCharge` (standing-order card), `MasavGroup` (batch card), `SettingsMasav` (institution settings, surfaced as the **הגדרות למס״ב** tab inside `SettingsMybooks`). Menu entry **חיובי מס״ב**, between חיוב ריטיינר and דפי תשלום. Tables `MasavCharges`, `MasavGroups`, `MasavGroupStatuses`, `MasavChargesLog` ([20/03](../20-data-model/03-module-tables.md)); line items reuse `RetainerRows` through `MasavChargeId`.
+
+Collection by **bank direct debit** (הרשאה לחיוב חשבון) through the Israeli Masav clearing house — the alternative to the card-based retainers of §7. Instead of charging each customer's card, the tenant groups many standing orders into one **batch** (מקבץ), generates a fixed-width transmission file from it, and uploads that file to its bank; the accounting documents are produced when the batch is marked as sent.
+
+The list page has three tabs: **רשימת הרשאות חיוב** (the standing orders), **הגדרות תוכניות חיוב** (`RetainerPlans`, the same presets §7 uses), **מקבצי חיוב** (the batches).
+
+**Institution settings** (`SettingsMasav`): קוד מוסד (`instituteNumber`), שם מוסד (`instituteName`), מספר סידורי (`serialNumber`, default `001`), קוד מוסד שולח (`senderInstitute` — **up to 5 digits**; longer values are refused by the file generator). Held outside the Parse classes and read at file-generation time, so they are not visible through `Get-Schema`/`Get-Data`.
+
+**Standing order** (`MasavCharge`) — three blocks:
+
+- **פרטים כלליים:** לקוח (`AccountId`), אימייל, מחזוריות (חודשי / דו-חודשי / רבעוני / חצי-שנתי / שנתי → `RetainerPeriod`, in months), ID חיצוני, מספר חיובים (`ChargesLimit` — how many times this authorization may be charged), תאריך חיוב הבא (`NextChargeDate`), פעיל (`Active`). On an existing record the header also shows תאריך חיוב אחרון, סטטוס חיוב אחרון and מס' חיובים שבוצעו עד כה.
+- **פרטי חיוב** (the bank authorization): בנק (`BankId` → `Banks`, which ships 10 banks carrying their Masav bank codes), מספר סניף, מספר חשבון, שם לקוח (`Name` — **this is the name written into the transmission file**, independent of the account's own name), ת.ז. (`IdNumber`), מס' מזהה ללקוח במוסד (`Reference` — the payer reference, padded to 20 characters in the file).
+- **הגדרות מסמך:** סוג מסמך להפקה (`DocTypeId`), then either **תוכנית קיימת** (a `RetainerPlans` preset) or **הזנת חיוב פרטני** (ad-hoc `RetainerRows` lines), plus discount (%/₪), VAT, עיגול אגורות and notes-on-document — the same money block as §7. A line **must carry a product** (`RetainerRows.ProductId`): the row is committed only once a product is chosen, and selecting one fills the line price from the catalog.
+
+**Batch lifecycle.** Membership is by **explicit selection** of rows in רשימת הרשאות חיוב, not by due date: tick the charges, then **צור מקבץ לחיוב**. The batch snapshots each selected charge's lines and totals into `MasavChargesLog`, and reports how many charges entered and how many were left out. A charge with no line items does not enter; its reason is written to `MasavCharges.CalculatedErrorMessage` and shown read-only on the charge card as **שגיאת חישוב סכום לחיוב**.
+
+The batch card (`MasavGroup`, opened from the batch name in מקבצי חיוב) then carries two actions:
+
+- **הפק קובץ לחיוב** — generates the `.msv` transmission file (fixed-width **128-byte** records) and exposes it on the card as a **קובץ מסב להורדה** link; status חדש → הופק קובץ.
+- **חיוב נשלח לבנק, הפק מסמכים** — after a confirmation prompt, closes the batch and produces the configured document per charge. Status → נשלח לחיוב, `MarkedAsChargedAt` stamped, each `MasavChargesLog` row marked `Charged` with its `DocumentId`, and on the source charge `LastChargeDate` / `LastChargeStatus` / `ChargesCount` are updated and `NextChargeDate` advanced by `RetainerPeriod`.
+
+Batch statuses (`MasavGroupStatuses`): **חדש** · **הופק קובץ** · **נשלח לחיוב**.
+
+```mermaid
+flowchart TD
+    SET["הגדרות למס״ב<br/>קוד מוסד, מוסד שולח (≤5 ספרות)"] --> AUTH
+    AUTH["הרשאת חיוב ללקוח<br/>בנק/סניף/חשבון, ת.ז., אסמכתא,<br/>מחזוריות, שורות עם מוצר"] -->|"סימון ידני + צור מקבץ לחיוב"| GRP
+    GRP["מקבץ — חדש<br/>MasavChargesLog: צילום שורות וסכומים"] -->|"הפק קובץ לחיוב"| FILE
+    AUTH -.->|"ללא שורות — לא נכנס"| DROP["CalculatedErrorMessage<br/>מוצג בכרטיס החיוב"]
+    FILE["מקבץ — הופק קובץ<br/>קובץ msv (רשומות 128 בתים) + לינק הורדה"] -->|"חיוב נשלח לבנק, הפק מסמכים"| DONE
+    DONE["מקבץ — נשלח לחיוב<br/>מסמכים הופקו, Charged=true,<br/>NextChargeDate מקודם"]
+```
+
+Because both mechanisms share `RetainerRows` and `RetainerPlans`, a plan built for §7 retainers can be reused verbatim for a Masav authorization; the difference is the collection instrument (bank authorization vs. card token) and the batch-and-file step in the middle.
+
 ## 8. Inventory (ניהול מלאי)
 
 Guides ניהול-מלאי, ניהול-מלאי-מוצר, הגדרות-ניהול-מלאי; pages `ManageInventory`, `ManageInventoryProduct`, `InventorySettings`. Opt-in module under הגדרות.
@@ -236,6 +273,7 @@ Detailed tables sort by column click and export to Excel.
 | `apps/mybooks/InvoiceBalance` | L | Invoice balances |
 | `apps/mybooks/ReportCollection`, `PostDatedCheques`, `ReportIncome*` ×4, `ReportReceipt*` ×4 | L | Reports (§11) |
 | `apps/mybooks/Retainers` / `Retainer` / `RetainerPlans` / `update-retainer-token` | L / F / S / X | Retainer module (§7) |
+| `apps/mybooks/MasavCharges` / `MasavCharge` / `MasavGroup` / `SettingsMasav` | L / F / F / S | Bank direct debit — מס״ב (§7.1) |
 | `apps/mybooks/PaymentsBtns` / `payment-btn-page` / `pay-open-invoice` / `successpage` | L / X / X / X | Payment pages (§6.3) |
 | `apps/mybooks/SettingsMybooks` (+`SettingsMybooksFirst`) | S | Settings hub (first-run variant) |
 | `apps/mybooks/SettingCompany` | S | הגדרות פרטי עסק: identity Heb/En, logos, address, currency, VAT %, rounding |
@@ -267,9 +305,10 @@ Detailed tables sort by column click and export to Excel.
 5. סליקה: Upay (free, instant) or Pelecard (paid via support); terminals.
 6. רשות המסים: connect for allocation numbers (חשבונית ישראל) if invoices can exceed the threshold.
 7. ריטיינר: plans, then per-customer authorizations; activate explicitly.
-8. מלאי (optional): which doc types move stock + minimum-stock threshold.
-9. Email dispatch: SMTP/sender identity; auto-send preference; self-copy.
-10. דפי תשלום: per-product hosted pages + embed HTML.
+8. מס״ב (optional): הגדרות למס״ב — קוד מוסד, שם מוסד, מספר סידורי, קוד מוסד שולח (≤5 ספרות); then per-customer bank authorizations with a product-bearing line.
+9. מלאי (optional): which doc types move stock + minimum-stock threshold.
+10. Email dispatch: SMTP/sender identity; auto-send preference; self-copy.
+11. דפי תשלום: per-product hosted pages + embed HTML.
 
 ## Limitations & gotchas
 

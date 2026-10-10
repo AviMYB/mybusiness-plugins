@@ -1,7 +1,7 @@
 # Users, Roles & Permissions — Access Control Model
 
 > **Purpose:** Reference for the three access-control pillars — משתמשים (Users), תפקידים (Roles) + חבילות (Packages/seats), and הרשאות טבלה (Table Permissions / CLP) — including spec-ready tool parameters, onboarding/offboarding flows, CLP design patterns, portal users and row-level filtering.
-> **Last updated:** 2026-06-10 · **Status:** draft
+> **Last updated:** 2026-10-09 (patterns 11–12 public intake / invite; `"*"` alongside roles; new-table defaults; `protectedFields` not via MCP) · previously 2026-06-10 · **Status:** draft
 
 ## 1. Mental model — three independent decisions
 
@@ -195,6 +195,8 @@ Values are **always `true`** — there is no `false`; absence = no grant. `{}` o
 | 8 | Locked table (trigger-driven) | Reads for roles; `create`/`update`/`delete` all `{}` — only Master key writes |
 | 9 | Authenticated-anyone | `find`/`get`: `requiresAuthentication`; writes Admin-only (utility lookups) |
 | 10 | Public read | `"*"` in find/get — landing-page catalogs only; confirm with customer |
+| 11 | Public create-only intake | staff roles + `"*"` on `create` **only**; `find`/`get`/`update` staff; `delete` Admin; `addField: {}` — the intake behind a native public form ([15-public-forms.md](15-public-forms.md) §3). Never on a business table |
+| 12 | Public get-by-id (invite) | staff roles + `"*"` on `get` only (no `find` → ids cannot be listed) — invite records behind a gated public link. A public `get` serves **every** column, so the table holds only what the page may show ([15-public-forms.md](15-public-forms.md) §2.3) |
 
 Example — read-only Finance viewer:
 
@@ -209,9 +211,17 @@ Example — read-only Finance viewer:
 }
 ```
 
-### CLP vs the CRM front-end (verified platform bug)
+### CLP vs the CRM front-end (verified behaviour)
 
-Parse-level `{"*": true}` passes API calls, **but the CRM UI additionally checks role membership** — users still get "no permissions" errors on pages backed by a `*`-CLP table (Bug 5 in `myb-p-create-entity`). Always use role-based CLP matching the Cases/Accounts pattern on new tables. Tables created via raw REST start with an **empty CLP** — call `Set-Table-Permissions` on every new table.
+Parse-level `{"*": true}` passes API calls, **but the CRM UI additionally checks role membership** — users still get "no permissions" errors on pages backed by a `*`-CLP table (Constraint 5 in `myb-p-create-entity`). Always use role-based CLP matching the Cases/Accounts pattern on new tables. Tables created via raw REST start with an **empty CLP** — call `Set-Table-Permissions` on every new table.
+
+### `"*"` next to roles; what new tables start with (verified 2026-10-09)
+
+- **`"*"` added *alongside* the staff roles** (`create: {"role:Admin":true,"role:CRM":true,"*":true}`) keeps the staff screens working; the UI problem above concerns `"*"` **instead of** roles. Pattern 11 depends on this.
+- **`Create-Table` births a class with** `find/get: requiresAuthentication`, `create/update/delete: role:Admin` and **no `addField` key** — not deny-all.
+- **`Set-Table-Permissions` always writes `addField: {}`** (the tool accepts only the empty object); with it, unknown fields in a write are dropped silently.
+- **`protectedFields` cannot be set through MCP** — the key is dropped from the request without an error; verify any column-hiding claim by reading the row anonymously.
+- **Updates are not CAPTCHA-gated** — `update` open to `"*"` lets any id-holder overwrite a row with no bot check ([15-public-forms.md](15-public-forms.md) §2.4).
 
 ## 7. Row-level filtering — הרשאות מתקדמות (Advanced Permissions)
 

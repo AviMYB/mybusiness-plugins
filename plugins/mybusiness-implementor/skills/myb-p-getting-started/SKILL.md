@@ -30,17 +30,6 @@ Step-by-step guides with screenshots live in this skill's `references/`:
 4. `references/04-verify-and-troubleshoot.md` — prove the connection, read the failure messages.
 5. `references/05-other-ai-clients.md` — installing outside Claude Code (Agent Plugins 1.0 packaging).
 
-## Codex Desktop — choose the installed authentication variant
-
-Read [SETUP-CODEX.md](../../SETUP-CODEX.md) from THIS installed plugin before giving instructions. The shared skills are identical, while that root guide identifies the authentication variant.
-
-- **MyBusiness — OAuth / mybusiness-oauth:** MCP is bundled. Guide the user to Settings → Plugins → MCPs → MyBusiness → Authenticate, then the browser login/consent. Never ask for App ID or API token in this variant.
-- **MyBusiness — App ID וטוקן / mybusiness-implementor:** follow the root guide for personal Custom MCP settings. Codex's bundled-server credential form remains unsupported. Never claim this variant auto-configures the personal connection.
-
-Install only one variant. Never install or change local settings unless asked. If the user wants step-by-step instructions, give one step and wait. Never request credentials in chat, open a custom setup window, or install Python/Bitwarden. After authentication, open a new task and verify Usage-Guide, Get-Current-User and Get-Schema, then confirm the intended system. A tool list is not proof of authorization. Do not continue into the legacy Claude/API-key steps below when guiding Codex.
-
-Before selecting a connection method, explain [the permission comparison](../../PERMISSIONS.md): API token has full access; OAuth requires per-user MCP permissions, and advanced admin tools additionally require MyBusiness enablement plus Admin role and Edit pages and schema. Do not describe successful OAuth login as full tool access.
-
 ## Step 0 — Do you already have a MyBusiness system?
 
 - **Yes** → go to Step 1.
@@ -95,7 +84,8 @@ Short form of `references/03-connect-with-application-credentials.md`:
 
 **Not in Claude Code?** The same folder is also an [Agent Plugins 1.0](https://agent-plugins.org/specification)
 package (`plugin.json` + `mcp.json` + `skills/`), for ChatGPT/Codex, Cursor, GitHub Copilot, VS Code and Kiro.
-For Codex, use the built-in Custom MCP settings above. For another host, use its secure credential configuration; never place a real key inside the plugin package.
+There the two values are pasted into `mcp.json` itself — which means the key sits in a plain file, so read the
+security note in `references/05-other-ai-clients.md` before doing it.
 
 ## Step 3 — Prove the connection (never skip)
 
@@ -119,9 +109,9 @@ starting points and hand off to the skill that owns each:
 |---|---|
 | "Can it do X?" / a requirements review | `myb-p-kb`, then `myb-p-fit-gap` |
 | A new module or entity end-to-end | `myb-p-create-entity` |
-| A card page, a list, a dashboard, a report | `myb-p-page-builder`, `myb-p-page-tables`, `myb-p-dashboards`, `myb-p-create-update-reports` |
+| A card page, a list, a dashboard, a report | `myb-p-card-design`, `myb-p-page-tables`, `myb-p-dashboards`, `myb-p-create-update-reports` |
 | Automation, alerts, deadlines | `myb-p-trigger-setup`, `myb-p-form-rules`, `myb-p-sla-configuration` |
-| Import data, or a form on their website | `myb-p-data-import`, `myb-p-web2lead-web2table` |
+| Import data, or a form on their website | `myb-p-data-import`, `myb-p-public-forms` (website form, public form on a CRM page, CSAT) |
 | Users, roles, permissions | `myb-p-users-roles-permissions` |
 
 Do the first change on a trial or sandbox database, and show the plan before writing to a live system. Several

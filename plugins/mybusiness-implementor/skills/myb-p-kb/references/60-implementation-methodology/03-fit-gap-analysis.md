@@ -2,7 +2,7 @@
 
 > **Purpose:** How to classify every discovery requirement against MyBusiness CRM capabilities and produce a fit-gap workbook that drives scope, effort, and the technical spec.
 > **Audience:** Implementers and AI agents running phase 3 of the [implementation lifecycle](01-implementation-lifecycle.md).
-> **Last updated:** 2026-07-06 · **Status:** draft
+> **Last updated:** 2026-09-28 (solution-model stage) · **Status:** draft
 
 ---
 
@@ -26,6 +26,8 @@ Every requirement gets exactly one **solution class**. The ladder is ordered by 
 | **Gap** | Cannot be satisfied acceptably today | — | n/a — needs workaround, deferral, or product roadmap item | See [known limitations](../80-capability-matrix/02-known-limitations.md) |
 
 The class maps directly to the customer **complexity tier** (Low = nothing below Config; Medium = + mbapps HTTP functions; High = + Custom-Server; Enterprise = + External), which in turn scales the rest of the process.
+
+**Footprint within Config.** Config is one class but very different costs. Every row also carries a `Footprint`: **Vanilla** (a field, value or status on an existing entity; a renamed entity) · **New-table** (counts against the table budget and needs the five-question justification — [../20-data-model/06-native-before-new-table.md](../20-data-model/06-native-before-new-table.md)) · **Automation** (trigger, scheduled trigger, template, notification) · **Custom** (JS / server). The report sums the footprint — new tables, new fields per table, triggers — next to the class counts.
 
 ## 3. Classification procedure (per requirement)
 
@@ -54,7 +56,7 @@ Procedure notes:
 
 ## 4. Workbook columns
 
-The authoritative schema is `myb-p-fit-gap` `references/output-spec.md` §2; this doc is method background. The CSV template carries these 17 columns — keep them all, they feed later phases mechanically:
+The authoritative schema is `myb-p-fit-gap` `references/output-spec.md` §2; this doc is method background. The CSV template carries these 19 columns — keep them all, they feed later phases mechanically:
 
 | Column | Content | Consumed by |
 |---|---|---|
@@ -75,6 +77,8 @@ The authoritative schema is `myb-p-fit-gap` `references/output-spec.md` §2; thi
 | `Phase` | delivery phase for in-scope items | plan |
 | `Actual effort` | empty at authoring — filled at build completion (per-REQ rollup) | estimation calibration |
 | `Variance note` | explanation when actual effort diverges from the estimate | estimation calibration |
+| `Footprint` | Vanilla / New-table / Automation / Custom / — | table budget, solution model |
+| `Usage evidence` | for a row that keeps a legacy field or table: fill-rate · who fills · who reads, or `none` | solution model (no evidence → drop or defer) |
 
 ## 5. Worked example rows
 
@@ -92,7 +96,7 @@ The authoritative schema is `myb-p-fit-gap` `references/output-spec.md` §2; thi
 
 Plot Priority × Effort. The conversation with the customer follows three default rules:
 
-- **Must + (S/M)** → in scope, phase 1.
+- **Must + (S/M)** → in scope, phase 1 — **except automation, templates and integrations, which default to Phase 2** unless they block go-live (write the reason).
 - **Must + (L/XL)** → in scope but challenge the requirement first: can a blueprint or a leaner variant satisfy the underlying need? This is where most over-engineering is born.
 - **Should/Nice + (L/XL)** → propose Phase 2 (post-go-live), recorded in the workbook with a revisit date — not silently dropped.
 
@@ -101,6 +105,8 @@ Paid custom development (Custom-Server, External) must be approved by the custom
 ## 7. Exit criteria
 
 - Every REQ row has Class, Evidence, Solution sketch (where applicable), Effort, Owner, Decision.
+- The footprint summary (new tables vs budget, triggers) is part of the scope summary; every `New-table` row carries its justification.
+- Hand-off: the in-scope rows go to the solution model (phase 3b) — [08-solution-model.md](08-solution-model.md).
 - Gap rows have a written resolution.
 - The scope summary (counts per class + total effort + phase split) is acknowledged by the customer.
 - Custom-Server/External rows have draft tickets in the customer's ledger in your implementation tracker.

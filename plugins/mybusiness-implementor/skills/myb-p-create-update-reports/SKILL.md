@@ -88,8 +88,8 @@ Compound reports (`SubqueriesInfo`) are **not yet exposed via an MCP tool** — 
 
 1. Create the individual sub-reports normally using Create-or-Update-Report — **all must be aggregated** (IsAggr: true). Note their objectIds.
 2. Get the **PageId** and **FormName** from an existing report on the same page (use Get-Reports or Get-Data on `_DynamicQueries`).
-3. Hand the compound assembly to the **MyBusiness team** (internal ops path; credentials are fetched at runtime via `get-secret` — never stored in files or pasted). Pass them the sub-report objectIds, PageId, and FormName; the record shape is documented in [references/report-building-guide.md](references/report-building-guide.md).
-4. **Never read keys out of `.mcp.json` or paste them into commands.** If the assembly is blocked, mark the item blocked and escalate — do not go around the tool-permission layer.
+3. Hand the compound assembly to **MyBusiness support**. Pass them the sub-report objectIds, PageId, and FormName; the record shape is documented in [references/report-building-guide.md](references/report-building-guide.md).
+4. **Never read keys out of a config file or paste them into commands.** If the assembly is blocked, mark the item blocked and hand it over — do not go around the tool-permission layer.
 5. All sub-reports (baseQuery + queries) must be **aggregated only** — compound reports don't work with regular reports.
 
 ### Scheduled Report

@@ -40,7 +40,7 @@ Practical notes on the order:
 Use the [plan template](templates/implementation-plan-template.md). A plan has:
 
 1. **Work packages** — TRS items grouped by build-order step, each package with: items (TRS IDs), owner (Implementer / AI / Dev / External), prerequisite packages, effort roll-up, verification step.
-2. **Milestones** — typically: M1 environment+schema ready · M2 pages/views navigable (clickable system) · M3 automations live · M4 migration done · M5 UAT passed · M6 go-live. Date each.
+2. **Milestones** — typically: M1 environment+schema ready · M2 pages/views navigable (clickable system — the end of **Release 1**, walked with the owner before automation is built) · M3 automations live (**Release 2**) · M4 migration done · M5 UAT passed · M6 go-live. Date each.
 3. **Customer dependencies** — data files, logo/branding, WhatsApp business approval, DNS/SMTP records, approver availability — each with a due date; these are the most common slip cause.
 4. **Test plan** — the TRS acceptance criteria, grouped into QA tasks (generate the QA checklist from ACs; the team practice is to hand QA tasks as a detailed list).
 5. **Training plan** — sessions per role (reps, managers, admin), each mapped to the processes that role runs.

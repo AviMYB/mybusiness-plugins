@@ -193,6 +193,44 @@ Double-check with the customer before enabling `*`. Once public, the data is wor
 
 ---
 
+## Pattern 11 — Public create-only intake (anonymous form submissions)
+
+The table behind a native public form (`myb-p-public-forms` → `native-form/`). The visitor's browser saves with the platform's reCAPTCHA token; `"*"` on `create` lets it in. `"*"` sits **next to** the staff roles, so the staff screens keep working (Constraint 5 of `myb-p-create-entity` concerns `"*"` *instead of* roles):
+
+```json
+{
+  "create": { "role:Admin": true, "role:CRM": true, "*": true },
+  "find":   { "role:Admin": true, "role:CRM": true },
+  "get":    { "role:Admin": true, "role:CRM": true },
+  "update": { "role:Admin": true, "role:CRM": true },
+  "delete": { "role:Admin": true },
+  "addField": {}
+}
+```
+
+Only on a **dedicated intake table** — never on a business table. Never add `"*"` to `update`: updates are not CAPTCHA-gated, so anyone holding a row id could overwrite it.
+
+---
+
+## Pattern 12 — Public get-by-id (invite records)
+
+An invite table read by a gated public page (expiry, prefill). `"*"` on `get` only — without `find`, ids cannot be listed:
+
+```json
+{
+  "get":    { "role:Admin": true, "role:CRM": true, "*": true },
+  "find":   { "role:Admin": true, "role:CRM": true },
+  "create": { "role:Admin": true, "role:CRM": true },
+  "update": { "role:Admin": true, "role:CRM": true },
+  "delete": { "role:Admin": true },
+  "addField": {}
+}
+```
+
+A public `get` returns **every column**, and `protectedFields` cannot be set through MCP — keep only what the page may show in this table.
+
+---
+
 ## Role-name conventions
 
 Keys use the exact role name as returned by `Get-Roles`:

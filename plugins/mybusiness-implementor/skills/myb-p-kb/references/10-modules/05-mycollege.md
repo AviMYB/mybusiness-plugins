@@ -7,7 +7,7 @@
 
 The audited legacy module reused core tables for everything and shipped **zero** module automations. The 2026-06 round of improvements changed the foundations. Verified live:
 
-- **Lessons are now a dedicated table.** `Lessons` (+ `LessonTypes`, `LessonStatuses`) replaces the old "a lesson is an `Activities` row" reuse. `Activities` on the reworked install carries **no** college fields anymore. The dedicated `Lessons.Summary` field fixes the long-standing "lesson summary lost on save" bug.
+- **Lessons are now a dedicated table.** `Lessons` (+ `LessonTypes`, `LessonStatuses`) replaces the old "a lesson is an `Activities` row" reuse. `Activities` on the reworked install carries **no** college fields anymore. The dedicated `Lessons.Summary` field resolves the long-standing "lesson summary lost on save" behaviour of the old reuse.
 - **Attendance is now a dedicated table.** `LessonAttendance` (→`Lessons`, →`Accounts`) replaces `ActivityAdditionalAccounts`. `Presence` is still **Boolean only** — multi-state attendance was *not* built (see §8 open items).
 - **A real module trigger ships:** `CourseEnrollment` → "sum registered" (HTTP to the GCP `update_sum_count_obj` rollup helper) maintains the `Courses.RegisteredStudents` counter on enrollment create/update.
 - **Capacity + duplicate-enrollment are enforced** (client-side in the שיבוץ/enrollment page JS), and **server-side scheduling-conflict** checks (same lecturer/class overlap) run in a cloud function for single-lesson create/change.
@@ -20,7 +20,7 @@ The audited legacy module reused core tables for everything and shipped **zero**
 
 MyCollege manages **instructor-led training**: courses (קורסים) with scheduled lessons, classrooms (כיתות) and facilities (מתקנים), lecturers (מרצים), student enrollment (שיבוץ לקורסים), per-lesson attendance (נוכחות), exams (בחינות) with grades, holiday/vacation handling, and a **student portal**. It is a market app installed under `apps/mycollege/`.
 
-Design keystone: **students are still core `Accounts`** (the page filters by a hidden `IsAccount` flag), so CRM data — sales, communication, campaigns — is immediately available for students. **Lessons and attendance, however, now live in dedicated tables** (the rework's main structural change), removing the denormalization bugs that the Activities/`ActivityAdditionalAccounts` reuse caused. It remains a scheduling-centric classroom-training product, **not** an e-learning LMS (no video lessons, online quizzes, or per-lesson time tracking — see §9).
+Design keystone: **students are still core `Accounts`** (the page filters by a hidden `IsAccount` flag), so CRM data — sales, communication, campaigns — is immediately available for students. **Lessons and attendance, however, now live in dedicated tables** (the rework's main structural change), removing the denormalization problems that the Activities/`ActivityAdditionalAccounts` reuse caused. It remains a scheduling-centric classroom-training product, **not** an e-learning LMS (no video lessons, online quizzes, or per-lesson time tracking — see §9).
 
 ## 2. Entity table (live, reworked install)
 
@@ -31,7 +31,7 @@ Design keystone: **students are still core `Accounts`** (the page filters by a h
 | Enrollment | שיבוץ לקורס | `CourseEnrollment` | `CourseId`, `AccountId` (the student), `SaleId`→Sales (payment linkage, **now filtered to the student's own Sales**), `CourseEnrollmentStatusId`→CourseEnrollmentStatus, `Date`, `OwnerId` |
 | Enrollment status | סטטוס שיבוץ | `CourseEnrollmentStatus` | `Name`, `IsRegistered` (Boolean). Live seeds: `רשום`, `סיום קורס`, `ביטל`, `רשימת המתנה` |
 | Student | סטודנט | **`Accounts` (reused)** | Marked by hidden `IsAccount`; portal link `StudentPortal`→`_User`. (No dedicated Student table — see §8.) |
-| **Lesson** | שיעור | **`Lessons` (dedicated — new)** | `Name`, `CourseId`→Courses, `ClassId`→Classes, `LecturerId`→Lecturers, `FacilityId`→Facilities, `StartTime`/`EndTime` (Date), `LessonCount` (Number), `DayOfWeek` (String), `Summary` (String — fixes the summary-loss bug), `TypeId`→LessonTypes, `StatusId`→LessonStatuses, `OwnerId`→_User |
+| **Lesson** | שיעור | **`Lessons` (dedicated — new)** | `Name`, `CourseId`→Courses, `ClassId`→Classes, `LecturerId`→Lecturers, `FacilityId`→Facilities, `StartTime`/`EndTime` (Date), `LessonCount` (Number), `DayOfWeek` (String), `Summary` (String — resolves the old summary-loss behaviour), `TypeId`→LessonTypes, `StatusId`→LessonStatuses, `OwnerId`→_User |
 | Lesson type / status | סוג / סטטוס שיעור | `LessonTypes`, `LessonStatuses` | `Name` lookups. `LessonTypes` seed: `שיעור`. `LessonStatuses` ships **unseeded** — seed a lifecycle (נקבעה/בוצעה/בוטלה/נדחתה) per install if status logic is needed (§8). |
 | **Attendance** | נוכחות | **`LessonAttendance` (dedicated — new)** | `LessonId`→Lessons, `AccountId`→Accounts, `Presence` (**Boolean only**), `Grade` (Number), `Remark` |
 | Class(room) | כיתה | `Classes` | `Name`, `FacilityId`→Facilities, `Location`, `MaxCapacity` (Number, informational), `Comments` |
@@ -68,9 +68,9 @@ Design keystone: **students are still core `Accounts`** (the page filters by a h
 
 ### 3.2 Student portal pages (master: `MasterPortal`) — **out of scope of the 2026-06 rework**
 
-The portal was excluded from the rework, so audit defects below **still stand**. Roles now exist (`Student Portal`), but page gating is still weak.
+The portal was excluded from the rework, so the limitations below **still stand**. Roles now exist (`Student Portal`), but page gating is still weak.
 
-| Page | PortalMenu label | Standing defect |
+| Page | PortalMenu label | Standing limitation |
 |---|---|---|
 | `Portal-MyCourses` | הקורסים שלי | `loginOnly:true` but `allowedRoles:'any'` |
 | `Portal-Course` | (course detail) | Debug leftovers `{{{objectid}}}` |
@@ -209,6 +209,6 @@ Older draft guides described a `Lessons` table and an e-learning LMS (video less
 5. **The enrollment counter trusts a GCP rollup** that can fail silently — capacity logic should recompute live, not read the stored `RegisteredStudents`.
 6. **Capacity/duplicate guards are client-side** — API/import/web2* paths bypass them; add a server-side `beforeSave` if those paths are in use.
 7. **Lecturer login is half-wired** — role + login page + redirect fix exist, but provisioning a lecturer `_User` from the page does not.
-8. **Portal still carries audit defects** (debug `{{{objectid}}}` leftovers, `allowedRoles:'any'`, Portal-Contact fake data writing Cases, shared-Account edit leaks) — the rework excluded the portal.
+8. **Portal still carries the limitations listed in §3.2** (debug `{{{objectid}}}` leftovers, `allowedRoles:'any'`, Portal-Contact sample data writing Cases, shared-Account edit exposure) — the rework excluded the portal. Harden these per install.
 9. **Per-install hygiene** — duplicate `holidays`/`Holidaysandvacations` pages, `ComingSoon` placeholder, no MyCollege `MasterTicket` (card chrome is CSS-approximated).
 10. Module menus use MongoDB-format `_id`s — menu edits must respect the "menu items use MongoDB-format IDs" rule.

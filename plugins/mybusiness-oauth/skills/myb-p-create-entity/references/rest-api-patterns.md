@@ -4,9 +4,9 @@
 
 From a working session, the `mcp__MyBusiness__*` tools are the **only** sanctioned way to touch a tenant. Never handle tenant credentials in any form: no credential files, no raw Parse REST calls, no key-bearing headers, no proxy internals. The tool-permission layer is a security boundary — do not go around it.
 
-**On failure:** if a required MCP tool fails with its documented error signature (e.g., `Create-Table` → `"missing user"`), retry once to rule out a transient error, then **mark the step blocked and escalate to the MyBusiness team** (internal ops runbook). Do not improvise a credentialed workaround.
+**On failure:** if a required MCP tool fails with its documented error signature (e.g., `Create-Table` → `"missing user"`), retry once to rule out a transient error, then **mark the step blocked and ask MyBusiness support**. Do not improvise a credentialed workaround.
 
-**Internal team only:** where a credentialed path is legitimately required, that procedure lives in the internal tier. Credentials there are fetched at runtime via the `get-secret` CLI (secrets-manager skill) — never stored in files, never pasted.
+Where a credentialed path is legitimately required, it is handled by MyBusiness support, not from a session. Never store, paste or read a key to work around a blocked tool.
 
 ## Background: what the raw REST layer historically covered
 
@@ -14,9 +14,9 @@ Kept as context so you can recognize when a blocked step is one of these known c
 
 | Operation | Why REST was once used | Sanctioned path today |
 |---|---|---|
-| Create a table (schema), incl. Pointer fields | `Create-Table` MCP reportedly returned `"missing user"` (unverified as of 2026-07 — re-test before relying) | `Create-Table` MCP; on the exact documented error → blocked + escalate |
-| Create records with Pointer / Date values | `Create-Data` MCP reportedly failed on nested objects (unverified as of 2026-07 — re-test before relying) | `Create-Many` MCP with `__type: "Pointer"` / `__type: "Date"`; on error → blocked + escalate |
-| Bulk ACL update on records created outside MCP | REST-created records carried no ACL, making them invisible to logged-in users | Not applicable to MCP-created records; if records are inaccessible, escalate |
+| Create a table (schema), incl. Pointer fields | a `"missing user"` error means the session account lacks the rights the tool needs | `Create-Table` MCP; on that error → blocked + ask support |
+| Create records with Pointer / Date values | nested values must use the explicit `__type` form | `Create-Many` MCP with `__type: "Pointer"` / `__type: "Date"`; on error → blocked + ask support |
+| Bulk ACL update on records created outside MCP | REST-created records carried no ACL, making them invisible to logged-in users | Not applicable to MCP-created records; if records are inaccessible, ask support |
 
 ## Setting CLP — USE ROLES, NOT `*`
 
@@ -58,11 +58,11 @@ Create-Many(table: "Suppliers", data: [
 ])
 ```
 
-If `Create-Many` errors on a record shape it should support, capture the exact error, mark the step blocked, and escalate to the MyBusiness team — do not fall back to raw API calls.
+If `Create-Many` errors on a record shape it should support, capture the exact error, mark the step blocked, and ask MyBusiness support — do not fall back to raw API calls.
 
 ## Record ACLs
 
-Records created via the sanctioned MCP tools are expected to be accessible to logged-in users. If records turn out inaccessible even though the table CLP is role-based (see above), that is an escalation case — the bulk-ACL repair is an internal ops procedure, not something to run from a session.
+Records created via the sanctioned MCP tools are expected to be accessible to logged-in users. If records turn out inaccessible even though the table CLP is role-based (see above), that is a support case — the bulk-ACL repair is handled by MyBusiness support, not from a session.
 
 ## Uploading a Public File
 

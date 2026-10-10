@@ -29,7 +29,7 @@ Critical issues encountered during real data import operations and how to avoid 
 - For objectIds: Safe to use `$in` since each objectId returns exactly 1 result
 - For phones with `$or` + regex: Keep batch size to 15 to reduce risk
 
-**Real example:** Searching for 20 emails including `info@primeinv.co.il` (which had 100+ matching accounts) returned 0 results for emails like `olga@yuvalim.biz` that definitely existed.
+**Real example:** Searching for 20 emails including `info@example-holdings.co.il` (which had 100+ matching accounts) returned 0 results for emails like `orders@example-supply.biz` that definitely existed.
 
 ---
 
@@ -77,7 +77,7 @@ Critical issues encountered during real data import operations and how to avoid 
 
 **How it manifests:** A user like "יועד סלמן" exists in the CRM but doesn't appear in `Get-all-Users` results.
 
-**How to fix:** There is no sanctioned way to search beyond the first 100 users from here. When a user isn't found in `Get-all-Users` results, mark the affected rows as blocked and escalate to the MyBusiness team to resolve the user's objectId (internal ops path; credentials only via get-secret at runtime). Never work around the tool-permission layer.
+**How to fix:** There is no sanctioned way to search beyond the first 100 users from here. When a user isn't found in `Get-all-Users` results, mark the affected rows as blocked and ask MyBusiness support to resolve the user's objectId. Never work around the tool-permission layer.
 
 ---
 
@@ -86,8 +86,8 @@ Critical issues encountered during real data import operations and how to avoid 
 **The problem:** Emails in source files sometimes have data quality issues that prevent matching.
 
 **Examples seen in practice:**
-- `'yonathan.david1@gmail.com'` — wrapped in single quotes
-- `edri.lea@il/zim.com` — slash in domain (invalid email)
+- `'yaron.levi1@example.com'` — wrapped in single quotes
+- `lea.a@il/example.com` — slash in domain (invalid email)
 - `email@domain.com ` — trailing whitespace
 - `Email@Domain.Com` — unusual capitalization (Parse may be case-sensitive)
 
@@ -134,7 +134,7 @@ for (const row of rows) {
 1. Split into batches of 46-50
 2. Process batches sequentially with small delays between them
 3. Track progress and report after each batch
-4. If the volume makes sequential MCP batching impractical, escalate to the MyBusiness team for a server-side bulk load (internal ops path; credentials only via get-secret at runtime)
+4. If the volume makes sequential MCP batching impractical, ask MyBusiness support for a server-side bulk load
 
 ---
 
@@ -142,7 +142,7 @@ for (const row of rows) {
 
 **The problem:** Creating a record with an email in the objectId field instead of a real objectId, or creating a record linked to the wrong account.
 
-**Real example:** Once created a Sale with `"objectId": "nissim@medicom.co.il"` as AccountId — an email instead of an objectId. Record deletion isn't available through the MCP tools, so it took an immediate escalation to the MyBusiness team to remove it (internal ops path).
+**Real example:** Once created a Sale with `"objectId": "contact@example.co.il"` as AccountId — an email instead of an objectId. Record deletion isn't available through the MCP tools, so it took a support request to MyBusiness to remove it.
 
 **How to prevent:**
 - Validate objectIds are exactly 10 characters alphanumeric before using them

@@ -11,13 +11,13 @@ in `app.css`. Use the scaffolder so relative links and original references are c
 | `records` | Lists, queues, record cards | Search, status filter, sorting, pagination, create/edit side sheet, required/email/number validation, save/cancel, error/retry |
 | `dashboard` | Management overview | Team filter, calculated KPIs and bar chart, shared record state |
 | `settings` | Tile landing and preferences | Team default, notification toggle, initial-dashboard preference, save/cancel |
-| `kanban` | Pipeline with sample stages | Move cards by drag/drop or accessible select; shared status and counters |
+| `kanban` | Pipeline with sample stages | Move cards by drag/drop or accessible select; shared status and counters. Native only for the Sales pipeline — off by default in customer solution mockups on other entities |
 | `calendar` | Weekly hourly grid | Week navigation, event create/edit, required date/time fields |
-| `wizard` | Proposed guided setup/intake | Three steps, retained draft on back, validation, review, local completion |
-| `document` | Proposed line-item editor | Add/remove rows, quantities/prices, discount and calculated total, draft save/cancel |
+| `wizard` | Proposed guided setup/intake | Three steps, retained draft on back, validation, review, local completion. **Not native** — off by default in customer solution mockups |
+| `document` | Proposed line-item editor | Add/remove rows, quantities/prices, discount and calculated total, draft save/cancel. **Not native outside price quotes** — off by default in customer solution mockups |
 | `inbox` | Conversation concepts | Search, select thread, separate drafts, local message append, no sending |
 | `reports` | Native report chooser and tabbed editor | Synthetic personal/shared reports, two sources, field transfer, labels, filters, sorting, save/cancel, default report, paging and local CSV export |
-| `import` | Proposed import review | Bundled synthetic fixture, valid/invalid rows, cancel/commit, duplicate-commit guard |
+| `import` | Proposed import review | Bundled synthetic fixture, valid/invalid rows, cancel/commit, duplicate-commit guard. **Not native** as an end-user screen — off by default in customer solution mockups |
 | `activity` | Native business-activity list and sheet | Seven filters, paging, create/edit/duplicate/delete, date/required validation, customer/contact dependency and local persistence |
 | `knowledge` | Help/training center | Search, category filter, article dialog, no-results state |
 

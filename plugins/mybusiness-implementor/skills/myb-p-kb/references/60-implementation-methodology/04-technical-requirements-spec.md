@@ -22,7 +22,7 @@ The TRS has eleven sections, ordered like the canonical build order so the plan 
 Table: CRM term (HE) → customer term (HE) → scope (entity name, menus, page labels). Mechanism: `Replace-Terms` / terminology dictionary — see [../30-customization/09-terminology-localization.md](../30-customization/09-terminology-localization.md). Apply **early**: later artifacts (pages, reports, messages) should already speak the customer's language.
 
 ### §2 Data model (TBL-xx / FLD-xx) — מבנה נתונים
-Per table: name (English, PascalCase), Hebrew label, standard-renamed vs custom, purpose.
+**Copied from the approved solution model** ([08-solution-model.md](08-solution-model.md)) — the spec does not re-decide entities; a table or field not in `native-map.csv` fails the review gate. Per table: name (English, PascalCase), Hebrew label, standard-renamed vs custom, purpose.
 Per field — one row each:
 
 | Column | Notes |

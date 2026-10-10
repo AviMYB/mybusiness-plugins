@@ -1,7 +1,7 @@
 # Solution Blueprints — Proven End-to-End Patterns
 
 > **Purpose:** Catalog of field-proven, end-to-end solution patterns for fit-gap analysis and implementation planning. Each blueprint: problem → solution shape → components touched → effort class (S = hours, M = ~1 day, L = multi-day/dev involvement) → source skill. Detail lives in the linked skills and sibling docs; this file is the index an implementer scopes from.
-> **Last updated:** 2026-06-10 · **Status:** draft
+> **Last updated:** 2026-10-09 (blueprint 13 public form; CSAT native variant; blueprint 3 prerequisite corrected) · previously 2026-09-27 (`Config` reachable from MCP) · previously 2026-06-10 · **Status:** draft
 
 ## Index
 
@@ -9,7 +9,7 @@
 |---|---|---|---|
 | 1 | SLA mechanism for Cases | **L** | `myb-p-sla-configuration` |
 | 2 | Bulk data import from Excel/CSV | M | `myb-p-data-import` |
-| 3 | Web2Lead / Web2Table external form intake | S–M | `myb-p-web2lead-web2table` |
+| 3 | Web2Lead / Web2Table external form intake | S–M | `myb-p-public-forms` → `web2/` |
 | 4 | Timestamp audit fields | S | `myb-p-timestamp-field` |
 | 5 | Cascading dropdowns (parent-child) | S | `myb-p-parent-child-fields` |
 | 6 | Multi-select fields | S | `myb-p-multi-select-field` |
@@ -18,7 +18,8 @@
 | 9 | Vertical terminology adaptation | S–M | `myb-p-rename-terms` |
 | 10 | Status-change automation pack | S | `myb-p-trigger-setup` |
 | 11 | Customer-facing portal | **L–XL** | no skill yet — [13-customer-portals.md](13-customer-portals.md) is the source (proven across multiple production portal builds) |
-| 12 | Post-case satisfaction survey (CSAT) | M | `myb-p-csat-survey` (2026-08-10) |
+| 12 | Post-case satisfaction survey (CSAT) | M | `myb-p-public-forms` → `csat/` (2026-08-10; native variant 2026-10-09) |
+| 13 | Public multi-question form on a CRM page (survey / feedback / request / registration) | S–M | `myb-p-public-forms` → `native-form/`, `capture-data/` (2026-10-09) — fact source [15-public-forms.md](15-public-forms.md) |
 
 ---
 
@@ -82,9 +83,11 @@ Cross-refs: triggers `06-…`; reports `05-…` (sibling).
 
 **Problem.** Landing-page / website forms must create CRM records (lead, sale, case, enrollment) — "קליטת לידים מטופס".
 
-**Solution shape (summary — full spec in `../40-integrations-api/03-web2lead-web2table.md`):** POST JSON to `https://api.mbapps.co.il/functions/{appId}/web2lead` (Accounts-only lead, `IsAccount:false`) or `…/web2table` (any target table + auto-account linking). Header `X-Parse-Application-Id` only — the appId is intentionally browser-safe (not the master key). Server-side duplicate detection by phone (multi-format) and email. `web2sale`/`web2case` are **not separate endpoints** — they are `web2table` with `table: "Sales"`/`"Cases"`.
+**Solution shape (summary — full spec in `../40-integrations-api/03-web2lead-web2table.md`):** POST JSON to `https://api.mbapps.co.il/functions/{appId}/getlead` (Accounts-only lead, `IsAccount:false`) or `…/web2table` (any target table + auto-account linking). **The lead endpoint is `getlead`, not `web2lead`** — "web2lead" names the pattern; no function by that name exists. Header `X-Parse-Application-Id` only — the appId is intentionally browser-safe (not the master key). Server-side duplicate detection by phone (multi-format) and email. `web2sale`/`web2case` are **not separate endpoints** — they are `web2table` with `table: "Sales"`/`"Cases"`.
 
-**One-time prerequisite:** the `Config` table row `AcceptWebLeads` = `{ "AcceptWebLeads": true }` — otherwise both endpoints return **403**. `Config` is MCP-restricted; toggle via CRM settings UI or Parse REST with Master Key.
+**One-time prerequisite:** the `Config` rows `AcceptWebLeads` = `{ "AcceptWebLeads": true }` (gates `getlead`) and `AcceptWebToTable` = `{ "AcceptWebToTable": true }` (gates `web2table`) — a missing or `false` row makes that endpoint refuse with HTTP 400 `"… is Disabled"`. Toggle via MCP `Create-Data`/`Update-Data` on `Config`, the CRM settings UI, or Parse REST with Master Key.
+
+**Scope:** this blueprint is for forms hosted **outside** the CRM. A form we host on the tenant's own CRM site is blueprint 13 (no phone, platform reCAPTCHA, no schema side effects).
 
 **Mandatory pre-code workflow:** `Get-Schema` on Accounts + target table, `Get-Data` on every Pointer's target for the value→objectId map — field names are per-customer; guessing produces 200-OK-wrong-data.
 
@@ -126,7 +129,7 @@ Cross-refs: triggers `06-…`; reports `05-…` (sibling).
 
 **Problem.** A business concept the CRM doesn't ship (Suppliers, Affiliates, Vehicles, Projects…) needs tables, card page, list page, menu, permissions, sample data.
 
-**Solution shape (phases):** Plan (names, fields, statuses+colors, relations, icon) → Tables via **Parse REST** (`Create-Table` MCP has a known `"missing user"` bug) + role-based CLP on every new table → sample data (`Create-Many`; REST for complex pointers) + record ACLs → form (card) page (`Create-Form-Page` → NewMaster-based; works in iframe sidebar, **not** via direct URL) + `Edit-Page` field rows → list page (`Create-Table-View-Page` copying the Cases template) → clean inherited Cases artifacts (JS file, `data-simbla-class`, modal labels, hidden add-button) via custom JS uploaded with `Upload-Public-File` + `Set-Page-Settings(jsFile, title)` → `Edit-Table-View` (columns with `type:"String"` + 3-segment `aggrField` for pointer displays; `editView: {openFrom:"modal-left", useIframe:true, page:<card>}`) → menu item.
+**Solution shape (phases):** Plan (names, fields, statuses+colors, relations, icon) → Tables via the `Create-Table` MCP tool + role-based CLP on every new table → sample data (`Create-Many`; REST for complex pointers) + record ACLs → form (card) page (`Create-Form-Page` → NewMaster-based; works in iframe sidebar, **not** via direct URL) + `Edit-Page` field rows → list page (`Create-Table-View-Page` copying the Cases template) → clean inherited Cases artifacts (JS file, `data-simbla-class`, modal labels, hidden add-button) via custom JS uploaded with `Upload-Public-File` + `Set-Page-Settings(jsFile, title)` → `Edit-Table-View` (columns with `type:"String"` + 3-segment `aggrField` for pointer displays; `editView: {openFrom:"modal-left", useIframe:true, page:<card>}`) → menu item.
 
 **Key constraints baked into the blueprint:** CLP `{"*":true}` fails at the CRM UI layer — always role-based (`08-…` §6); pointer-display columns must be `type:"String"` (else rows don't render); relative links on list pages must not re-prefix `apps/mybusiness/`; page-version recovery via `Get-Page-Versions`/`Set-Page-Version` if table HTML is clobbered.
 
@@ -166,15 +169,29 @@ Cross-refs: triggers `06-…`; reports `05-…` (sibling).
 
 **Problem.** "When we close a case, ask the customer how it went" — CSAT / smiley rating / NPS-style feedback, measured per agent and per period.
 
-**The constraint that shapes everything (verified 2026-08-09, [../40-integrations-api/03-web2lead-web2table.md](../40-integrations-api/03-web2lead-web2table.md) §11):** the responder is anonymous, and anonymous callers cannot write to the business object. Direct Parse REST is CAPTCHA-gated regardless of CLP, and `web2table` — the one approved anonymous path — creates but never updates. So the rating cannot land on the case directly.
+**The constraint that shapes everything:** the responder is anonymous, and an anonymous visitor never writes to the business object — the business table stays closed. The rating therefore lands in a dedicated **intake** table and a trigger projects it onto the case. Two ways to write the intake row anonymously, both verified: a **native** Database form with the platform's invisible reCAPTCHA, auto-submitted by the page, into an intake whose `create` includes `"*"` (2026-10-09, [15-public-forms.md](15-public-forms.md) §3.10 — no personal data in the link), or **`web2table`** ([../40-integrations-api/03-web2lead-web2table.md](../40-integrations-api/03-web2lead-web2table.md) §11, 2026-08-09 — the link must carry the phone). Both create but never update, so a comment is a second intake row.
 
-**Solution shape (4 layers):** closing email carries **one link per rating value**, each pre-loaded with the case id, the phone (`web2table` hard-requires it) and the rating → a **public page** calls `web2table` on first load and records the answer without any further click → a **projection trigger** on the intake table writes the rating/comment/date onto the case via `update-object` + `connection:"source.CaseId"` → a **response trigger** turns a negative rating into a task or notification for the process owner. The intake table (`SatisfactionSurveys` is the product's documented shape — [../20-data-model/03-module-tables.md](../20-data-model/03-module-tables.md)) stays CLP-closed throughout.
+**Solution shape (4 layers):** closing email carries **one link per rating value**, each pre-loaded with the case id and the rating (plus the phone in the `web2table` variant) → a **public page** records the answer on first load without any further click (native: an auto-submitted Database form; `web2table`: a POST) → a **projection trigger** on the intake table writes the rating/comment/date onto the case via `update-object` + `connection:"source.CaseId"` → a **response trigger** turns a negative rating into a task or notification for the process owner. The intake table (`SatisfactionSurveys` is the product's documented shape — [../20-data-model/03-module-tables.md](../20-data-model/03-module-tables.md)) is opened for anonymous `create` only (native) or stays closed (`web2table`).
 
 **The design rule:** the rating must be captured by the **click in the email itself**. Any design where the recipient must land on a form and press Submit collapses the response rate — this is the difference between a live metric and a dead one.
 
 **Components:** `Create-Table` + `Add-Field-to-Table` (intake table, rating as **Number** so reports can average it), `Create-Table-View-Page` + `Edit-Page-CSS-JS` (public page), EmailTemplate edit (UI/`Update-Data`), 3× `Set-Trigger`/`Set-Trigger-Action`, `Create-or-Update-Report`. Budget M. The two organizational halves — a negative rating creating actual work, and the metric entering a report the manager already reads — are what decide whether the survey survives; they cost minutes and are skipped constantly.
 
-**The manager's reporting layer** (six specs in the skill's `references/reports.md`): detail · average per agent · trend by month × agent · rating distribution · negative-rating work queue · **response rate**. Two scoping notes: always ship the response *count* beside the average (an average over two responses is noise, and acting on it in a feedback conversation burns the mechanism), and response rate needs a `CsatSentAt` stamp written by a second action on the send trigger — **it cannot be backfilled**, so it is a build-time decision, not a month-two one. A tool-side *scheduled* report additionally needs a report-generator UI save to activate ([05-dashboards-and-reports.md](05-dashboards-and-reports.md)).
+**The manager's reporting layer** (six specs in the skill's `csat/reports.md`): detail · average per agent · trend by month × agent · rating distribution · negative-rating work queue · **response rate**. Two scoping notes: always ship the response *count* beside the average (an average over two responses is noise, and acting on it in a feedback conversation burns the mechanism), and response rate needs a `CsatSentAt` stamp written by a second action on the send trigger — **it cannot be backfilled**, so it is a build-time decision, not a month-two one. A tool-side *scheduled* report additionally needs a report-generator UI save to activate ([05-dashboards-and-reports.md](05-dashboards-and-reports.md)).
+
+---
+
+## 13. Public multi-question form on a CRM page — טופס ציבורי (effort: S–M)
+
+**Problem.** "Send people a link to a short form" — feedback after a visit or an exam, a registration, a service request, an application, a questionnaire — answered by someone with no login, sometimes linked to a record we already have (the case, the sale, the registration).
+
+**Solution shape (verified end to end 2026-10-09, fact source [15-public-forms.md](15-public-forms.md)):** a **root-level public page** (clone of a master-less public page, `loginOnly:false`) carrying a native **Database form** with the platform's **reCAPTCHA**, writing into a dedicated **intake table** whose CLP opens `create` to `"*"` alongside the staff roles and nothing else. Field markup comes from `Edit-Page add-new-field`; prefill and conditional logic from form rules (`value-from-url`, `hidden`, conditional `required`); a link to an existing record from one `simbla-object-before-save` line (`createWithoutData`, the business table stays closed); an expiring link from an **invite** table opened for `get` only. Follow-up is server-side: a projection trigger onto the business record and/or a task on a bad answer.
+
+**Variant — table must stay closed / server-side dedup:** the same form with `data-use-caputure-data="true"` saves through `simbla-capture-data` with the master key, governed by a `Config` row `CaptureData<Table>` (required fields, duplicate flag + pointer, defaults); invisible reCAPTCHA only.
+
+**Components:** `Create-Table` + `Add-Field-to-Table`, `Set-Table-Permissions` (+ read-back), `Create-Table-View-Page(copyFromPageId)`, `Edit-Page` (`set-html-content`, `add-row`, `add-new-field`), `Set-Page-Settings`, `Set-Form-Rules`, optionally `Edit-Page-CSS-JS` (gate / one-click) and `Set-Trigger` + `Set-Trigger-Action`. Budget S for an anonymous form, M with an invite gate, a record link and follow-up triggers.
+
+**Scoping notes:** no file uploads for anonymous visitors (known-limitation 114) — collect documents through a portal or `web2table`; every dropdown makes its lookup table public; a form hosted outside the CRM is blueprint 3, a visitor who must return to their own data is blueprint 11.
 
 ---
 

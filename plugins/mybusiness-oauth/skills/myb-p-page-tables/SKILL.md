@@ -66,7 +66,7 @@ Each call replaces the entire array/object. Anything you don't include is remove
 - Modal HTML inside the page (`#SideModal` "פנייה חדשה" header etc.) — use `Edit-Page`
 - The page's SEO title — use `Set-Page-Settings`
 
-When something looks broken, that split is the first thing to check: is the issue on the table element (Edit-Table-View) or on the surrounding page (Edit-Page / Edit-Page-CSS-JS / Set-Page-Settings)?
+When something does not behave as expected, that split is the first thing to check: is the issue on the table element (Edit-Table-View) or on the surrounding page (Edit-Page / Edit-Page-CSS-JS / Set-Page-Settings)?
 
 ## Workflows
 
@@ -80,7 +80,7 @@ When something looks broken, that split is the first thing to check: is the issu
 5. Set-Page-Settings(pageId, title, jsFile, ...)        → fix SEO title; attach external JS if you uploaded one
 ```
 
-Step 4 is non-optional. The new page is a deep copy of Cases, so it inherits Cases-specific `optional-fields` (including CaseTypeId, PriorityId, etc.), Cases-specific `editView` settings, and a Cases-shaped `class-pointers` map. Without an explicit Edit-Table-View call, the customer sees the wrong "add column" picker and broken sort.
+Step 4 is non-optional. The new page is a deep copy of Cases, so it inherits Cases-specific `optional-fields` (including CaseTypeId, PriorityId, etc.), Cases-specific `editView` settings, and a Cases-shaped `class-pointers` map. Without an explicit Edit-Table-View call, the customer sees the wrong "add column" picker and sorting that does not work.
 
 What Edit-Table-View can't fix on the new page (handle separately):
 
@@ -110,9 +110,11 @@ The child class must have a Pointer field whose `targetClass` is the card's clas
 5. Edit-Table-View(pageId, tableId=<new id>, columns=[...], classPointers, ...) → finalize sort, conditional formatting, edit mode, etc.
 ```
 
+Two runtime behaviors bite right after a correct insert: on an **unsaved** record the widget queries unfiltered (KI-12), and on load it does not query at all until something refreshes it (KI-13). Handle both in the card's page JS at the same time you place the widget.
+
 Pass `aggrField` on every column in step 3. The schema accepts it (despite some older docs saying otherwise). Without it, columns render `data-aggr-field="undefined"` and sort/aggregate breaks. The recipe in `references/operators-and-recipes.md` shows the full pattern.
 
-Avoid `"` in the `showSummary` argument in step 3 — there's a quote-escaping bug. Pass a quote-free placeholder (`"Total"`, `"סהכ"`) and set the real label in step 5 via `Edit-Table-View(summaryOptions: {showSum: true, sumTitle: "סה\"כ"})` (which escapes correctly).
+Avoid `"` in the `showSummary` argument in step 3 — the quote is not escaped on that path. Pass a quote-free placeholder (`"Total"`, `"סהכ"`) and set the real label in step 5 via `Edit-Table-View(summaryOptions: {showSum: true, sumTitle: "סה\"כ"})` (which escapes correctly).
 
 #### Picking a safe `insertAfterRow`
 
@@ -136,7 +138,7 @@ When a table behaves wrong, classify the symptom first — it determines where t
 |---|---|
 | Embedded widget shows 0 records (and you know children exist for the open parent) | Widget placement (KI-9). Walk up the widget's ancestors via `Get-Page-Content`; reject if any is `simbla-nav` or `simbla-table`. |
 | Embedded widget shows ALL records instead of just the parent's children | Same — placement issue. The auto-filter only fires when the widget is a true form-level sibling. |
-| Sort/filter broken on a specific pointer column | `classPointers` likely missing that pointer. Re-call `Edit-Table-View` with the full map including `createdBy`/`updatedBy` plus all your own. |
+| Sort/filter not working on a specific pointer column | `classPointers` likely missing that pointer. Re-call `Edit-Table-View` with the full map including `createdBy`/`updatedBy` plus all your own. |
 | Sort works on the surface but returns wrong-order rows | `aggrField` on the column doesn't match the schema's class name (e.g., `aggrField: "AccountId.Name"` should be `"AccountId.Accounts.Name"`). Copy the correct value from `Get-Optional-Fields`. |
 | Wrong fields appear in the column-picker | Inherited `optionalFields` from `Create-Table-View-Page` source. Override via `Edit-Table-View(optionalFields: [...])`. |
 | Search form shows the wrong placeholder fields / saved queries from another class | `data-simbla-class` on the form is still the source class. Fix via `Edit-Page` (the form is HTML, not a table-view attribute). |
@@ -165,14 +167,14 @@ Pages from `Create-Table-View-Page` always carry the table id `P113` (inherited 
 
 Don't build `aggrField` from intuition — copy the exact value from `Get-Optional-Fields(className)`. The class name in the middle has to match what the schema actually uses (e.g., `_User` for users, exact lookup-table name for status/type pointers).
 
-## Known issues — what to expect and work around
+## Known behaviours — what to expect and how to handle it
 
-These are platform behaviors, not Claude bugs. The first time each one bites is always a surprise; after that they're predictable.
+These are platform behaviours to design around. The first time each one bites is always a surprise; after that they are predictable.
 
 | # | Issue | Workaround |
 |---|---|---|
 | KI-1 | If you forget to pass `aggrField` per column, `Add-Table-View-to-Form-Page` renders `data-aggr-field="undefined"` and sort/aggregate breaks | The schema DOES accept `aggrField` — pass it on every column. Copy the value from `Get-Optional-Fields(className)` |
-| KI-2 | `Add-Table-View-to-Form-Page` mangles `showSummary` containing `"` (e.g., `סה"כ` becomes a broken attribute) | Pass a quote-free placeholder; set the real `sumTitle` afterwards via `Edit-Table-View(summaryOptions: {...})` |
+| KI-2 | `Add-Table-View-to-Form-Page` does not escape a `"` inside `showSummary` (e.g., `סה"כ` truncates the attribute) | Pass a quote-free placeholder; set the real `sumTitle` afterwards via `Edit-Table-View(summaryOptions: {...})` |
 | KI-3 | `Add-Table-View-to-Form-Page` targets the FIRST row matching `insertAfterRow`. Row IDs aren't unique across tabs | Verify with `Get-Page-Content` first to make sure the first match is the one you want |
 | KI-4 | `Create-Table-View-Page` carries over the source class's `optionalFields` (e.g., a Suppliers list shows CaseTypeId in the picker) | Override via `Edit-Table-View(optionalFields: [...])` |
 | KI-5 | `Create-Table-View-Page` leaves the search form bound to the source class (`data-simbla-class="Cases"`) | Most features still work; if saved queries break, fix via `Edit-Page` |
@@ -182,6 +184,8 @@ These are platform behaviors, not Claude bugs. The first time each one bites is 
 | KI-9 | `Add-Table-View-to-Form-Page` may nest the new widget INSIDE a tab container or another widget when the row immediately after `insertAfterRow` is one. The widget then doesn't auto-filter to the parent record (shows 0 records on a card with existing children). | Pick an `insertAfterRow` whose next sibling is a plain form field/section row, not a `simbla-nav` tab container or another `simbla-table`. After insertion, walk up the new widget's ancestors via `Get-Page-Content` to verify none are `simbla-nav` or `simbla-table`. The cause is *placement*, not a missing attribute — `data-query="hard-code"` is NOT required (SupplierOrders on the Supplier card filters correctly without it). |
 | KI-10 | `Edit-Page move-existing-object` on a row containing a `simbla-table` widget destroys the widget entirely (the row gets removed but the new placement isn't created). | Don't move table-widget rows. If you need to relocate a widget, delete and re-add via `Add-Table-View-to-Form-Page` with a different `insertAfterRow`. |
 | KI-11 | **Header-click sorting silently missing on tool-built tables.** The platform's native column sort (a table-level `click[th]` handler bound at init) only engages when the `<th>` contains an `<i class="fa fa-sort"></i>` icon — the pattern on platform-built pages like Accounts. `Edit-Table-View` writes `<th>`s WITHOUT the icon, so every table it (re)builds loses header sorting and nobody notices until a user clicks. Runtime levers don't help: `data-sort-by`/`data('sortBy')` are closure-captured at init — changing them + `trigger('refresh')` does NOT re-sort. (Discovered on the Integrations module page, 28.7.2026.) | Append the icon to every sortable header once per load, e.g. in a `data-loaded` hook: `$t.find('thead th[data-field]').not('[data-field="action"]').each(function(){ if(!$(this).find('[class*="fa-sort"]').length) $(this).append('<i class="fa fa-sort"></i>'); })` — the core then handles clicks, re-querying, and the fa-sort-asc/desc toggle natively. |
+| KI-12 | **On a record that was never saved, an embedded child table queries unfiltered.** There is no parent objectId to bind to, so the widget showed the user rows from across the whole tenant (measured on a production card, 2026-08). | Until there is a native guard, hide embedded child tables while the record is new — e.g. on `simblaobjectsettoform`, hide the widget when the form's object has no `objectId`, and reveal it after the first save. |
+| KI-13 | **An embedded child table on a card does not fire its own query on load** — measured at the network level on that card: zero requests at load, including when the tab holding it was already visible. Users see an empty table and conclude the data is gone. ⚠️ measured on one card; check the network tab before assuming it elsewhere. | Use the table's own API: `$('#<tableId>').trigger('refresh')` on `simblaobjectsettoform` (record loaded) and on `shown.bs.tab` (tab revealed). Do **not** hand-build rows or issue your own query — `trigger('refresh')` is the official reload path (KI-9's placement rule still applies for the auto-filter). |
 
 ## Reference files
 

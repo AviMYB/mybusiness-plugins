@@ -260,7 +260,7 @@ Skipping step 1 and sending a partial object will erase the actions you did not 
 
 ### find vs. get
 
-`find` = list query (the grid). `get` = single-record fetch by objectId (opening a card). **Keep them identical** in almost every case — a role that can open cards but not list them, or vice versa, creates a broken UX. Only split them for very narrow audit scenarios.
+`find` = list query (the grid). `get` = single-record fetch by objectId (opening a card). **Keep them identical** in almost every case — a role that can open cards but not list them, or vice versa, creates a confusing UX. Only split them for very narrow audit scenarios.
 
 ### Common patterns
 

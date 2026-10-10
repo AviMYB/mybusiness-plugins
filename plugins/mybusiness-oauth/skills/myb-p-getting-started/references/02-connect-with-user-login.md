@@ -1,6 +1,5 @@
 # 2. The per-user sign-in mode
 
-> **Codex 1.3.0:** Follow [the installed variant guide](../../../SETUP-CODEX.md). OAuth uses the bundled MCP and Authenticate; the App ID/token variant uses personal MCP settings. Older availability notes below are historical, not a current Codex support verdict.
 The AI client sends you to the MyBusiness login page, you sign in, and the connection then acts **as you**:
 your role, your tables, your records. Nothing is copied anywhere, no key exists to leak, and revoking access
 is a matter of removing the user's MCP permission. It is the better security model of the two — when your

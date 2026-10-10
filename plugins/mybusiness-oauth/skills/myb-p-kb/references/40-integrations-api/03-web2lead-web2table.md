@@ -1,23 +1,32 @@
 # Web2Lead / Web2Table — External Form → CRM Intake
 
-> **Purpose**: Complete mechanics of capturing external HTML forms (landing pages, registration forms, partner systems) into MyBusiness CRM via the `web2lead` and `web2table` cloud functions — endpoints, field naming, pointer handling, duplicate detection, config gates, and production-ready code.
-> **Last updated**: 2026-08-10 (§11 anonymous-write security model added — CAPTCHA gate, CLP bypass, create-only) · **Status**: draft
+> **Purpose**: Complete mechanics of capturing external HTML forms (landing pages, registration forms, partner systems) into MyBusiness CRM via the `getLead` ("web2lead") and `web2table` cloud functions — endpoints, field naming, pointer handling, duplicate detection, config gates, and production-ready code.
+> **Last updated**: 2026-10-09 (live re-test: getlead answer wrapped in `result`, errors are 400, phone format, File objects, pointer-object arrays, injected columns; §11 superseded by [../30-customization/15-public-forms.md](../30-customization/15-public-forms.md)) · previously 2026-09-27 (`Config` reachable from MCP) · previously 2026-08-10 (§11 anonymous-write security model added — CAPTCHA gate, CLP bypass, create-only) · **Status**: draft
 
 ---
 
 ## 1. The two endpoints
 
-| Endpoint | Creates | Use when |
-|---|---|---|
-| **`web2lead`** | A new row in `Accounts` with `IsAccount: false` (= Lead) | Form captures a contact only |
-| **`web2table`** | A row in ANY target table (Sales, Cases, Orders, custom…) **plus** an Account if the contact is new (existing contact is reused, not duplicated) | Form must create a linked record tied to a contact |
+| Pattern | Endpoint (URL segment) | Creates | Use when |
+|---|---|---|---|
+| **web2lead** | **`getlead`** | A new row in `Accounts` with `IsAccount: false` (= Lead) | Form captures a contact only |
+| **web2table** | `web2table` | A row in ANY target table (Sales, Cases, Orders, custom…) **plus** an Account if the contact is new (existing contact is reused, not duplicated) | Form must create a linked record tied to a contact |
 
 ```
-POST https://api.mbapps.co.il/functions/{appId}/web2lead
+POST https://api.mbapps.co.il/functions/{appId}/getlead
 POST https://api.mbapps.co.il/functions/{appId}/web2table
 Content-Type: application/json
 X-Parse-Application-Id: {appId}
 ```
+
+> ⚠️ **The pattern is called web2lead; the endpoint is `getlead`.** There is no `web2lead`
+> function — `POST /functions/{appId}/web2lead` answers `{"error":"User function not found"}`.
+> The lead-intake function is deployed as **`getlead`** and that name is the URL segment
+> (the gateway matches it case-insensitively, so `getLead` works too). `web2table` *is*
+> both the pattern and the function name, which is why the pair looks symmetrical and is not.
+> Measured on a live tenant, 2026-08-24; no function named `web2lead` exists among the
+> ~386 deployed functions. "web2lead" survives here as the name of the mechanism, in the
+> support-site guide, and in this file's own name.
 
 - No master key, no session, no SDK — by design these are safe to call from browser JavaScript. The `appId` is a public identifier, **not** a secret; the security gate is the per-app Config toggle (below) + server-side validation.
 - "`web2sale`", "`web2case`", "`web2contact`" in customer parlance are **not separate endpoints** — they are `web2table` with `table: "Sales"` / `"Cases"` / etc.
@@ -29,7 +38,7 @@ Both endpoints are gated by rows in the system **`Config`** table (`Name` is the
 
 | Endpoint | Config row `Name` | `Value` shape | Evidence |
 |---|---|---|---|
-| `web2lead` | `AcceptWebLeads` | `{ "AcceptWebLeads": true }` | deployed `getLead/index.js` reads exactly this row |
+| `getlead` (web2lead) | `AcceptWebLeads` | `{ "AcceptWebLeads": true }` | deployed `getLead/index.js` reads exactly this row |
 | `web2table` | `AcceptWebToTable` | `{ "AcceptWebToTable": true, "ValidatePhoneOrEmail": …, "DefaultValues": { "Account": {…}, "Table": {…} } }` | deployed `web2table/index.js` reads `AcceptWebToTable` |
 
 ⚠️ Discrepancy note: the skill doc (2026-05-19) describes `AcceptWebLeads` as gating **both** endpoints; the deployed `web2table` source reads **`AcceptWebToTable`**. When debugging a 403, check **both** rows.
@@ -39,7 +48,7 @@ Additional knobs inside the Config `Value` (from deployed code):
 - `ValidatePhoneOrEmail` (both endpoints): when true, the server rejects (422) submissions whose phone (digits only, 7–14 chars) AND email (6–80 chars, contains `@` + `.`) are both invalid.
 - `DefaultValues.Account` / `DefaultValues.Table` (`web2table`): server-side default field values applied to newly created Accounts / target-table rows when the request didn't set them (Pointers as 10-char ids, Boolean strings coerced).
 
-**The `Config` table is fully restricted from MCP** (`Get-Data`/`Create-Many` → `Error: Table is restricted`). To enable/verify, either use the CRM Settings UI toggle, or master-key REST:
+**The `Config` table is reachable from MCP** (`Get-Data` / `Create-Data` / `Update-Data` on `Config` work; earlier MCP versions returned `Error: Table is restricted` — if you still see it, use the other paths). To enable/verify, use MCP (`Get-Data(table:"Config", where:{"Name":"AcceptWebLeads"})`), the CRM Settings UI toggle, or master-key REST:
 
 ```http
 # verify
@@ -54,9 +63,11 @@ POST https://api.mbapps.co.il/parse/classes/Config
 
 If multiple rows with the same `Name` exist (seen in practice), verify which one the function reads (the code uses `query.first()` — effectively the oldest/unspecified order); a stale `false` row can shadow a `true` one. A 403 on first call after deployment is almost always this toggle, not the code.
 
-## 3. `web2lead` reference
+## 3. Lead intake — the `getlead` endpoint (the "web2lead" pattern)
 
-**Required**: at least one of `PhoneNumber` or `Email` (server returns 422 otherwise, when `ValidatePhoneOrEmail` is on).
+**Required**: at least one of `PhoneNumber` or `Email`. This check is **unconditional** — it is the function's first statement, before the `Config` row is even read, so it fires whether or not `ValidatePhoneOrEmail` is on (that flag gates the *format* validation that follows: digits-only phone of 7-14 chars, email of 6-80 chars containing `@` and `.`).
+
+⚠️ **The status code you observe is not the one the function sends.** The function answers `422` with a plain-text body; the gateway rewrites it to **HTTP 400 with a JSON body** `{"error": "<the function's text>"}`. Branch on the `error` string, never on a 422. Measured 2026-08-24. The same wrapping turns an unknown function name into `400 {"error":"User function not found"}` — the fastest way to confirm an endpoint exists is to POST `{}` to it and read which of the two messages comes back.
 
 **Field naming**: NO prefix — keys must match the `Accounts` schema verbatim (`Name`, `F_name`, `L_name`, `PhoneNumber`, `Email`, `Address`, `City`, `CompanyId`, custom fields…). Unknown keys are **silently ignored** (the server iterates the schema: `if (accountSchema.fields[k]) …`).
 
@@ -64,6 +75,7 @@ If multiple rows with the same `Name` exist (seen in practice), verify which one
 
 **Duplicate detection** (server-side, from deployed code):
 - Phone is normalized (strip non-digits, `972…`→`0…`) and the server queries `Accounts.PhoneNumber` for ALL of: `05XXXXXXXX`, `9725XXXXXXX`, `+9725XXXXXXX`, `05X-XXXXXXX`, `+972-5X-XXXXXXX` (analogous for landline `0X…` prefixes) — OR'ed with `Accounts.Email == <email>`.
+- ⚠️ **The format expansion runs only for a digits-only phone** (measured 2026-10-09). The variants are generated under the condition `req.body.PhoneNumber >= 9` — a string-to-number comparison, so a value with `+`, `-` or spaces (`+972-50-000-0098`) is `NaN`, the expansion is skipped and only an exact match is tried. Digits-only `0500000098` and `972500000098` were flagged duplicate against a stored `0500000098`; `+972-50-000-0098` was not. Integration code must send `PhoneNumber` as digits only.
 - A duplicate does **not** block creation: a NEW lead row is **always created**; if a match exists, the new row gets the "duplicate lead" status `QYvLV9xHE1`; if no match, it gets the request's `LeadStatusId` or the default new-lead status `e9TwcETDGq`.
 - These two objectIds are template defaults — **verify against the customer's `LeadStatuses` table** (Get-Data) before relying on them; customized installs differ.
 
@@ -73,9 +85,9 @@ If multiple rows with the same `Name` exist (seen in practice), verify which one
 
 | Status | Body / meaning |
 |---|---|
-| 200 | `{ "success": true, "leadId": "<objectId>" }` |
-| 422 | missing/invalid `PhoneNumber` + `Email` |
-| 403 | `AcceptWebLeads is Disabled` |
+| 200 | `{ "result": { "success": true, "leadId": "<objectId>" } }` — **wrapped in `result`** as deployed (measured 2026-10-09; the source copy answers unwrapped). Read `body.result || body`. |
+| 400 | `{"error":"missing \"PhoneNumber\" or \"Email\""}` — the function's 422, rewritten by the gateway |
+| 400 | `{"error":"AcceptWebLeads is Disabled"}` — the function's 403, rewritten by the gateway |
 | 500 | server error |
 
 ## 4. `web2table` reference
@@ -129,10 +141,12 @@ POST https://api.mbapps.co.il/functions/{appId}/web2table
 
 | Status | Body |
 |---|---|
-| 200 | `{ "returnOrigin": true, "success": true, "accountId": "<objectId>", "Id": "<objectId of target row>" }` |
-| 422 | `missing "phone"` / `missing "table" in request body` / invalid phone+email |
-| 403 | `AcceptWebToTable is Disabled` |
+| 200 | `{ "success": true, "accountId": "<objectId>", "Id": "<objectId of target row>" }` (not wrapped) |
+| 400 | `{"error":"missing \"phone\""}` / `missing "table" in request body` / invalid phone+email — the function's 422 |
+| 400 | `{"error":"AcceptWebToTable is Disabled"}` — the function's 403 (measured 2026-10-09 with no `AcceptWebToTable` row) |
 | 500 | server error |
+
+**Schema side effect (measured 2026-10-09):** the target class gains the auto-set columns if it lacks them — `IsFirst`, `AccountNotExist`, `AccountId`, `CampaignName`, `PageName`, `PhoneNumber`, `Email` (7). The class's CLP is ignored (an Admin-only class was written to) and `table_objectId` is ignored (always a new row).
 
 ## 5. Type-mapping table (JSON body, both endpoints)
 
@@ -143,8 +157,8 @@ POST https://api.mbapps.co.il/functions/{appId}/web2table
 | Boolean | `"true"` / `"false"` strings (safest cross-language) | |
 | Date | flat ISO string, ≥10 chars (`"2026-06-10"` or full ISO) | Parse `{__type:"Date",iso}` object |
 | Pointer | bare 10-char objectId string | `{__type:"Pointer",className,objectId}` — silently leaves the field null |
-| Array (multi-select `array_*_Pointer_*`) | JSON array of bare objectId strings | wrapped pointer objects |
-| File / PrivateFile | **not supported** in this flow | |
+| Array (multi-select `array_*_Pointer_*`) | JSON array of **pointer objects** `{"__type":"Pointer","className","objectId"}` | bare ids — stored, but the CRM draws empty chips and `containedIn` criteria do not match (both forms verified 2026-10-09) |
+| File | a File **object** `{"__type":"File","name":"<name from the upload>","url":"<url>"}` after a separate upload `POST /parse/files/<name>` (App ID header only, raw body, no session header) | a string → `schema mismatch expected File but got String` (verified 2026-10-09) |
 
 The Pointer rule is the #1 gotcha: Parse REST uses the wrapped form, web2lead/web2table want the bare id. Copying a Parse-REST snippet by reflex produces a 200 response with a null pointer field.
 
@@ -179,14 +193,16 @@ async function submitLead(form) {
   Object.keys(data).forEach(k => { if (!data[k]) delete data[k]; });
   if (!data.PhoneNumber && !data.Email) return alert('נא למלא טלפון או אימייל');
 
-  const res = await fetch(`https://api.mbapps.co.il/functions/${APP_ID}/web2lead`, {
+  const res = await fetch(`https://api.mbapps.co.il/functions/${APP_ID}/getlead`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-Parse-Application-Id': APP_ID },
     body: JSON.stringify(data),
   });
-  if (res.ok) { const b = await res.json(); console.log('Lead:', b.leadId); /* redirect / GTM event */ }
-  else if (res.status === 422) alert('נא למלא טלפון או אימייל תקינים');
-  else if (res.status === 403) alert('קבלת לידים מהאתר אינה מופעלת במערכת');
+  const b = await res.json().catch(() => ({}));
+  const r = b.result || b;                          // getlead answers { result: { success, leadId } }
+  if (res.ok && r.success) { console.log('Lead:', r.leadId); /* redirect / GTM event */ }
+  else if ((b.error || '').indexOf('missing') === 0) alert('נא למלא טלפון או אימייל תקינים');   // errors: 400 { error }
+  else if (/Disabled/.test(b.error || '')) alert('קבלת לידים מהאתר אינה מופעלת במערכת');
   else alert('אירעה שגיאה, נסה שנית');
 }
 ```
@@ -239,13 +255,13 @@ def submit_lead(form: dict) -> dict:
     if not data.get("PhoneNumber") and not data.get("Email"):
         return {"ok": False, "error": "phone or email required"}
 
-    r = requests.post(f"https://api.mbapps.co.il/functions/{APP_ID}/web2lead",
+    r = requests.post(f"https://api.mbapps.co.il/functions/{APP_ID}/getlead",
                       json=data, headers=HEADERS, timeout=10)
-    if r.status_code == 200 and r.json().get("success"):
-        return {"ok": True, "leadId": r.json()["leadId"]}
-    if r.status_code == 422: return {"ok": False, "error": "missing phone/email"}
-    if r.status_code == 403: return {"ok": False, "error": "web leads disabled"}
-    return {"ok": False, "error": "server error", "raw": r.text}
+    body = r.json() if r.headers.get("content-type", "").startswith("application/json") else {}
+    res = body.get("result", body)                   # getlead wraps its answer in "result"
+    if r.status_code == 200 and res.get("success"):
+        return {"ok": True, "leadId": res["leadId"]}
+    return {"ok": False, "error": body.get("error", "server error")}   # errors: HTTP 400 {"error": ...}
 
 def submit_sale(form: dict) -> dict:
     data = {
@@ -265,15 +281,16 @@ def submit_sale(form: dict) -> dict:
     return {"ok": False, "status": r.status_code, "raw": body or r.text}
 ```
 
-PHP (cURL + Guzzle), C# (`HttpClient`), and Node (`fetch`/axios + Express forwarder) templates follow the same shape — it is language-independent, only the HTTP client changes. The `myb-p-web2lead-web2table` skill carries ready templates per language.
+PHP (cURL + Guzzle), C# (`HttpClient`), and Node (`fetch`/axios + Express forwarder) templates follow the same shape — it is language-independent, only the HTTP client changes. The `myb-p-public-forms` skill (`web2/code/`) carries ready templates per language.
 
 ## 9. Multi-select (Array-of-Pointer) fields
 
-Fields named `array_<purpose>_Pointer_<TargetTable>` store an Array of bare objectId strings. Submit a JSON array (no wrapping):
+Fields named `array_<purpose>_Pointer_<TargetTable>` store an Array. Submit pointer objects — the form the CRM itself writes (a bare-id array is stored too, but renders as empty chips and does not match `containedIn` trigger criteria; verified 2026-10-09):
 
 ```json
 { "PhoneNumber": "0501234567",
-  "array_interests_Pointer_Interests": ["uNbbHuMGlK", "j17RjXmHdN"] }
+  "array_interests_Pointer_Interests": [{"__type":"Pointer","className":"Interests","objectId":"uNbbHuMGlK"},
+                                        {"__type":"Pointer","className":"Interests","objectId":"j17RjXmHdN"}] }
 ```
 
 In `web2table`, prefix per bucket: `account_array_interests_Pointer_Interests`, `table_array_tags_Pointer_Tags`. Form side: checkboxes / `<select multiple>` → map each picked display value through the lookup table → send the array. If a lookup misses, **omit the field** rather than sending undefined/empty.
@@ -281,27 +298,31 @@ In `web2table`, prefix per bucket: `account_array_interests_Pointer_Interests`, 
 ## 10. Validation, CORS, anti-spam
 
 - **CORS**: allowed by default for these endpoints (Parse cloud-function CORS); nearly all landing pages are cross-origin and work. If a customer reports a blocked request, check CORS first, then the Config toggle.
-- **Captcha/anti-bot** (reCAPTCHA, Turnstile, honeypots): NOT validated by the endpoints — validate tokens on your own server BEFORE forwarding to web2lead/web2table. A server-side forwarder (Flask/Express/PHP) is the recommended pattern when captcha or secret keys are involved.
+- **Captcha/anti-bot** (reCAPTCHA, Turnstile, honeypots): NOT validated by the endpoints — validate tokens on your own server BEFORE forwarding to web2lead/web2table. (A form hosted on the tenant's own CRM site can use the platform's reCAPTCHA instead, through the native Database form — [../30-customization/15-public-forms.md](../30-customization/15-public-forms.md).) A server-side forwarder (Flask/Express/PHP) is the recommended pattern when captcha or secret keys are involved.
 - **Server-side validation performed**: phone 7–14 digits / email sanity (only when `ValidatePhoneOrEmail` is on), schema-existence of every field, pointer id length. Everything else is the form's responsibility.
 - **appId exposure** in browser JS is intentional and safe — it is not a credential. Reassure customers who panic about it.
 
-## 11. The anonymous-write security model (why these endpoints are the only door)
+## 11. The anonymous-write security model — what these endpoints add
+
+> **Superseded in part (2026-10-09):** these endpoints are **not** the only anonymous write path. A native Database form on a public CRM page passes the CAPTCHA gate with the platform's reCAPTCHA and writes into a table whose `create` includes `"*"`; the same form can also save through `simbla-capture-data` into a closed table. The full model and the comparison live in [../30-customization/15-public-forms.md](../30-customization/15-public-forms.md); this section keeps what is specific to `web2table`/`getlead`.
 
 Verified empirically on a live tenant (2026-08-09) while building an anonymous public rating page. Three facts that together decide the architecture of any "unauthenticated visitor writes to the CRM" feature:
 
-1. **Direct anonymous Parse REST writes are CAPTCHA-gated — opening the CLP does not help.** A `POST /parse/classes/<Table>` with only `X-Parse-Application-Id` (no session, no master key) is rejected with `{"code":119,"error":"This action is not allowed without a valid CAPTCHA"}` **even after** the class-level permission is set to `create: {"*": true}`. The CAPTCHA gate sits in front of the CLP check, so widening the CLP buys nothing and only widens exposure. Anyone who "fixes" an anonymous 403/119 by opening a CLP has made the tenant less safe without making the write work.
-2. **`web2table` runs elevated and bypasses CLP.** It successfully created rows in a table whose CLP was `create: role:Admin`. Consequence: **keep the target table's CLP closed.** The endpoint is the approved anonymous write path precisely because it is a server-side function with its own validation — the table does not need public permissions, and giving it any is pure downside.
-3. **`web2table` is create-only.** It has no update semantics: passing `objectId` / `table_objectId` does not address an existing row — every call inserts. There is no anonymous update path at all (an anonymous `PUT` on an existing row is likewise rejected). So "let the customer update an existing record from a public link" cannot be built directly; it must be **staging-table + projection trigger**: the public page creates a row in a dedicated intake table, and a data-change trigger on that table projects the values onto the real business object (`update-object` with `connection: "source.<PointerField>"`). This also keeps the business table closed to anonymous writes, which was verified rejected.
+1. **Tokenless anonymous Parse REST creates are CAPTCHA-gated — opening the CLP alone does not help.** A `POST /parse/classes/<Table>` with only `X-Parse-Application-Id` (no session, no master key) is rejected with `{"code":119,"error":"This action is not allowed without a valid CAPTCHA"}` **even after** the class-level permission is set to `create: {"*": true}`. The CAPTCHA gate sits in front of the CLP check, so for a **tokenless** caller widening the CLP buys nothing and only widens exposure. A caller that carries a valid **platform** reCAPTCHA token — only a native form on the tenant's CRM site can — does pass the gate, and then `create:"*"` is what lets it in (30/15 §2).
+2. **`web2table` runs elevated and bypasses CLP.** It writes into whatever class the body names — hard-code `table` in every integration, never take it from user input. It successfully created rows in a table whose CLP was `create: role:Admin`. Consequence: **keep the target table's CLP closed.** The endpoint is an approved anonymous write path precisely because it is a server-side function with its own validation — the table does not need public permissions, and giving it any is pure downside.
+3. **`web2table` is create-only.** It has no update semantics: passing `objectId` / `table_objectId` does not address an existing row — every call inserts. An anonymous `PUT` on an existing row is rejected **as long as the class's `update` CLP is closed** — updates are not CAPTCHA-gated, so an `update` opened to `"*"` would let any id-holder overwrite rows without any bot check (30/15 §2.4). So "let the customer update an existing record from a public link" cannot be built directly; it must be **staging-table + projection trigger**: the public page creates a row in a dedicated intake table, and a data-change trigger on that table projects the values onto the real business object (`update-object` with `connection: "source.<PointerField>"`). This also keeps the business table closed to anonymous writes, which was verified rejected.
 
 Corollaries an implementer should carry into design:
 - The intake link must carry `phone` (§4 — hard-required), which means a customer phone number travels in a URL and lands in server logs. That is a privacy decision to surface with the customer, not to hide; the alternative is an opaque per-record token column looked up server-side.
-- Because every call inserts, a two-step interaction (rate now, comment a moment later) produces **two intake rows** for one response. That is correct behavior, not a bug — the intake table is the raw journal and the business object holds the resolved answer. Document it, or someone will "fix" it later.
+- Because every call inserts, a two-step interaction (rate now, comment a moment later) produces **two intake rows** for one response. That is correct and intended — the intake table is the raw journal and the business object holds the resolved answer. Document it, or someone will "fix" it later.
 - Any trigger that reacts to the *first* call will run **before** the second call's data exists. Don't compose a message/task body out of a field that arrives in the later call — point the reader at the record instead (see [../30-customization/06-triggers-and-automations.md](../30-customization/06-triggers-and-automations.md)).
 
 ## Limitations & gotchas (observed frequency order)
 
 - **Wrapped Pointer objects** instead of bare objectIds → 200 OK, field silently null.
-- **Trying to reach the API anonymously without `web2lead`/`web2table`** → `code 119` CAPTCHA rejection; widening the CLP does not lift it (§11).
+- **Trying to reach the API anonymously without `web2lead`/`web2table` and without a platform reCAPTCHA token** → `code 119` CAPTCHA rejection; widening the CLP alone does not lift it (§11; native CRM-page forms: 30/15).
+- **Reading `success` on the getlead answer** → always undefined; the deployed answer is `{result:{success,leadId}}`.
+- **Sending a formatted phone to getlead** (`+972-…`, dashes, spaces) → duplicate detection silently degrades to exact match (§3).
 - **Opening a target table's CLP "so web2table can write"** → unnecessary (it bypasses CLP) and a real exposure increase (§11).
 - **Expecting `web2table` to update an existing row** → it always inserts; use staging-table + projection trigger (§11).
 - **`account_Phone`/`account_Email` instead of unprefixed `phone`/`email`** in web2table → duplicate detection misses; contact duplicated.
@@ -314,6 +335,6 @@ Corollaries an implementer should carry into design:
 - **Existing Accounts are not updated** by web2table — `account_*` values only apply to newly created contacts. If the business wants "update returning contacts", that requires Parse REST or a custom function.
 - **web2lead always inserts** — duplicates become new lead rows flagged with the duplicate status; there is no merge.
 - **`IsFirst` semantics** depend on the request flag `isExistsAccountCheck` — without it, every row is marked `IsFirst: true`.
-- **Config gate unreachable from MCP** — a 403 cannot be diagnosed via MCP tools; needs CRM UI or master-key REST (documented MCP gap as of 2026-05-19).
-- **File uploads not supported** in this flow — use a different upload path and link afterwards.
+- **Diagnose a 403 from the Config gate** with `Get-Data` on `Config` (`Name` = `AcceptWebLeads` / `AcceptWebToTable`) — a missing row, `false`, or duplicate rows all disable the endpoint.
+- **Files**: upload first (`POST /parse/files/<name>`), then send a File **object** in `table_<FileField>` — a string fails (§5).
 - Customer forks of these functions exist with hard-coded appId behavior switches — when supporting a specific customer, read THEIR deployed variant before assuming the generic contract.

@@ -1,17 +1,17 @@
 ---
 name: myb-p-create-entity
-description: "Create a complete new custom entity (module) in MyBusiness CRM -- tables, fields, sample data, list page with inline edit, custom JS, and menu integration. Use this skill whenever the user wants to create a new entity, new module, new object type, add a new business concept to the CRM, or build a full CRUD workflow for a custom table. Examples: creating an Affiliates module, a Suppliers entity, a Projects entity, a Vehicles table, an Inventory system, a Courses module, or any custom entity with its own list page. Also use when the user mentions: ישות חדשה, מודול חדש, טבלה חדשה עם דפים, יצירת ישות, בניית מודול, create entity, create module, new entity, new table with pages, custom object, new CRUD module. This skill orchestrates multiple tools together -- it is the right choice when the user needs the full package (tables + list page + data + menu)."
+description: "Create a complete new custom entity (module) in MyBusiness CRM -- tables, fields, sample data, list page with inline edit, custom JS, and menu integration. Use this skill whenever the user wants to create a new entity, new module, new object type, add a new business concept to the CRM, or build a full CRUD workflow for a custom table. Examples: an Affiliates module, a Suppliers or Projects entity, a Vehicles table, an Inventory system, or any custom entity with its own list page. Also use when the user mentions: ישות חדשה, מודול חדש, טבלה חדשה עם דפים, יצירת ישות, בניית מודול, create entity, create module, new entity, new table with pages, custom object, new CRUD module. Covers both card variants -- the default NewMaster sidebar card, and a MasterTicket ticket-shell card when the entity needs the record timeline (ציר זמן) or a standalone record URL. This skill orchestrates multiple tools together -- it is the right choice when the user needs the full package (tables + list page + data + menu)."
 ---
 
 # Create Entity / יצירת ישות חדשה
 
 Build a complete custom entity in MyBusiness CRM -- from database tables through a fully functional list page with inline editing.
 
-## CRITICAL READ FIRST — Known Platform Bugs
+## CRITICAL READ FIRST — Platform constraints
 
-These bugs affect EVERY run of this skill. Design around them from the start:
+These constraints shape EVERY run of this skill. Design around them from the start.
 
-### Constraint 1: `Create-Form-Page` produces NewMaster-based pages — works in iframe, NOT via direct URL
+### Constraint 1: the card's master is chosen once, at creation — and it decides how the card can be opened
 
 `Create-Form-Page` MCP always assigns `NewMaster` as the masterPage. The actual `NewMaster.js` source has the relevant logic gated on `if (!Simbla.User.current()) {...}` — i.e., it only matters for **anonymous** users (public landing forms). For authenticated CRM users:
 
@@ -19,40 +19,43 @@ These bugs affect EVERY run of this skill. Design around them from the start:
 - Standard form load via iframe + `data-edit-view="modal-left"` / `"modal-right"` works.
 - Opening a NewMaster-based page via direct URL (`apps/mybusiness/Entity?oid=X`) shows empty fields — NewMaster doesn't fall back to URL params.
 
-There is **NO MCP tool or Parse API** to change `masterPageId` of an existing page. Pages are in a Simbla-private collection, not in Parse classes.
+There is **NO MCP tool or Parse API** to change `masterPageId` of an existing page. The master is decided at creation and never again — so pick the right one now:
+
+- `Create-Form-Page` always produces **NewMaster** (this skill's default, Phase 4).
+- `Create-Table-View-Page(copyFromPageId)` **inherits the master of whatever page it copies** — which is what puts a custom entity's card on **MasterTicket**, with the ticket shell, the record-timeline column and a working direct URL (Phase 4B).
 
 **→ Decision tree:**
 
 - User wants click-to-edit on a list row, opening a full card view? → **Build the form page (Phase 4) and link via `modal-left` + `useIframe: true`** (this is the default workflow now).
 - User wants the **Name cell itself** (not just the pencil) to open the card? → Same mechanism, wired by the template: the Name is wrapped in `a.entity-link`, whose click triggers the row's edit pencil (opening the 5c sidebar) — with a direct `Mode=Modal` fallback. See the mechanisms table below.
 - User wants quick-edit only without leaving the list? → Skip Phase 4, use `data-edit-view="inline"` on the table.
-- User wants standalone clickable URLs to entity records (e.g., links from emails)? → Out of scope for MCP — requires manually cloning the Account card with MasterTicket in the Simbla page-builder UI.
+- User wants the card to carry the **record timeline**, look like a built-in ticket card (two columns, ticket header, save bar), or be reachable by a standalone clickable URL (e.g. a link from an email)? → **Phase 4B.** Achievable with MCP plus the page's own JS, and verified end to end. Budget an extra hour and follow every step — partial application yields dead buttons or saves into the wrong table.
 
-**The three card-open mechanisms** — know which one you're wiring; mixing them is the #1 source of "empty card" / "click does nothing" bugs:
+**The three card-open mechanisms** — know which one you're wiring; mixing them is the #1 source of "empty card" / "click does nothing" symptoms:
 
 | Mechanism | Path | When it applies |
 |---|---|---|
-| MasterTicket card | `Mode=Ticket` → `#SideModalTicket` | Built-in entities only (Account/Task/Case). MCP cannot create cards on this master. |
-| **NewMaster card** | **`Mode=Modal` → `#SideModal` + `#iframeModal` src** | **Every card from `Create-Form-Page` — this skill's path.** Both the pencil (`modal-left` + `useIframe`) and a direct name-click use it. |
+| MasterTicket card | `Mode=Ticket` → `#SideModalTicket` | Built-in entities (Account/Task/Case) **and any custom entity whose card was built by Phase 4B**. Reads `?oid=` from the URL, so it also works as a plain link. |
+| **NewMaster card** | **`Mode=Modal` → `#SideModal` + `#iframeModal` src** | **Every card from `Create-Form-Page` — this skill's default path (Phase 4).** Both the pencil (`modal-left` + `useIframe`) and a direct name-click use it. |
 | Inline edit | `editView: {openFrom: "inline"}` | Quick-edit in the row, no card. |
 
-⚠️ **Known red herring:** the inherited list JS (`cases.js` / `accounts2.7.js`) wraps names in `<a class="ticket">` targeting `#SideModalTicket`, guarded by `if (window._hasTicketListener) return` — a guard the master switches ON in `modal-left`, which silently kills name-clicks. Do not debug or patch that path (it can only open MasterTicket cards); replace the file with the template (Bug 6).
+⚠️ **Known red herring (Phase 4 cards):** the inherited list JS (`cases.js` / `accounts2.7.js`) wraps names in `<a class="ticket">` targeting `#SideModalTicket`, guarded by `if (window._hasTicketListener) return` — a guard the master switches ON in `modal-left`, which silently kills name-clicks. It can only open MasterTicket cards, so for a NewMaster entity do not debug or patch that path — replace the file with the template (Constraint 6). If the entity's card came from **Phase 4B** it *is* a MasterTicket card, and that path is the one you wire deliberately (4B.9).
 
-### Bug 2: `Create-Table` MCP returned `"missing user"` — unverified as of 2026-07, re-test before relying
+### Constraint 2: `Create-Table` is the only sanctioned path to a new table
 
-**Probe first:** attempt the `Create-Table` MCP tool normally. This bug claim is undated, and sibling bugs in this list (Bug 3, Bug 8) have since been fixed — it may be gone too. Only if the call fails with the exact documented `"missing user"` error: mark the step blocked and escalate to the MyBusiness team (see [references/rest-api-patterns.md](references/rest-api-patterns.md)). Never work around the tool-permission layer with direct API calls.
+Call the `Create-Table` MCP tool normally. A `"missing user"` error means the account running the session lacks the rights the tool needs: mark the step blocked and ask MyBusiness support to resolve it (see [references/rest-api-patterns.md](references/rest-api-patterns.md)). Never work around the tool-permission layer with direct API calls — a table created outside the sanctioned path arrives without the ACLs the CRM UI needs.
 
-### Bug 3: ~~`Set-Page-JS-and-CSS-files` returns `"missing user"`~~ — FIXED
+### Constraint 3: page JS/CSS files are set through `Set-Page-Settings`
 
-Use `Set-Page-Settings` MCP with `jsFile` / `cssFile` parameters to set the URLs programmatically. (Inspect the current values first with `Get-Page-Settings`.) The old `Set-Page-JS-and-CSS-files` tool is gone — `Get-Page-Settings` and `Set-Page-Settings` replace it and also expose `title`, `description`, `keywords`, `metaTags`, `loginOnly`, `allowedRoles`, `dynamicTable`, `dynamicFields`.
+Use `Set-Page-Settings` MCP with the `jsFile` / `cssFile` parameters to set the URLs programmatically, inspecting the current values first with `Get-Page-Settings`. The same pair also exposes `title`, `description`, `keywords`, `metaTags`, `loginOnly`, `allowedRoles`, `dynamicTable` and `dynamicFields`.
 
-### Bug 4: `Create-Data` MCP failed on complex nested objects — unverified as of 2026-07, re-test before relying
+### Constraint 4: create records through `Create-Many`, with `__type` for Pointers and Dates
 
-**Probe first:** attempt the MCP tools normally — `Create-Many` already handles Pointers and Dates via `__type` (see Phase 3b), and this undated claim may be fixed like its sibling bugs (Bug 3, Bug 8). Simple records (String/Number/Boolean) work via MCP either way. Only on the exact documented error: mark the step blocked and escalate to the MyBusiness team (see [references/rest-api-patterns.md](references/rest-api-patterns.md)).
+`Create-Many` is the path for records carrying Pointer or Date values — express them as `__type: "Pointer"` / `__type: "Date"` objects (see Phase 3b). Simple String/Number/Boolean records work through either create tool. If a call fails on a record shape it should support, capture the exact error, mark the step blocked and ask MyBusiness support (see [references/rest-api-patterns.md](references/rest-api-patterns.md)); do not fall back to raw API calls.
 
-### Bug 5: CLP with `"*": true` is NOT enough for CRM UI access
+### Constraint 5: CLP with `"*": true` is NOT enough for CRM UI access
 
-Parse-level permission `{"*": true}` passes API calls but the CRM front-end checks role membership. After `Set-Table-Permissions` with `*`, users see "no permissions" errors in the UI.
+Parse-level permission `{"*": true}` passes API calls but the CRM front-end checks role membership. After `Set-Table-Permissions` with `*` **instead of** roles, users see "no permissions" errors in the UI. (`"*"` **alongside** the roles on `create` of a dedicated intake table is fine — that is the public-form pattern, `myb-p-public-forms`.)
 
 **→ Always use `Set-Table-Permissions` MCP with roles matching the existing Cases/Accounts pattern:**
 
@@ -69,7 +72,7 @@ Parse-level permission `{"*": true}` passes API calls but the CRM front-end chec
 
 A newly created table can start with an empty CLP. Call `Set-Table-Permissions` on every new table.
 
-### Bug 6: `Create-Table-View-Page` copies from Cases and inherits broken code
+### Constraint 6: `Create-Table-View-Page` copies from Cases, and the copy carries Cases-specific wiring
 
 The copied page carries over:
 - External JS file pointing to `cases.js` (contains hardcoded Case-specific modal/navigation logic)
@@ -79,13 +82,13 @@ The copied page carries over:
 
 **Replace the inherited file — never patch it.** Its card-open path (`Mode=Ticket` → `#SideModalTicket`) only works for MasterTicket cards, so a patched copy keeps silently breaking NewMaster entities. Upload the template as a NEW file (5d) and point the page's `jsFile` at it. See [references/table-view-js-template.md](references/table-view-js-template.md).
 
-### Bug 7: Relative URLs on the list page — do NOT prefix with `apps/mybusiness/`
+### Constraint 7: Relative URLs on the list page — do NOT prefix with `apps/mybusiness/`
 
 The list page is already at `apps/mybusiness/Suppliers`. A relative link `apps/mybusiness/Supplier?oid=X` resolves to `apps/mybusiness/apps/mybusiness/Supplier?oid=X` (404). Use just `Supplier?oid=X`.
 
 This applies to every URL you build toward the card page — the "New" button and the direct name-click path both construct one. The template's `cardUrl()` derives the base from `window.location.pathname` for exactly this reason; reuse it instead of hand-building paths.
 
-### Bug 8: ~~Browser tab title shows "Cases"~~ — FIXED
+### Constraint 8: the copied page inherits the source page's browser-tab title
 
 When `Create-Table-View-Page` copies from Cases, the **Page Title (SEO)** field is also copied as "Cases". Fix it programmatically with `Set-Page-Settings(pageId, title: "{{ENTITY_NAME_HEB}}")`. Do the same for any other page copied from a template (e.g., a form page, if one was created).
 
@@ -197,7 +200,7 @@ Standard fields most entities need:
 
 ### Phase 2: Create Tables (via Create-Table MCP)
 
-Use the `Create-Table` MCP tool — the only sanctioned path (probe first per Bug 2; if it fails with the exact documented `"missing user"` error, mark the step blocked and escalate — see [references/rest-api-patterns.md](references/rest-api-patterns.md)). Create in this order:
+Use the `Create-Table` MCP tool — the only sanctioned path (probe first per Constraint 2; if it fails with the exact documented `"missing user"` error, mark the step blocked and escalate — see [references/rest-api-patterns.md](references/rest-api-patterns.md)). Create in this order:
 
 #### 2a. Status/lookup tables first
 `Create-Table` with the lookup fields, e.g. `Name` (String) and `Color` (String).
@@ -209,7 +212,7 @@ Include all fields plus all pointers (to status, _User, Accounts, etc.).
 Each needs a `Pointer` field back to the main entity.
 
 #### 2d. Set role-based CLP on ALL new tables
-Use `Set-Table-Permissions` MCP (matches Cases/Accounts pattern — see Bug 5 above). **Do NOT use `*: true`** — it fails at the CRM UI layer.
+Use `Set-Table-Permissions` MCP (matches Cases/Accounts pattern — see Constraint 5 above). **Do NOT use `*: true`** — it fails at the CRM UI layer.
 
 Run for every new table in parallel.
 
@@ -225,13 +228,13 @@ Create-Many(table: "EntityStatuses", data: [
 ```
 
 #### 3b. Main entity records (Pointers — use MCP Create-Many with `__type: "Pointer"`)
-`Create-Many` handles Pointers correctly. If it errors, apply the Bug 4 probe-first rule — capture the exact error, mark the step blocked, and escalate; never fall back to raw API calls.
+`Create-Many` handles Pointers correctly. If it errors, apply the Constraint 4 probe-first rule — capture the exact error, mark the step blocked, and escalate; never fall back to raw API calls.
 
 #### 3c. Related table records
 Same as 3b — reference main entity records by their returned objectIds.
 
 #### 3d. Verify record ACLs
-Records created via the MCP tools are expected to be accessible to logged-in users. If records turn out inaccessible even though the table CLP is role-based (Bug 5 handled), mark the step blocked and escalate — the bulk-ACL repair is an internal ops procedure (see [references/rest-api-patterns.md](references/rest-api-patterns.md)).
+Records created via the MCP tools are expected to be accessible to logged-in users. If records turn out inaccessible even though the table CLP is role-based (Constraint 5 handled), mark the step blocked and escalate — the bulk-ACL repair is handled by MyBusiness support (see [references/rest-api-patterns.md](references/rest-api-patterns.md)).
 
 ### Phase 4: Create the Card (Form) Page
 
@@ -291,6 +294,24 @@ For Notes / Description / Comment — use a full-width row `[12]`. Standard stru
 #### 4c. Verify the form page
 
 `Get-Page-Content(pageId, minimal: true)` — confirm fields are placed correctly in their rows. The form is now ready to be opened in a sidebar from the list (see Phase 5).
+
+### Phase 4B: Card on the ticket shell (MasterTicket) — when the timeline or a direct URL is needed
+
+Run this **instead of** Phase 4 when the card must carry the **record timeline**, look like a
+built-in ticket card, or open from a plain URL. Everything else stays on Phase 4 — it is shorter and
+has none of 4B's traps.
+
+The path in one line: `Create-Table-View-Page(copyFromPageId: "<a built-in ticket card>")` inherits
+`MasterTicket`; the copy arrives with the source entity's `<form>` still bound to the **source**
+class (the tool rewrites the form's `name`, not its `data-simbla-class`) and that form cannot be
+rebound, moved or deleted through MCP — so you add your own form beside it, remove the inherited one
+in page JS, and declare the ticket-shell contract the master expects (`formSubmit`, `entity`,
+`saveEditAction`, `redirectTo`) or every save button dies in complete silence.
+
+**→ Full procedure, verification protocol and symptom table: [references/masterticket-card.md](references/masterticket-card.md).**
+Platform facts behind it: [`../myb-p-kb/references/30-customization/03-pages-and-layouts.md`](../myb-p-kb/references/30-customization/03-pages-and-layouts.md) §2a.
+
+Phases 1-3 (tables, CLP, data) and Phase 5 (the list page) are unchanged — 4B replaces only the card.
 
 ### Phase 5: Create Table View Page (List)
 
@@ -364,7 +385,7 @@ Use the template in [references/table-view-js-template.md](references/table-view
 - Polling fallback (every 500ms, 15s timeout) in case `data-loaded` already fired.
 - Name click triggers the row's edit pencil — which opens the sidebar (per editView config in 5c) or inline edit, depending on what you set — with a direct `Mode=Modal` card-open fallback when no pencil is present.
 - **`{{PRIMARY_COL}}` placeholder** controls which column becomes clickable. Plain entities: `Name`. **Junction entities have no `Name` — set it to the pointer-display column** (e.g. `AccountId.Name`), or nothing becomes clickable (silent failure).
-- **"New" button opens an empty card via `Mode=Modal`** — the handler sets `#iframeModal`'s `src` itself and then shows `#SideModal`. The inherited `data-toggle` attribute alone opens an **empty** panel (the classic «"New" does nothing» bug). An inline-mode alternative handler is included as a comment.
+- **"New" button opens an empty card via `Mode=Modal`** — the handler sets `#iframeModal`'s `src` itself and then shows `#SideModal`. The inherited `data-toggle` attribute alone opens an **empty** panel (the classic «"New" does nothing» symptom). An inline-mode alternative handler is included as a comment.
 - Status column colored by `StatusId.Color`.
 - Hides `.db-form-add` button via injected `<style>` tag.
 - Fixes `data-simbla-class="Cases"` → your entity name.
@@ -392,7 +413,7 @@ Use `Set-Page-Settings` to wire up the uploaded JS file and overwrite the inheri
 Set-Page-Settings(
   pageId: <listPageId>,
   jsFile: "<URL returned by Upload-Public-File in 5d>",
-  title: "{{ENTITY_NAME_HEB}}"   // fixes Bug 8 — browser tab title
+  title: "{{ENTITY_NAME_HEB}}"   // fixes Constraint 8 — browser tab title
 )
 ```
 
@@ -406,7 +427,7 @@ After (and only after) you verified the wiring yourself (Phase 7), ask the user 
 
 ### Phase 7: Verify
 
-**Verify yourself first.** If a browser-automation channel is available in the session (chrome-devtools / claude-in-chrome / playwright-cli), do not hand an unverified build to the user: open the list page, confirm data renders, click a record's Name — the card must open **populated** in the sidebar — and click "New" — an empty card must open. Rolling "try it and tell me" onto the user, round after round, is how single bugs turn into multi-day sagas.
+**Verify yourself first.** If a browser-automation channel is available in the session (chrome-devtools / claude-in-chrome / playwright-cli), do not hand an unverified build to the user: open the list page, confirm data renders, click a record's Name — the card must open **populated** in the sidebar — and click "New" — an empty card must open. Rolling "try it and tell me" onto the user, round after round, is how one wrong wire turns into a multi-day saga.
 
 One console line reveals the column map instantly (the junction-entity trap):
 
@@ -430,9 +451,9 @@ Checklist:
 
 **First move: compare against a known-good entity.** Fastest diagnosis there is — before touching any code:
 
-1. `Get-Page-Settings` on YOUR list page vs a built-in list (e.g. Tasks): compare `jsFile` (still the inherited `cases.js`/`accounts2.7.js`? → Bug 6 was never fixed) and `title`.
-2. `Get-Page-Settings` on YOUR card page vs a built-in card (e.g. Task): the built-in is **MasterTicket**, yours is **NewMaster** (expected) — which means the built-in's click mechanics do NOT transfer to your entity.
-3. Pull the working entity's `jsFile` from its URL and compare its card-open mechanism to yours. **The deviation is the bug.**
+1. `Get-Page-Settings` on YOUR list page vs a built-in list (e.g. Tasks): compare `jsFile` (still the inherited `cases.js`/`accounts2.7.js`? → the Constraint 6 replacement was never done) and `title`.
+2. `Get-Page-Settings` on YOUR card page vs a built-in card (e.g. Task): after Phase 4 the built-in is **MasterTicket** and yours is **NewMaster** (expected) — which means the built-in's click mechanics do NOT transfer to your entity. After **Phase 4B** both are MasterTicket, and the built-in's mechanics are exactly what you should be matching; if they differ, that is the bug.
+3. Pull the working entity's `jsFile` from its URL and compare its card-open mechanism to yours. **The deviation is the cause.**
 
 **Symptom → cause → check → fix:**
 
@@ -440,11 +461,11 @@ Checklist:
 |---|---|---|---|
 | Nothing in the list is clickable (silently) | Decoration targets a column that doesn't exist — junction entity with no `Name` | The console line above | Set `{{PRIMARY_COL}}` to the real display column |
 | "New" opens an empty panel / does nothing | `#iframeModal` never received a `src` — inherited `data-toggle` alone opens an empty modal | Inspect `.addNewBtn` attributes; iframe `src` empty | The template's New-handler: `cardUrl('', true)` → `modal('show')` |
-| Click → "Page not found" | Hand-built relative URL doubled the `apps/mybusiness/` prefix (Bug 7) | The iframe `src` URL | Derive the base from `window.location.pathname` (template `cardUrl()`) |
+| Click → "Page not found" | Hand-built relative URL doubled the `apps/mybusiness/` prefix (Constraint 7) | The iframe `src` URL | Derive the base from `window.location.pathname` (template `cardUrl()`) |
 | Card opens EMPTY on an existing record | NewMaster card opened via `Mode=Ticket` or direct URL | Card's master (`Get-Page-Settings`) + the opening path | Open via `Mode=Modal` through `#SideModal`/`#iframeModal` (or pencil + `modal-left`) |
-| Click opens the WRONG entity's card | Inherited jsFile with hardcoded target still wired | `Get-Page-Settings` → `jsFile` | Replace with the template file (Bug 6 — replace, don't patch) |
+| Click opens the WRONG entity's card | Inherited jsFile with hardcoded target still wired | `Get-Page-Settings` → `jsFile` | Replace with the template file (Constraint 6 — replace, don't patch) |
 | Name-click stopped working after switching to `modal-left` | Inherited `ticket` handler silenced by the `window._hasTicketListener` guard | jsFile is still the inherited one | Same — replace with the template |
-| UI says "no permissions" | CLP uses `*` instead of roles (Bug 5), or record ACLs missing | `Get-Table-Permissions` | Role-based CLP; if records are still inaccessible, mark blocked + escalate (bulk-ACL repair is an internal ops procedure) |
+| UI says "no permissions" | CLP uses `*` instead of roles (Constraint 5), or record ACLs missing | `Get-Table-Permissions` | Role-based CLP; if records are still inaccessible, mark blocked + ask MyBusiness support (they handle the bulk-ACL repair) |
 
 **Cache & publishing — check LAST, not first.** App pages are served live from the working copy: `publishedAt`, `Get-Page-Versions` and `Set-Page-Version` belong to the public-site flow and are **not** why your change doesn't show. If an incognito window still shows the old behavior, it is **not** cache — it's the jsFile/master. Only once `Get-Page-Settings` confirms the new `jsFile` is wired and incognito behaves correctly, have the user hard-reload (Ctrl+F5).
 
@@ -453,4 +474,5 @@ Checklist:
 ## Reference Files
 
 - [references/rest-api-patterns.md](references/rest-api-patterns.md) — MCP-first policy + escalation path (with background on what the REST layer historically covered), role-based CLP, Create-Many pointer patterns, record-ACL escalation, file upload
-- [references/table-view-js-template.md](references/table-view-js-template.md) — JS template for the list page, correctly handling all 7 platform bugs above
+- [references/table-view-js-template.md](references/table-view-js-template.md) — JS template for the list page, correctly handling all 7 platform constraints above
+- [references/masterticket-card.md](references/masterticket-card.md) — Phase 4B: building the entity's card on the MasterTicket ticket shell (timeline column, ticket header, direct URL), with its verification protocol

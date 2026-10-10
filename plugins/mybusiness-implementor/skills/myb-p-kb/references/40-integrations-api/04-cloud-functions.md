@@ -1,7 +1,7 @@
 # Server-Side Extensions (Public Edition) — פונקציות צד שרת
 
 > **Purpose:** The server-side extension model of MyBusiness CRM — when no-code configuration isn't enough, custom Node functions run server-side per app.
-> **Last updated:** 2026-06-10 · **Status:** draft (public tier)
+> **Last updated:** 2026-10-09 (`simbla-capture-data`) · previously 2026-09-27 (`Config` reachable from MCP) · previously 2026-06-10 · **Status:** draft (public tier)
 
 ## 1. The model
 
@@ -10,9 +10,11 @@ Each app can have custom **server-side functions** (Parse Cloud Functions) deplo
 - runs server-side with the app's master key injected (full data access),
 - is invoked over HTTPS: `POST https://api.mbapps.co.il/functions/<appId>/<functionName>`,
 - or fires from a **trigger action** (`type: "server-side-code"` with `functionName`, or an `http` action pointing at the function URL),
-- reads per-app configuration from a restricted `Config` table (API keys for payment/SMS providers, feature flags such as `AcceptWebLeads`/`AcceptWebToTable`).
+- reads per-app configuration from the `Config` table (readable and writable over MCP) (API keys for payment/SMS providers, feature flags such as `AcceptWebLeads`/`AcceptWebToTable`).
 
-Standard platform functions you'll meet on every app include the external-form intake endpoints (`web2lead`, `web2table` — see [03-web2lead-web2table.md](03-web2lead-web2table.md)).
+Standard platform functions you'll meet on every app include the external-form intake endpoints — `getlead` (the "web2lead" pattern; there is no `web2lead` endpoint) and `web2table`, see [03-web2lead-web2table.md](03-web2lead-web2table.md). The URL segment is always the deployed function's own name; there is no name-mapping layer.
+
+A third standard function, **`simbla-capture-data`**, is the save path of a Database form with `data-use-caputure-data="true"`: it saves with the master key into the form's table, governed by a `Config` row `CaptureData<Table>` (required fields, duplicate flag, defaults) and requires the **invisible** reCAPTCHA — [../30-customization/15-public-forms.md](../30-customization/15-public-forms.md) §4.
 
 ## 2. When you need one (fit-gap signal: Custom-Server)
 
@@ -36,11 +38,11 @@ Standard platform functions you'll meet on every app include the external-form i
 ## 4. Boundaries
 
 - Functions are **developed and deployed by the MyBusiness team** — they are a development dependency with lead time; classify such requirements as Custom-Server (XL) in fit-gap and involve a developer in the estimate.
-- The `Config` table is restricted from standard tooling — provider keys and intake flags are managed with the vendor.
+- The `Config` table (intake flags, provider settings) is reachable from MCP `Get-Data`/`Create-Data`/`Update-Data`. Some rows hold provider credentials — read them only when needed, never copy them into documents, and coordinate provider-key changes with the vendor.
 - API writes performed by functions fire data triggers like any other write — design against trigger storms and chain limits (max 3 levels; see [../30-customization/06-triggers-and-automations.md](../30-customization/06-triggers-and-automations.md)).
 
 ## Limitations & gotchas
 
-- Functions bypass nothing: CLP doesn't constrain master-key code, so a buggy function can touch anything — acceptance criteria + log checks are mandatory.
+- Functions bypass nothing: CLP doesn't constrain master-key code, so a faulty function can touch anything — acceptance criteria + log checks are mandatory.
 - Phone-matching integrations commonly match on last digits — collision risk on shared lines; specify the matching rule explicitly.
 - Duplicate `Config` rows cause undefined flag reads — keep exactly one row per flag.

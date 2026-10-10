@@ -2,7 +2,7 @@
 
 > **Purpose:** The single lookup table for fit-gap classification: what the product does natively, what is configurable, what requires custom work, and what it cannot do today. Every row is evidence-backed by this package's section docs.
 > **Audience:** Implementers/AI agents in fit-gap (phase 3) and spec authoring (phase 4); sales for qualification.
-> **Last updated:** 2026-08-02 (MyBooks line-level period & discount; MyBooks document templates) · **Status:** draft — **living document: update on every fit-gap that discovers something new.**
+> **Last updated:** 2026-10-09 (public forms rows — §16) · previously 2026-09-27 (`Config` reachable from MCP) · previously 2026-08-27 (bank direct debit / מס״ב) · **Status:** draft — **living document: update on every fit-gap that discovers something new.**
 
 **Levels:** `Native` works out of the box · `Config` no-code via UI/MCP · `Custom-JS` page JS/CSS · `Custom-Server` server function (Jira) · `External` outside service (Make/Zapier/GCP) · `Gap` not acceptably solvable today. Mixed values mean "base level + caveat in Notes". ⚠️ = verify before promising (see source doc).
 
@@ -28,7 +28,7 @@
 | Lookup table + pointer + seed values in one call | Config | `newTableName`/`newTableValues` | [30/02](../30-customization/02-tables-and-fields.md) |
 | Lead+Customer in one table, flip conversion | Native | `IsAccount`; conversion **irreversible** | [10/01](../10-modules/01-crm-core.md) |
 | Multi-select (multi-pick) field | Config | **Supported native mechanism**: `array_<x>_Pointer_<T>` naming convention — runtime renders a true Select2 multi-pick, no custom JS; schema + lookup fully via MCP (myb-p-multi-select-field skill); one manual step: form-page binding via the page editor (Edit-Page can't bind it yet); query with `containedIn` | [30/11](../30-customization/11-field-patterns.md) |
-| Cascading (parent→child) dropdowns | Config | Define Parent / `subclassDepend`; full MCP support since 2026-05 | [30/11](../30-customization/11-field-patterns.md) |
+| Cascading (parent→child) dropdowns | Config | Define Parent / `subclassDepend`; full MCP support since 2026-05. **Inside an inline table row** the parent lookup stops at `tr.inline-form` — add `data-parent-elem` rather than falling back to JS | [30/11](../30-customization/11-field-patterns.md), [80/02](02-known-limitations.md) §16 |
 | Status lists filtered by record type | Config | `array_types_Pointer_*` on status tables | [10/01](../10-modules/01-crm-core.md) |
 | Auto-numbering | Native | AutoIncrement + `_AutoIncrementValues` | [20/04](../20-data-model/04-system-tables-and-logs.md) |
 | Account↔Account relations | Native | `AccountRelation` | [20/02](../20-data-model/02-core-tables.md) |
@@ -46,10 +46,16 @@
 | Card layout: sections, rows/columns, field placement | Config | Edit-Page (9 actions); ordering rules apply | [30/03](../30-customization/03-pages-and-layouts.md) |
 | Tabs & containers on pages | Config | MCP tools added 2026 | [30/03](../30-customization/03-pages-and-layouts.md) |
 | Related-records (child) tables on cards | Native | auto-filtered via classPointers; placement rule KI-9 | [30/04](../30-customization/04-table-views-and-lists.md) |
-| New form page creation | Config ⚠️ | Create-Form-Page forces NewMaster master (irreversible); standalone-URL cards = Gap | [30/03](../30-customization/03-pages-and-layouts.md) |
-| Page delete / element delete via MCP | **Gap** | rename/CSS-hide workarounds | [30/03](../30-customization/03-pages-and-layouts.md) |
+| New form page creation | Config ⚠️ | `Create-Form-Page` forces the NewMaster master, irreversibly — those cards work in the iframe sidebar only | [30/03](../30-customization/03-pages-and-layouts.md) |
+| Custom entity's card on the ticket shell (two columns + record timeline + ticket header + save bar) | Config (page work) ⚠️ | Copy a built-in ticket card with `Create-Table-View-Page(copyFromPageId)` — the copy inherits `MasterTicket`. Cost: the copy's `<form>` stays bound to the **source** class and can be neither rebound nor deleted via MCP (inject your own form in a container, remove the inherited one in page JS), and the page must declare the ticket-shell contract (`formSubmit`, `entity`, `saveEditAction`, `redirectTo`) or every save fails silently | [30/03](../30-customization/03-pages-and-layouts.md) §2a |
+| Standalone direct-URL card for a custom entity (a link from an email opens the record) | Config (page work) | Same path — `MasterTicket` reads `?oid=`, NewMaster does not | [30/03](../30-customization/03-pages-and-layouts.md) §2a |
+| Page delete / element delete via MCP | **Gap** | rename/CSS-hide workarounds; a `<form>` element is not even addressable by `Edit-Page` | [30/03](../30-customization/03-pages-and-layouts.md) §2a |
 | Page versions backup/restore | Config | Get/Set-Page-Version | [30/03](../30-customization/03-pages-and-layouts.md) |
 | Per-page custom JS/CSS; site-wide design system | Custom-JS | unified-master.css (2026-05), page-slug scoping, stable codeFile deploy | [30/03](../30-customization/03-pages-and-layouts.md) |
+| Filter a picker's options by a business rule (page JS) | Custom-JS | the native `before-autocomplete-query` / `before-select-options-loaded` events hand you the platform's own options query — pagination and type-ahead survive; a helper query or DOM filtering is the anti-pattern | [30/03](../30-customization/03-pages-and-layouts.md) §10 H-03 |
+| Block a save on a business rule (page JS) | Custom-JS | `simblaobjectbeforesave` + `throw "stop"`, fires inside `save()` so it catches every save path; async via `data.promises` | [30/03](../30-customization/03-pages-and-layouts.md) §10 H-04 |
+| Delete a tab from a page | **Gap** | creation works (`Add-Edit-Tabs-Element`); the `deleteTabs` action is destructive — has wiped card content | [30/03](../30-customization/03-pages-and-layouts.md) §5 |
+| `before-delete` event for a page/table delete action | **Gap** | no official event — a delete guard is still a click interception | [80/02](02-known-limitations.md) §16 |
 | Drag-drop page builder (containers, data tables, charts, form-to-DB widgets) | Native | Simbla editor at /WebsiteDesign (observed) | [50/02](../50-ui-walkthrough/02-admin-builder-tour.md) |
 | Dynamic pages (page-per-record by table + URL field), page access by role/login | Config | page settings Database tab (observed) | [50/02](../50-ui-walkthrough/02-admin-builder-tour.md) |
 
@@ -92,7 +98,7 @@
 | Retroactive assignment of records created while a rule was misconfigured | **Gap** | No back-fill sweep — such records stay unassigned and need manual handling | [30/06 §13](../30-customization/06-triggers-and-automations.md) |
 | Trigger chains | Config (limit) | max 3 levels; use one-time flags for idempotency | [30/06](../30-customization/06-triggers-and-automations.md) |
 | Trigger delete via MCP | **Gap** | deactivate only; delete in UI | [30/06](../30-customization/06-triggers-and-automations.md) |
-| Business-day/SLA-aware computations | Custom-Server | productized `SLA-*-v2` functions + blueprint; native SLA engine known-buggy | [30/12](../30-customization/12-solution-blueprints.md) |
+| Business-day/SLA-aware computations | Custom-Server | productized `SLA-*-v2` functions + blueprint; the native SLA runtime does not compute reliably — use the blueprint | [30/12](../30-customization/12-solution-blueprints.md) |
 | Outbound webhooks (http action) | Config | Make/Zapier/GCP targets — External class for the far side | [30/06](../30-customization/06-triggers-and-automations.md) |
 
 ## 7. Form rules (client-side logic)
@@ -102,7 +108,7 @@
 | readonly/required/hidden/fixed-value/dynamic-value/formula-value/show-message/value-from-url | Config | per form page; conditions support AND+OR | [30/07](../30-customization/07-form-rules.md) |
 | Incremental rule editing | Config | **Edit-Form-Rules only; Set-Form-Rules replaces ALL rules** | [30/07](../30-customization/07-form-rules.md) |
 | Form-rules editing UI in admin | **Gap** | no UI found in the entire admin tour — MCP/API only | [50/02](../50-ui-walkthrough/02-admin-builder-tour.md) |
-| Filter pointer dropdown options by condition | **Gap** | use cascading dropdowns (subclassDepend) instead | [30/07](../30-customization/07-form-rules.md) |
+| Filter pointer dropdown options by condition | **Gap** (form rules) / Config / Custom-JS | *form rules* cannot do it. Native cascade `subclassDepend` covers the parent-child case (`data-parent-elem` when the parent sits on the parent form); any other condition goes through the `before-autocomplete-query` event, never a helper query | [30/07](../30-customization/07-form-rules.md), [30/03](../30-customization/03-pages-and-layouts.md) §10 |
 | Cross-field validation beyond rules | Custom-JS | page JS | [30/03](../30-customization/03-pages-and-layouts.md) |
 
 ## 8. Users, roles & permissions
@@ -125,7 +131,7 @@
 | Branded PDF quote templates ({{placeholders}}, signature block) | Config | 12 live templates on playground | [30/10](../30-customization/10-price-quotes-documents.md) |
 | Quote → email/SMS send, remote e-signature, auto status | Native | PriceQuoteSign flow | [10/01](../10-modules/01-crm-core.md) |
 | JS logic inside templates | **Gap** | `<script>` breaks rendering | [30/10](../30-customization/10-price-quotes-documents.md) |
-| Fillable inputs in MCP-created templates | **Gap** ⚠️ | UI-created templates only (escalated bug) | [30/10](../30-customization/10-price-quotes-documents.md) |
+| Fillable inputs in MCP-created templates | **Gap** ⚠️ | UI-created templates only | [30/10](../30-customization/10-price-quotes-documents.md) |
 | MyBooks document PDF templates (invoice / receipt / invoice-receipt, HE+EN) | Config | **separate engine** from quotes — `{{{triple}}}` braces + `relatedData` block repeats; edits serve live, no publish | [30/10](../30-customization/10-price-quotes-documents.md) §8 |
 | Hebrew Word/PDF document generation beyond quotes | Custom-Server | hebdoc* function family | [40/04](../40-integrations-api/04-cloud-functions.md) |
 
@@ -139,6 +145,10 @@
 | Hosted payment pages + embeddable button | Native | | [10/02](../10-modules/02-mybooks.md) |
 | Retainers (recurring billing, auto-charge, 3-strike retry) | Native | inert until "פעיל"; auto-deactivates after 3rd failure | [10/02](../10-modules/02-mybooks.md) |
 | Inventory (doc-driven movements, min-stock alert) | Native | alert fires once; no backdating | [10/02](../10-modules/02-mybooks.md) |
+| Bank direct debit (מס״ב): authorizations, batches, `.msv` transmission file, document production | Native | separate from §7 retainers; shares `RetainerRows`/`RetainerPlans` | [10/02](../10-modules/02-mybooks.md) §7.1 |
+| Masav batch membership | Config | by explicit selection of charges; not driven by `NextChargeDate` | [10/02](../10-modules/02-mybooks.md) §7.1 |
+| Masav line item without a catalog product | **Gap** | a line is committed only with a `ProductId`; the produced document requires it | [10/02](../10-modules/02-mybooks.md) §7.1 |
+| Masav returns / rejections (החזרות) intake | **Gap** | the outbound leg only; no return-file processing today | [10/02](../10-modules/02-mybooks.md) §7.1 |
 | מבנה אחיד export; Hashavshevet export | Native ⚠️ | | [10/02](../10-modules/02-mybooks.md) |
 | חשבונית ישראל allocation numbers | Native | requires VAT registration; refusal fallbacks exist | [10/02](../10-modules/02-mybooks.md) |
 | Per-line subscription period (מתאריך / עד תאריך) on a document line | Config ⚠️ | fields + page JS ship with every tenant; the line-table columns **and** the PDF templates are a per-tenant enablement — without both the feature is unreachable | [10/02](../10-modules/02-mybooks.md) §4.1 |
@@ -158,7 +168,7 @@
 | Dynamic distribution groups (filters on Accounts/Contacts) | Native | | [10/03](../10-modules/03-mycampaigns.md) |
 | Groups from Excel / by Sales criteria | **Gap** | recurring JIRA request | [10/03](../10-modules/03-mycampaigns.md) |
 | Per-recipient analytics (open/click/unsubscribe) | Native | CampaignSentLog | [10/03](../10-modules/03-mycampaigns.md) |
-| Landing pages → auto-lead | Native/Config | fixed field-name contract ⚠️ doc bug on last-name key | [10/03](../10-modules/03-mycampaigns.md) |
+| Landing pages → auto-lead | Native/Config | fixed field-name contract ⚠️ confirm the last-name key on a test lead | [10/03](../10-modules/03-mycampaigns.md) |
 
 ## 12. Conversations — MyChat & WhatsApp
 
@@ -167,10 +177,11 @@
 | Multi-channel queues (WhatsApp/email), statuses, assignment | Native | | [10/04](../10-modules/04-mychat.md) |
 | Per-channel agent permissions | Config | none/own/own+unassigned/all | [10/04](../10-modules/04-mychat.md) |
 | Chatbots: visual flow, record find/create/update, webhooks, hour routing | Native/Config | | [10/04](../10-modules/04-mychat.md) |
+| Chatbot graph authoring, native editor save and browser verification | Config | MCP + browser required; playground does not certify server actions | [30/14](../30-customization/14-chatbot-authoring.md) |
 | AI agent on knowledge sources (URL/PDF) | Native | 50-msg cap | [10/04](../10-modules/04-mychat.md) |
 | Business-initiated WhatsApp | Config | Meta-approved templates only; 24h window; **channel identity = `Identity` field, NOT objectId** | [40/05](../40-integrations-api/05-messaging-channels.md) |
 | Interactive WhatsApp messages (buttons≤3, CTA, lists) | Native | via Send-WhatsApp-Message | [40/05](../40-integrations-api/05-messaging-channels.md) |
-| Quick replies, round-robin assignment, agent signatures | Gap→QA | MYCH tickets in QA 2026 — re-verify at use time | [10/04](../10-modules/04-mychat.md) |
+| Quick replies, round-robin assignment, agent signatures | Gap ⚠️ | not available at the time of writing — re-verify at use time | [10/04](../10-modules/04-mychat.md) |
 
 ## 13. Education — MyCollege · 14. Time — TimeSheet · 15. Email — MyInbox
 
@@ -184,7 +195,7 @@
 | Israeli salary buckets (125–200%, absences) | Native/Custom-Server ⚠️ | calc location unverified | [10/06](../10-modules/06-timesheet.md) |
 | Time per Case | **Gap** | JIRA request | [10/06](../10-modules/06-timesheet.md) |
 | Email layer linked to all core entities; Gmail OAuth/IMAP sync | Native/Config ⚠️ | minimal docs; immature | [10/07](../10-modules/07-myinbox-and-misc.md) |
-| mail2case + attachments | Native + Custom-Server | fragile edge cases (bug family) | verified in production implementations |
+| mail2case + attachments | Native + Custom-Server | edge cases need care — verify attachment handling per install | verified in production implementations |
 
 ## 16. Intake: forms & portals
 
@@ -192,7 +203,13 @@
 |---|---|---|---|
 | Website form → lead (web2lead) with phone-format dedup statuses | Native | always inserts; duplicates flagged, **no merge** | [40/03](../40-integrations-api/03-web2lead-web2table.md) |
 | Form → any table + linked Account (web2table) | Native | `account_`/`table_` buckets; **does not update existing Accounts**; deployed code requires phone ⚠️ | [40/03](../40-integrations-api/03-web2lead-web2table.md) |
-| Enable-flags (AcceptWebLeads / AcceptWebToTable) | Config | Config table is MCP-restricted — UI/REST/dev | [40/03](../40-integrations-api/03-web2lead-web2table.md) |
+| Enable-flags (AcceptWebLeads / AcceptWebToTable) | Config | `Config` rows via MCP `Create-Data`/`Update-Data`, UI grid or REST | [40/03](../40-integrations-api/03-web2lead-web2table.md) |
+| Public form on a CRM page → open intake table (native Database form + platform reCAPTCHA) | Native | dedicated intake with `create` = staff roles + `"*"`; no phone, no Account side effects; rows `createdBy = Public`; page built fully via MCP (clone a master-less public page) — verified 2026-10-09 | [30/15](../30-customization/15-public-forms.md) |
+| Public form into a closed table with server-side required fields / duplicate flag / defaults (`simbla-capture-data`) | Config | `data-use-caputure-data="true"` + one `Config` row `CaptureData<Table>`; **invisible reCAPTCHA only** — verified 2026-10-09 | [30/15](../30-customization/15-public-forms.md) §4 |
+| One-click rating from email / SMS with no personal data in the link | Native + Custom-JS (small) | invisible reCAPTCHA + `value-from-url` + an auto-submit page script; pointer to a closed business record set at save time | [30/15](../30-customization/15-public-forms.md) §3.10 |
+| Public link gated by an invite record (expiry, prefill, greeting) | Config + Custom-JS (small) | invite table opened for `get` only; a public `get` serves every column | [30/15](../30-customization/15-public-forms.md) §3.7 |
+| File attachment on a public native form | **Gap** | anonymous upload refused and the page reloads (known-limitation 114); `web2table` accepts a File object | [30/15](../30-customization/15-public-forms.md) §3.9 |
+| Anonymous update of an existing row by id | Config ⚠️ | only by opening `update:"*"` — no bot check on updates; not recommended | [30/15](../30-customization/15-public-forms.md) §2.4 |
 | Portal scaffolding pages (PortalLogin / PortalMaster / PortalOrders) | Native | ship in the vanilla app, gated `loginOnly` + `allowedRoles` (live-verified on playground) | [30/13](../30-customization/13-customer-portals.md) |
 | Portal users — unlimited external logins, no seat consumption | Native | `relatedPackages: []`; thousands of portal users can run on a handful of seats (field-verified) | [30/13](../30-customization/13-customer-portals.md) |
 | Page access gating (`loginOnly` + `allowedRoles` by role name) | Config | live Get-Page-Settings on shipped portal pages | [30/13](../30-customization/13-customer-portals.md) |
@@ -204,7 +221,7 @@
 | Server-side row-level scoping for portals (advanced permissions) | Config | admin-UI only, not readable/writable via API tools; per-tenant optional — the REST isolation test is the go-live gate | [30/13](../30-customization/13-customer-portals.md) |
 | Per-user document download (PrivateFile + session token) | Config | file URL authorized against read access to the owning record; fetch with `X-Parse-Session-Token` | [30/13](../30-customization/13-customer-portals.md) |
 | Staff portal impersonation ("login as account") | Custom-JS | `?loginAsAccount` + `criteria-added-to-query` narrowing; on-screen banner + post-login-sync guard | [30/13](../30-customization/13-customer-portals.md) |
-| Turnkey portal product | **Gap** | every portal is assembled per customer; only MyCollege's student portal is productized (ships with audit defects) | [30/13](../30-customization/13-customer-portals.md) |
+| Turnkey portal product | **Gap** | every portal is assembled per customer; only MyCollege's student portal is productized, and it needs hardening per install | [30/13](../30-customization/13-customer-portals.md) |
 | File upload from external forms | Config + Custom-Server | seen at multiple customers | verified in production implementations |
 
 ## 17. Integrations, API & server-side
@@ -228,7 +245,12 @@
 |---|---|---|---|
 | Public file upload; stable code-file deploys; private files via record URI | Native | file-storage:/// resources | [40/06](../40-integrations-api/06-files-and-storage.md) |
 | File deletion / storage quota self-service | **Gap** | outOfStorage flag via reseller API only | [40/06](../40-integrations-api/06-files-and-storage.md) |
-| Record-change audit (_Timeline), trigger log (_syslogTriggers), events (_syslogEvents) | Native | objectClass+objectIdValue query pattern; internal-only knowledge | [20/04](../20-data-model/04-system-tables-and-logs.md) |
+| Record-change audit (_Timeline), trigger log (_syslogTriggers), events (_syslogEvents) | Native | 11 tables tracked out of the box; objectClass+objectIdValue query pattern | [20/04](../20-data-model/04-system-tables-and-logs.md) §1 |
+| Turn on record-timeline audit for any other table (incl. custom) | Config | `Set-Timeline-Settings`: index=Pointers → which cards show the entry, displayFields=values → the entry text. No backfill; whole-object replace | [20/04](../20-data-model/04-system-tables-and-logs.md) §1.1, [40/02](../40-integrations-api/02-mcp-tools-catalog.md) §8a |
+| Show that timeline on a non-built-in record card | Config (page work) | Recording alone renders nothing: the shared `apps/mybusiness/Timeline` page needs the class in `window.timelineClasses`, a scoping filter field wired as a pointer, an `<li>` template block, 4 CSS rules and an iframe on the card — per tenant, and the page serves every card in it | [20/04](../20-data-model/04-system-tables-and-logs.md) §1.11 |
+| Timeline feed on a `Notes` / `Emails` / `SMS` / `Conversations` / `PriceQuotes` card | **Gap** | those are entry *types*; the renderer's host whitelist defaults to 6 classes only | [20/04](../20-data-model/04-system-tables-and-logs.md) §1.11.1 |
+| Audit of user / role / permission changes | **Gap** | `_User` is restricted from timeline settings — no `_Timeline` trail for identity changes | [20/04](../20-data-model/04-system-tables-and-logs.md) §1.2 |
+| Audit that answers "what was deleted" | **Gap** ⚠ | delete rows keep only class+objectId+user+time — no field values, no parent pointers, and never appear on the record card | [20/04](../20-data-model/04-system-tables-and-logs.md) §1.4 |
 | App provisioning, package/seat/validity management | Native (internal) | SiteAdmin reseller API | [00/04](../00-overview/04-environments-and-access.md) |
 | Customer self-served app installs | Native | app-market installers: MyBooks/MyCampaigns/MyCommerce/MyInbox only | [10/07](../10-modules/07-myinbox-and-misc.md) |
 

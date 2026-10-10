@@ -1,7 +1,5 @@
 # 3. Connect with application credentials — Application Id + API key
 
-> **Codex 1.3.0:** Follow [the installed variant guide](../../../SETUP-CODEX.md). OAuth uses the bundled MCP and Authenticate; the App ID/token variant uses personal MCP settings. Older availability notes below are historical, not a current Codex support verdict.
-
 Two values from one screen, both of which you generate yourself. No support ticket, no browser sign-in — which
 makes this the connection to use for Claude Code and any other desktop/CLI client today.
 

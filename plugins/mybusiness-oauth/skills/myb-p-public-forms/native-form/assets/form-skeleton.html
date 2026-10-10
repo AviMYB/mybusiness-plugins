@@ -1,0 +1,57 @@
+<!--
+  Public native form - skeleton for Edit-Page `set-html-content` into the cloned page's main container.
+  Replace before sending:
+    __TITLE__            heading shown to the visitor
+    __INTAKE__           the intake class (data-simbla-class decides the table - nothing else does)
+    __SUCCESS_TEXT__     text shown after a successful save
+    __REDIRECT__         relative path of the thank-you page ("/Thanks"), or "" to stay on the page
+    __CAPTCHA__          visible:   <div class="simblaEL simblaRecaptcha" data-drag="PF30" id="PF30"><div class="captcha"></div></div>
+                         invisible: <div class="g-recaptcha-invisible"></div>
+    PF..                 element ids - any ids not already used on the page
+  Then: add fields with Edit-Page add-new-field into row PF21 (toExistingRow "PF21", columns 0 and 1),
+  more rows with add-row newRowAfterRow. Keep the payload small; keep paths relative (the edge WAF has
+  rejected a payload carrying an absolute URL).
+-->
+<div class="container" data-title="Container" style="max-width:760px;padding:30px 15px;">
+  <div class="row simblaEL rDivider" data-drag="PF10" id="PF10" data-title="Row">
+    <div class="sDivider col-md-12 index0" data-colsize="12" data-title="Column">
+      <div class="simblaEL tcH" data-drag="PF11" id="PF11"><div class="textContainer H2"><h2>__TITLE__</h2></div></div>
+      <div class="simblaEL tc" data-drag="PF12" id="formClosed" style="display:none"><div class="textContainer"><p>הקישור אינו בתוקף יותר.</p></div></div>
+      <form class="simblaEL dbForm create-simbla-obj" data-drag="PF20" id="PF20" data-title="Database form"
+            name="__INTAKE__" data-simbla-class="__INTAKE__"
+            data-success="__SUCCESS_TEXT__" data-failure="" data-success-redirect="__REDIRECT__"
+            data-use-caputure-data="false">
+        <div class="row simblaEL rDivider" data-drag="PF21" id="PF21" data-title="Row">
+          <div class="sDivider col-md-6 index0" data-colsize="6" data-title="Column"></div>
+          <div class="sDivider col-md-6 index1" data-colsize="6" data-title="Column"></div>
+        </div>
+        <div class="row simblaEL rDivider" data-drag="PF22" id="PF22" data-title="Row">
+          <div class="sDivider col-md-12 index0" data-colsize="12" data-title="Column">
+            __CAPTCHA__
+            <button type="submit" class="simblaEL btn btn-primary" data-drag="PF31" id="PF31">שליחה</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<!--
+  Markup for inputs add-new-field does not generate (set-html-content on the field's .form-group id):
+
+  Radio scale (stored as Number; cannot drive a form rule):
+    <label>דירוג (1-5)</label><div class="control">
+      <label class="radio-inline"><input type="radio" name="Rating" value="1" required> 1</label>
+      <label class="radio-inline"><input type="radio" name="Rating" value="2"> 2</label> ... </div>
+
+  Select scale (use this when a rule reads the rating; rule values are strings):
+    <label for="Rating">דירוג</label><select class="form-control" id="Rating" name="Rating" required>
+      <option value=""></option><option value="5">5</option> ... <option value="1">1</option></select>
+
+  Textarea:
+    <label for="Comments">הערות</label><textarea class="form-control" id="Comments" name="Comments" rows="3"></textarea>
+
+  Hidden context field (fill with a value-from-url rule; the URL parameter carries the field's name):
+    <input type="hidden" name="Source" id="Source">
+
+  The "link expired" block (#formClosed, hidden by default) is only used with invite-gate.js; delete it otherwise.
+-->

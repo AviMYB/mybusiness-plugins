@@ -390,7 +390,7 @@ Automatic email delivery of report results.
 
 Treat the report as "scheduled" only after the user confirms the UI save was done. Verifying the record exists in `_DynamicQueries` (Get-Reports) is NOT sufficient verification for scheduling.
 
-**Known issue**: The scheduling feature (`ScheduleSendAt` + `ScheduleSendTo`) causes a `Simbla is not defined` error in some environments (especially the demo environment). This is a platform-level bug, not a syntax issue. If you encounter this error:
+**Environment note**: in some environments the scheduling feature (`ScheduleSendAt` + `ScheduleSendTo`) returns a `Simbla is not defined` error. It is an environment/runtime condition rather than a problem with your report definition. If you encounter it:
 1. Create the report first **without** ScheduleSendAt/ScheduleSendTo
 2. The scheduling can be configured manually through the CRM UI after report creation
 3. Always ensure ScheduleSendTo has a valid email when ScheduleSendAt is set
@@ -407,12 +407,12 @@ The compound report record in `_DynamicQueries` is minimal — no ClassName, Sho
 
 ### Important: MCP tool does NOT support compound reports
 
-The `Create-or-Update-Report` MCP tool ignores `SubqueriesInfo` and creates a regular report instead. Compound assembly is **not yet exposed via an MCP tool** — this is a tracked tooling gap. From a session, mark the compound step as blocked and hand it to the MyBusiness team (internal ops path); never go around the tool-permission layer.
+The `Create-or-Update-Report` MCP tool ignores `SubqueriesInfo` and creates a regular report instead. Compound assembly is **not exposed through an MCP tool**. From a session, mark the compound step as blocked and hand it to MyBusiness support; never go around the tool-permission layer.
 
 ### How to create step by step
 
 1. **Get PageId and FormName** from an existing report on the target page (use `Get-Data` on `_DynamicQueries` with a `where` filter, or `Get-Reports`).
-2. **Hand the assembly to the MyBusiness team** (internal ops path) with the sub-report objectIds, PageId, and FormName. The team writes the record to `_DynamicQueries`; credentials are fetched at runtime via the `get-secret` CLI (secrets-manager skill) — never stored in files or pasted. Never read keys out of `.mcp.json` or paste them into commands.
+2. **Hand the assembly to MyBusiness support** with the sub-report objectIds, PageId, and FormName; they write the record to `_DynamicQueries`. Never read keys out of a config file or paste them into commands to do it yourself.
 3. **Record payload shape** (what the executing team writes to `_DynamicQueries`):
 
 ```json
@@ -440,14 +440,14 @@ The `Create-or-Update-Report` MCP tool ignores `SubqueriesInfo` and creates a re
 - In the UI, each sub-report appears as a clickable link. Clicking shows that sub-report's results.
 - The record uses **ACL format** (not permissions/editPermissions) because it is written directly to `_DynamicQueries`, not through the report tool.
 - **Use Hebrew in Name via unicode escapes** (`\u05d3\u05d5\u05d7`) if the executing environment has UTF-8 encoding issues.
-- **Credentials**: held only by the MyBusiness team's internal ops path, fetched at runtime via the `get-secret` CLI (secrets-manager skill) — never stored in files, never read from `.mcp.json`, never pasted into commands.
+- **Credentials**: this step is performed by MyBusiness support. Never store a key in a file, read one out of a config file, or paste one into a command.
 
 ### How to Create
 
 1. Create the base report via MCP tool (must be aggregated) — note its objectId
 2. Create additional sub-reports via MCP tool (all must be aggregated) — note their objectIds
 3. Get PageId and FormName from an existing report (use Get-Data on `_DynamicQueries`)
-4. Hand the compound assembly (the payload shape above, with the collected objectIds/PageId/FormName) to the MyBusiness team — internal ops path; credentials only via `get-secret` at runtime
+4. Hand the compound assembly (the payload shape above, with the collected objectIds/PageId/FormName) to MyBusiness support
 
 ### Example: Sales Dashboard Compound
 
@@ -683,7 +683,7 @@ If you don't know the FormName for a page:
 
 ### Example 6: Aggregate by Pointer (avoids "Group object must contain values")
 
-The pattern that's most commonly broken — sales pipeline grouped by sale status. Read the Three-Field Trinity in the SKILL.md before configuring.
+The pattern most often built wrong — sales pipeline grouped by sale status. Read the Three-Field Trinity in the SKILL.md before configuring.
 
 ```json
 {

@@ -1,6 +1,6 @@
 # Table View Page JS Template
 
-Template for the custom JavaScript file uploaded for the list page. This template is battle-tested against all the platform bugs documented in SKILL.md.
+Template for the custom JavaScript file uploaded for the list page. This template is battle-tested against all the platform constraints documented in SKILL.md.
 
 ## Why this specific structure
 
@@ -9,8 +9,8 @@ Template for the custom JavaScript file uploaded for the list page. This templat
 3. **Idempotent decoration** — checks `!$td.find('a.entity-link').length` before re-wrapping, so polling doesn't duplicate work.
 4. **Name click opens the entity card** — by triggering the row's edit pencil, which opens the Phase-4 card per the list's `editView` (`modal-left` + `useIframe`; SKILL.md Constraint 1 — NewMaster works fine inside the iframe). When no pencil is present, a direct `Mode=Modal` open is used as fallback. If the list is configured inline-only, the same click simply enters inline edit.
 5. **`{{PRIMARY_COL}}` instead of a hardcoded `Name`** — junction entities (enrollments, order-lines, memberships) have **no `Name` column**; their display column is a pointer-display like `AccountId.Name`. A hardcoded `Name` lookup returns jQuery index `-1` and the decoration becomes a silent no-op — nothing clickable, no error. The template warns and falls back to the first column so the failure is at least visible.
-6. **`cardUrl()` derives from `window.location.pathname`** — hand-built `apps/mybusiness/...` links double the prefix and 404 (SKILL.md Bug 7), and irregular plurals break naive `s`-stripping; deriving the directory and appending `{{CARD_PAGE}}` avoids both.
-7. **"New" sets the iframe `src` itself** — the inherited `data-toggle="modal"` alone opens an **empty** side panel (the classic «"New" does nothing» bug). The handler must point `#iframeModal` at an empty card and then show `#SideModal`.
+6. **`cardUrl()` derives from `window.location.pathname`** — hand-built `apps/mybusiness/...` links double the prefix and 404 (SKILL.md Constraint 7), and irregular plurals break naive `s`-stripping; deriving the directory and appending `{{CARD_PAGE}}` avoids both.
+7. **"New" sets the iframe `src` itself** — the inherited `data-toggle="modal"` alone opens an **empty** side panel (the classic «"New" does nothing» symptom). The handler must point `#iframeModal` at an empty card and then show `#SideModal`.
 8. **Hides `.db-form-add`** — the leaked `Add new row` green button from Simbla's built-in that shows when `allowEdit=true`.
 9. **Fixes inherited `data-simbla-class="Cases"`** — `Create-Table-View-Page` copies from the Cases page.
 
@@ -26,13 +26,13 @@ var EntityIcon = '<i class="fa {{ICON_CLASS}}" style="padding-left: 7px; color: 
 // --- Card opening (NewMaster path) ------------------------------------------
 // The Phase-4 card is NewMaster-based: it opens ONLY inside the side-iframe via
 // Mode=Modal (#SideModal + #iframeModal). The inherited Mode=Ticket /
-// #SideModalTicket path serves built-in MasterTicket cards (Account/Task/Case)
+// #SideModalTicket path serves MasterTicket cards (built-ins, and Phase 4B cards)
 // and shows an EMPTY card for this entity — never use it here.
 // Query-string shape below was live-verified on a production tenant (2026-07);
 // if the card loads empty, read the URL the row-pencil path generates on a
 // working entity and mirror it exactly.
 function cardUrl(oid, isNew) {
-    var dir = window.location.pathname.replace(/[^\/]+$/, '');   // directory of the list page — avoids Bug 7
+    var dir = window.location.pathname.replace(/[^\/]+$/, '');   // directory of the list page — avoids Constraint 7
     return dir + '{{CARD_PAGE}}?oid=' + (oid || '') + '&Mode=Modal&cls={{ENTITY_NAME}}'
          + (isNew ? '&New{{ENTITY_NAME}}=true' : '');
 }
@@ -210,6 +210,6 @@ $(function(){
 
 - **The pencil path** — `editView: {openFrom: "modal-left", useIframe: true, page: "<card>"}` (SKILL.md Phase 5c) opens the card correctly. This is what the name-click handler triggers.
 - **The direct path** — set `#iframeModal`'s `src` to the card URL with `Mode=Modal` and call `$('#SideModal').modal('show')`. Same result; used by this template's "New" handler and the name-click fallback.
-- **What does NOT work** — plain `<a href="Entity?oid=X">` navigation (NewMaster reads nothing from the URL), and the inherited `Mode=Ticket` → `#SideModalTicket` path, which serves **MasterTicket** cards only (the built-in Account/Task/Case). Do not imitate a built-in list's mechanics (e.g. the Accounts list JS) on a NewMaster card — that mismatch is exactly the "clicking does nothing / card opens empty" class of bugs.
+- **What does NOT work** — plain `<a href="Entity?oid=X">` navigation (NewMaster reads nothing from the URL), and the inherited `Mode=Ticket` → `#SideModalTicket` path, which serves **MasterTicket** cards only. Do not imitate a built-in list's mechanics (e.g. the Accounts list JS) on a NewMaster card — that mismatch is exactly the "clicking does nothing / card opens empty" class of symptoms. (If the entity's card was built on MasterTicket by Phase 4B, the opposite holds: `Mode=Ticket` is the correct path and the two above are the wrong ones.)
 
-If the user insists on a standalone URL-addressable card like the Account card, that requires manually cloning a MasterTicket card in the Simbla page-builder UI (outside MCP scope).
+If the entity needs a standalone URL-addressable card like the Account card — or the record timeline — that is a different card, built on **MasterTicket** by copying a built-in ticket card. See SKILL.md Phase 4B and [masterticket-card.md](masterticket-card.md); the list JS then wires `Mode=Ticket` → `#iframeModalTicket` instead of the two paths above.

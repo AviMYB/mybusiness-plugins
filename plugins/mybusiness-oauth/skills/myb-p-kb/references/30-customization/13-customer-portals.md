@@ -72,5 +72,5 @@ Portals are **L–XL, phased** engagements: a working v1 (auth + personal area +
 - **First-load race conditions** are endemic: page JS that runs before the user's record loads renders empty forms/tables intermittently — bind logic to the account-loaded event, never to DOMContentLoaded.
 - **Logout lands on the staff login** unless a redirect cookie/handler is set in the portal master JS.
 - `allowedRoles` gates by role **name string** — renaming a role silently breaks gating.
-- Per-year page-set duplication (common for annual cycles) accumulates debris and forks bugs — plan an inventory hygiene pass.
+- Per-year page-set duplication (common for annual cycles) accumulates debris and forks divergent copies — plan an inventory hygiene pass.
 - No turnkey portal product exists (except the MyCollege student portal) — every portal is assembled; budget accordingly.

@@ -57,7 +57,7 @@ User lookups are trickier because:
 Check the results for a name match. If found, use the objectId.
 
 ### Step 2: If not found — escalate
-The 100-user cap on `Get-all-Users` is a documented tool limitation, and there is no sanctioned way to search beyond it from here. Mark the affected rows as blocked and escalate to the MyBusiness team to resolve the user's objectId (internal ops path; credentials only via get-secret at runtime). Never work around the tool-permission layer.
+The 100-user cap on `Get-all-Users` is a documented tool limitation, and there is no sanctioned way to search beyond it from here. Mark the affected rows as blocked and ask MyBusiness support to resolve the user's objectId. Never work around the tool-permission layer.
 
 ### Step 3: Handle ambiguity
 If multiple users match (e.g., searching "ירון" returns "ירון נפרסטק", "ירון וולפה", "ירון גרוסמן"), use the FULL name from the file to select the correct one.

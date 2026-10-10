@@ -27,7 +27,7 @@ No third variant. Install only one. OAuth discovery was checked; live sign-in st
 
 The plugin supplies skills; configure the personal MCP separately in Codex Settings. No custom window, Python or external vault is required. [Exact setup / הוראות מלאות](plugins/mybusiness-implementor/SETUP-CODEX.md). Upgrade the marketplace and reinstall to migrate from 1.2.0; existing personal MCP connections remain independent of the plugin.
 
-![AI agents](https://img.shields.io/badge/AI_agents-plugin-d97757) ![Agent Plugins](https://img.shields.io/badge/Agent_Plugins-1.0-24292e) ![version](https://img.shields.io/badge/version-1.4.0-007ec6) ![skills](https://img.shields.io/badge/skills-23-007ec6) ![ISO 27001](https://img.shields.io/badge/security-ISO_27001-2ea44f)
+![AI agents](https://img.shields.io/badge/AI_agents-plugin-d97757) ![Agent Plugins](https://img.shields.io/badge/Agent_Plugins-1.0-24292e) ![version](https://img.shields.io/badge/version-1.5.0-007ec6) ![skills](https://img.shields.io/badge/skills-24-007ec6) ![ISO 27001](https://img.shields.io/badge/security-ISO_27001-2ea44f)
 
 The official **[MyBusiness CRM](https://www.mybusiness.co.il)** plugin **for AI agents** — Claude Code, Codex, Claude Cowork, ChatGPT Work, Cursor, GitHub Copilot and the rest. MyBusiness is a Hebrew-first, Israeli business-management platform: CRM core (leads, accounts, sales, cases, tasks) plus the MyBooks (billing), MyCampaigns (marketing), MyChat (WhatsApp), MyCollege (courses) and TimeSheet modules.
 
@@ -66,12 +66,12 @@ Here the AI **does not write a system from scratch — it configures one on top 
 |---|---|
 | Getting connected | `myb-p-getting-started` (account, first login, Application Id + API key, verification, other clients) |
 | Knowledge & analysis | `myb-p-kb` · `myb-p-fit-gap` (requirements fit-gap analysis) |
-| Data model | `myb-p-create-entity` · `myb-p-multi-select-field` · `myb-p-parent-child-fields` · `myb-p-timestamp-field` · `myb-p-rename-terms` |
+| Data model | `myb-p-create-entity` · `myb-p-multi-select-field` · `myb-p-parent-child-fields` · `myb-p-timestamp-field` · `myb-p-record-timeline` (record timeline / change log) · `myb-p-rename-terms` |
 | Local prototypes | `myb-p-mockup-templates` |
-| Pages & UI | `myb-p-page-builder` · `myb-p-page-tables` · `myb-p-create-settings-page` · `myb-p-dashboards` · `myb-p-create-update-reports` |
-| Automation | `myb-p-trigger-setup` · `myb-p-form-rules` · `myb-p-sla-configuration` |
-| Data & integrations | `myb-p-data-import` · `myb-p-web2lead-web2table` |
-| Service quality | `myb-p-csat-survey` (post-case satisfaction survey) |
+| Pages & UI | `myb-p-card-design` (record cards, layout & aesthetics) · `myb-p-page-tables` · `myb-p-create-settings-page` · `myb-p-dashboards` · `myb-p-create-update-reports` |
+| Automation | `myb-p-trigger-setup` · `myb-p-form-rules` · `myb-p-sla-configuration` · `myb-p-chatbots` (MyChat bots) |
+| Data & integrations | `myb-p-data-import` · `myb-p-public-forms` (public forms: website forms, forms on a CRM page, one-click links) |
+| Service quality | `myb-p-public-forms` → `csat/` (post-case satisfaction survey) |
 | Billing & quotes | `myb-p-mybooks-setup` · `myb-p-price-quote-template` |
 | Users & access | `myb-p-users-roles-permissions` |
 

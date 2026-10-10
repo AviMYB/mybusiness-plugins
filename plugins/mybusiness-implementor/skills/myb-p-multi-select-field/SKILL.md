@@ -33,7 +33,7 @@ Each part has meaning:
 3. Wire up Select2 with `data-criteria=containedIn`
 4. Save selected values as a Parse `Array` of pointer objectIds
 
-No other approach (renaming, post-load JS injection, plain `Array` field type) reliably produces a working multi-select. If you skip the name pattern, you'll get a broken `<input type="array">` or a single-select `<select>` instead of the multi-pick.
+No other approach (renaming, post-load JS injection, plain `Array` field type) reliably produces a working multi-select. If you skip the name pattern, you get a non-functional `<input type="array">` or a single-select `<select>` instead of the multi-pick.
 
 ## What ends up on the rendered page
 
@@ -120,7 +120,7 @@ Add-Field-to-Table(
 
 ### 4. Add the field to the form page
 
-This is the step where the MCP `Edit-Page` tool **does not have full support** for the name-pattern convention. As of testing, calling `Edit-Page(action: "add-new-field", fieldType: "Array")` produces a broken `<input type="array">`, and `fieldType: "Pointer"` produces a single-select `<select>` missing `multiple`, `data-view-key`, etc.
+This is the step where the MCP `Edit-Page` tool **does not cover** the name-pattern convention: `Edit-Page(action: "add-new-field", fieldType: "Array")` renders `<input type="array">`, which is not a working control, and `fieldType: "Pointer"` renders a single-select `<select>` without `multiple`, `data-view-key` and the rest.
 
 **Reliable path — Simbla Page Editor UI (manual)**:
 1. Open the form page in the Simbla page editor (CRM → page settings → edit page)

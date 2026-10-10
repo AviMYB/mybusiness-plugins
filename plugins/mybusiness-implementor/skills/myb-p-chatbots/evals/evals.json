@@ -1,0 +1,34 @@
+{
+  "skill_name": "myb-p-chatbots",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "In the explicitly supplied demo tenant, build an inactive unbound Hebrew training-center chatbot with course information and menu return, consultation collecting name/phone with personalized summary, and student self-service plus name/email/issue collection. Save native defaults. Verify the graph, every action settings form, native save/refresh, reload and all conversation branches. Report actual failures and distinguish simulator evidence from server behavior.",
+      "expected_output": "A saved editable bot, inspected map and conversation evidence, complete scenario matrix. Personalization remains failed if the tested product version renders blank fields; a correct database record alone is not a pass.",
+      "files": [],
+      "expectations": [
+        "The target tenant matches in MCP and browser and the bot remains inactive/unbound.",
+        "Every option has a real matching child and valid route; all endpoints exist.",
+        "A genuine native save refreshes settings and the semantic graph survives reload.",
+        "Every action type and branching node opens populated editable settings.",
+        "Every offered branch, return and endpoint is exercised.",
+        "Rendered personalized values match entered values or the mismatch is explicitly reported failed.",
+        "The report distinguishes editor, playground and untested runtime/channel behavior."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Build an excellent inactive unbound Hebrew course-selection demo. Main menu: guided recommendation, catalogue, consultation, finish. Ask goal (office efficiency/project leadership) and experience (beginner/experienced), with four distinct useful recommendations. Catalogue compares three fictional courses. Each recommendation and catalogue permit return or finish. Consultation collects demo name/phone and shows a complete truthful generic receipt without echoing personal fields or claiming notification. A friendly message appears before close. Verify all paths, map readability, editable settings, native save/refresh, defaults and reload using MCP and browser.",
+      "expected_output": "A polished saved bot whose supported conversation paths pass actual browser tests, with complete inspected images and precise remaining runtime limitations. This separate scenario does not resolve or relabel the personalization diagnostic from case 1.",
+      "files": [],
+      "expectations": [
+        "Four goal-experience combinations produce distinct appropriate recommendations.",
+        "Catalogue, consultation, all return paths and all finish choices work.",
+        "Visible copy is concise Hebrew with no empty dynamic phrases or false operational claims.",
+        "The full map and readable detail view show no unintended overlap or disconnection.",
+        "Settings, graph and defaults survive native save and fresh readback.",
+        "Evidence includes actual inspected map/conversation images and a scenario matrix."
+      ]
+    }
+  ]
+}

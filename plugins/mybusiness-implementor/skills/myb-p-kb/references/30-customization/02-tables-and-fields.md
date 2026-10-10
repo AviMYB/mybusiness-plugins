@@ -53,7 +53,7 @@ Field object (same shape for `Create-Table` and `Add-Field-to-Table`):
 
 | Schema type | Renders on a form as | Typical use | Notes |
 |---|---|---|---|
-| `String` | `<input type="text">` | names, free text | Fields named exactly `Comment` / `Description` / `Notes` auto-render as `<textarea>` at runtime; any other long-text name renders single-line (fix via page JS — see [03-pages-and-layouts.md](03-pages-and-layouts.md)). Fields named `Email`/`Website`/phone-like get matching HTML input types |
+| `String` | `<input type="text">` | names, free text | `Edit-Page add-new-field` stores **every** String as a single-line `<input type="text">` — `Comment`/`Description`/`Notes` included (verified 2026-10-06: no name-based textarea conversion exists in the page runtime or the masters; built-in cards carry `<textarea>` in their stored page HTML). Long text = store textarea markup with `set-html-content` — see [03-pages-and-layouts.md](03-pages-and-layouts.md) §9. Fields named `Email`/`Website`/phone-like get matching HTML input types |
 | `Number` | `<input type="number">` | amounts, ratings | Sum/avg/min/max in tables & reports work only on Number |
 | `Boolean` | checkbox | flags (`Active`, `IsVIP`) | |
 | `Date` | date picker | deadlines, events | Stored as Parse Date `{"__type":"Date","iso":"YYYY-MM-DDTHH:MM:SS.MSSZ"}` |

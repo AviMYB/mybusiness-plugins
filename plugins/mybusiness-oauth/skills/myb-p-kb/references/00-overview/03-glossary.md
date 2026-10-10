@@ -1,7 +1,7 @@
 # Bilingual Glossary (Hebrew ↔ English)
 
 > **Purpose:** Canonical Hebrew↔English term map for MyBusiness CRM — entities, platform terms, modules, roles, statuses — including which terms customers commonly rename per tenant.
-> **Last updated:** 2026-06-10 · **Status:** draft
+> **Last updated:** 2026-10-09 (Database form, intake table, capture-data; Web2Lead row points at `myb-p-public-forms`) · previously 2026-06-10 · **Status:** draft
 
 ---
 
@@ -95,7 +95,7 @@ Account statuses (`AccountStatuses`): פעיל (Active), לא פעיל (Inactive
 | masterPage | דף אב / מאסטר | Layout shell page with `_dynamicContentArea` placeholder; child pages (with `masterPageId`) merge into it at runtime | Usage-Guide |
 | Table View / list page | תצוגת טבלה / דף רשימה | Page showing all records of an entity (plural URL, e.g. `accounts`) | Usage-Guide |
 | Form Page | דף טופס / דף כרטיס | Page editing a single record (singular URL, e.g. `account`); binds via `data-simbla-class` | Usage-Guide |
-| Card page | דף כרטיס | Colloquial name for a record's form page (e.g. כרטיס לקוח = Account card) | myb-p-page-builder skill |
+| Card page | דף כרטיס | Colloquial name for a record's form page (e.g. כרטיס לקוח = Account card) | myb-p-card-design skill |
 | rDivider / sDivider | שורה / עמודה | Grid row / column divs inside form pages; one field per column | Usage-Guide |
 | Terminology Dictionary | מילון מונחים | Per-tenant entity-rename map (Hebrew→Hebrew display) | Live Get-Terminology-Dictionary |
 | Dashboard | דאשבורד / לוח מחוונים | Analytics page of counters + charts (simbla-counter / simbla-chart elements) | myb-p-dashboards skill |
@@ -109,7 +109,10 @@ Account statuses (`AccountStatuses`): פעיל (Active), לא פעיל (Inactive
 | Portal user | משתמש פורטל | External customer login (`isPortalUser` on `_User`), no license seat | the support reference; Get-Packages (portal user with empty `relatedPackages`) |
 | Page slug | — | Stable `body.page-slug-<name>` class used for portable CSS scoping (vs non-portable page-id hashes) | the design-system reference |
 | SLA | זמן תקן לטיפול / SLA | Case-handling deadline mechanism (`SLASettings`, `BusinessHours`, `CaseStates`, `CasesSlaProcess`) | myb-p-sla-configuration skill; the support reference |
-| Web2Lead / Web2Table | קליטת לידים מטופס | Cloud functions that create CRM records from external HTML forms | myb-p-web2lead-web2table skill |
+| Web2Lead / Web2Table | קליטת לידים מטופס | Cloud functions that create CRM records from external HTML forms. **Pattern names, not both endpoint names** — the lead endpoint is `getlead`, the table endpoint is `web2table` | `myb-p-public-forms` skill (`web2/`) |
+| Database form (dbForm) | טופס מסד נתונים | The native page form that saves a record (`data-simbla-class` = the table). On a public page with the platform reCAPTCHA it lets anonymous visitors create rows in a table whose `create` includes `"*"` | [../30-customization/15-public-forms.md](../30-customization/15-public-forms.md) |
+| Intake table | טבלת קליטה | Dedicated table that receives public submissions; a trigger projects what is needed onto the business record, which stays closed | [../30-customization/15-public-forms.md](../30-customization/15-public-forms.md) |
+| capture-data | — | `data-use-caputure-data` save mode of a Database form → server function `simbla-capture-data` (master key, `Config` row `CaptureData<Table>`, invisible reCAPTCHA) | [../30-customization/15-public-forms.md](../30-customization/15-public-forms.md) §4 |
 | Multi-select field | שדה בחירה מרובה | Array-of-pointers field via name pattern `array_<purpose>_Pointer_<TargetTable>` | myb-p-multi-select-field skill |
 | Define Parent | הגדרת אב / שדה תלוי | Native cascading parent→child dropdown filtering (`subclassDepend`) | myb-p-parent-child-fields skill |
 

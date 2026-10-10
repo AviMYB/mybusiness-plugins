@@ -20,6 +20,6 @@
 
 - English body with canonical Hebrew UI terms inline — מונח (Term); customer-facing templates are Hebrew.
 - Capability levels: `Native / Config / Custom-JS / Custom-Server / External / Gap` (defined in 60/03).
-- ⚠️ UNVERIFIED marks claims to verify before relying on; ticket/"in QA" claims expire — re-verify at use time.
+- ⚠️ UNVERIFIED marks claims to verify before relying on; any claim marked provisional or dated expires — re-verify at use time.
 - **Live system beats documents**: tenant schemas diverge — verify per app with read-only MCP calls before promising behavior.
 - Every doc ends with `Limitations & gotchas`.

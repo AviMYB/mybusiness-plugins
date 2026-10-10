@@ -1,8 +1,8 @@
 # The Pipeline Contract — canonical layout, filenames, and machine-readable state
 
-Status: active · Last updated: 2026-07-06
+Status: active · Last updated: 2026-09-28 (solution-model stage)
 
-The pre-implementation pipeline (`business-discovery` → `myb-p-fit-gap` → `functional-spec` → `plan-summary-for-approval` → `build`) hands state forward through **files with fixed names in fixed places**. This contract is the single definition of that layout. Every pipeline skill's Inputs/Outputs section points here; on any conflict, this file wins.
+The pre-implementation pipeline (`business-discovery` → `myb-p-fit-gap` → `solution-model` → `functional-spec` → `plan-summary-for-approval` → `build`) hands state forward through **files with fixed names in fixed places**. This contract is the single definition of that layout. Every pipeline skill's Inputs/Outputs section points here; on any conflict, this file wins.
 
 ## 1. Canonical engagement layout
 
@@ -16,7 +16,11 @@ All artifacts live under one **engagement root** — the customer's folder when 
 │   └── req-register.csv                 ← 11-column contract → fit-gap
 ├── fit-gap/
 │   ├── index.html
-│   └── fit-gap.csv                      ← 17-column contract → functional-spec; build writes Actual effort/Variance back
+│   └── fit-gap.csv                      ← 19-column contract → solution model + functional-spec; build writes Actual effort/Variance back
+├── model/
+│   ├── data-model.html                  ← the one-page native data model the owner approves
+│   ├── native-map.csv                   ← every element → native mechanism, phase R1/R2, evidence, rules
+│   └── usage-evidence.csv               ← legacy usage (fill-rate, who fills / reads), when a legacy system exists
 ├── spec/
 │   ├── index.html                       ← the functional/technical spec
 │   ├── workplan.html                    ← M/L (S embeds it in index.html)
@@ -44,6 +48,7 @@ Created by discovery, updated by every stage that changes pipeline state. Carrie
   "size": "S | M | L",
   "discovery":  { "validatedAt": "YYYY-MM-DD", "validatedBy": "<who>", "reqCount": 0 },
   "fitGap":     { "tier": "Low | Medium | High | Enterprise", "inScope": 0, "phase2": 0, "out": 0 },
+  "model":      { "version": "1.0", "approvedBy": "", "approvedAt": "", "newTables": 0, "budget": 0, "slice": "none | built | walked" },
   "spec":       { "version": "0.9", "items": 0, "packages": 0 },
   "approval":   { "status": "none | draft | approved", "specVersion": "" },
   "build":      { "status": "none | in-progress | complete", "ledger": "docs/build/build-ledger.csv" },
@@ -63,12 +68,15 @@ Emitted by `plan-summary-for-approval` (status `draft` on first render), flipped
   "approver": "<decision-maker, by name>",
   "approvedAt": "YYYY-MM-DD",
   "specVersion": "<the spec version this approval covers>",
+  "modelVersion": "<the solution-model version this approval covers>",
   "scope": { "inScope": 0, "phase2": 0, "out": 0 },
   "notes": "<הסתייגויות / conditions, if any>"
 }
 ```
 
 Invalidation rule: any change to the spec set bumps the spec version → the approval record no longer matches → re-approve. Nobody edits `status` by hand without the recorded decision behind it.
+
+A change to the approved solution model bumps `model.version` and likewise requires re-approval of the model before the spec builds on it.
 
 ## 4. ID grammars (traceability spine)
 
@@ -82,6 +90,7 @@ Invalidation rule: any change to the spec set bumps the spec version → the app
 |---|---|---|
 | business-discovery | (customer materials, tenant read-only) | `discovery/*`, creates `engagement.json` |
 | fit-gap | `req-register.csv`, discovery HTML, `engagement.json` | `fit-gap/*`, updates `engagement.json.fitGap` |
-| functional-spec | `fit-gap.csv`, discovery doc, live schema | `spec/*`, updates `engagement.json.spec` |
+| solution-model | in-scope `fit-gap.csv`, discovery, standing rules, tenant (read-only; R1-slice writes only with the owner's go) | `model/*`, updates `engagement.json.model` |
+| functional-spec | approved `model/` + `fit-gap.csv`, discovery doc, live schema | `spec/*`, updates `engagement.json.spec` |
 | plan-summary-for-approval | all four upstream deliverables | `approval/*` (incl. `approval.json`), updates `engagement.json.approval` |
 | build | spec set + `approval.json` + ledger | `build/*`, fills `Actual effort`/`Variance note` in `fit-gap.csv`, updates `engagement.json.build` |

@@ -49,7 +49,8 @@ Get-Data(table: "PaymentBtns", limit: 20)
 2. **המשך רצף ממערכת קודמת:** האם עוברים ממערכת חיוב קודמת? אם כן — מה **המספר האחרון שהופק בכל סוג מסמך** במערכת הקודמת? ⚠️ החלטה חשבונאית-משפטית: המספור ניתן להעלאה בלבד וטעות אינה הפיכה. בקשו מהלקוח אישור בכתב למספרים, ואשרור מול רואה החשבון.
 3. **פרטי עסק:** שם משפטי (עברית + אנגלית אם מפיקים באנגלית), ח.פ / עוסק, כתובת, לוגו, אחוז המע׳׳מ הנהוג, מטבע.
 4. **סליקה:** האם סולקים אשראי? איזה ספק (Upay / Pelecard / אחר)? **מי מחזיק בפרטי ההתחברות?** (הלקוח מזין אותם בעצמו — הסוכן לעולם לא מקבל אותם.)
-5. **ריטיינרים / הוראות קבע:** כן/לא. אם כן — תדירות (חודשי/רבעוני/…), תאריך חיוב ראשון, סכומים או תוכניות קבועות, איזה סוג מסמך מופק בכל חיוב, כמה לקוחות.
+5. **ריטיינרים / הוראות קבע (אשראי):** כן/לא. אם כן — תדירות (חודשי/רבעוני/…), תאריך חיוב ראשון, סכומים או תוכניות קבועות, איזה סוג מסמך מופק בכל חיוב, כמה לקוחות.
+5b. **גבייה בהוראת קבע בנקאית (מס״ב):** כן/לא. אם כן — האם יש כבר קוד מוסד מהבנק? כמה לקוחות, באילו בנקים, ובאיזו תדירות? (מנגנון נפרד מסעיף 5 — KB §7.1.)
 6. **דפי/כפתורי תשלום:** כן/לא. אם כן — אילו מוצרים במחיר קבוע, טווח כמויות, היכן יוטמע הכפתור.
 7. **שליחת מסמכים במייל:** מכתובת המערכת או מכתובת ממותגת של העסק (SMTP)?
 8. **חשבונית ישראל:** האם צפויות חשבוניות מעל סף מספרי ההקצאה? (הסף משתנה לפי שנה — KB §9; לוודא מול רואה החשבון.)
@@ -77,7 +78,7 @@ Summarize: which stages below run, what each creates/changes, and flag the irrev
 
 ## Stage 6 — Credit clearing (gateway)
 
-- **Providers per KB §6.2:** Upay (self-service signup from הגדרות → הגדרות סליקה) or Pelecard (provisioned via product support — escalate the request; pricing in the KB is dated, re-check). Multi-terminal is supported (`AccountingSettings.MultiTerminals` + `CreditClearingTerminal`).
+- **Providers per KB §6.2:** Upay (self-service signup from הגדרות → הגדרות סליקה) or Pelecard (provisioned via MyBusiness support — raise the request; pricing in the KB is dated, re-check). Multi-terminal is supported (`AccountingSettings.MultiTerminals` + `CreditClearingTerminal`).
 - **Credentials are vendor/customer-side.** The customer completes signup and enters gateway credentials directly on `apps/mybooks/SettingPelecard`. The agent's role: point to the page, then verify.
 - **Verify:** `Get-Data("CreditClearingTerminal")` — terminal row(s) exist, one `Default: true`. A live end-to-end clearing test moves real money — only with the customer's explicit approval, minimal amount, and read-back on `Get-Data("PaymentsLog")` for the transaction status (table shape: data-model doc §"Online payment & clearing"). Immediately correct per the accountant's instruction (typically a זיכוי + refund).
 
@@ -89,6 +90,17 @@ Mechanics — period options, plans vs ad-hoc rows, document type per charge, to
 - Creating `Retainers` rows via `Create-Data` is UNVERIFIED (token + charge-engine wiring is server-side) — do not; use the UI.
 - **Verify:** `Get-Data("Retainers", keys: ["AccountId","Active","NextChargeDate","RetainerPeriod","ChargesLimit","DocTypeId","TotalSum"])` + `Get-Data("RetainerRows")`. Check `Active: true` on every authorization meant to run.
 - **Hand the customer a monitoring habit:** after the first charge date, check דוח חיובים (tab in `Retainers`) / `Get-Data("RetainerChargeLog")` — a third consecutive failure deactivates the retainer, with an error row in דוח חיובים — that report is where to catch it (KB §7 retry policy).
+
+## Stage 7.1 — Bank direct debit (חיובי מס״ב)
+
+The other recurring-collection instrument: instead of a card token per customer, authorizations are batched into a transmission file the customer uploads to its bank. Mechanics — settings, authorization fields, batch lifecycle and statuses: **KB §7.1**. Reach for this stage only if the interview answered yes to question 5b.
+
+- **Prerequisite:** the customer has a Masav institution code from its bank. Configure הגדרות → **הגדרות למס״ב** first (`apps/mybooks/SettingsMasav`): קוד מוסד, שם מוסד, מספר סידורי, קוד מוסד שולח. Note the sender-code length rule in KB §7.1 — a value the generator refuses only surfaces at file-generation time, so get it right here.
+- **UI:** `apps/mybooks/MasavCharges` → **הוסף הוראת חיוב** per customer: customer, period, `NextChargeDate`, charge limit, the bank block (בנק/סניף/חשבון/ת.ז./אסמכתא), document type, and rows — either an existing plan or ad-hoc lines. **Each line needs a catalog product** (KB §7.1); plans built in Stage 7 are reusable here unchanged.
+- Creating `MasavCharges` rows via `Create-Data` is UNVERIFIED (the batch/file engine is server-side) — use the UI.
+- **Verify:** `Get-Data("MasavCharges", keys: ["AccountId","Active","NextChargeDate","RetainerPeriod","ChargesLimit","BankId","BranchNumber","AccountNumber","Reference","TotalSum"])` + `Get-Data("RetainerRows")` for the lines. Confirm `Active: true` and that the bank block is complete on every authorization meant to run.
+- **Walk the customer through one cycle** before handing over: select charges → צור מקבץ לחיוב → open the batch → הפק קובץ לחיוב → download the `.msv` → upload it at the bank → only then **חיוב נשלח לבנק, הפק מסמכים**, which is what produces the accounting documents. Make sure they understand that last button is the irreversible one.
+- **Hand over a monitoring habit:** after each batch, `Get-Data("MasavChargesLog", keys: ["CustomerName","Total","Charged","DocumentId"])` shows what was collected and which document each charge produced; a charge that did not enter a batch carries its reason on its own card (KB §7.1).
 
 ## Stage 8 — Payment pages / buttons
 
@@ -116,6 +128,7 @@ Mechanics — period options, plans vs ad-hoc rows, document type per charge, to
 | Types & numbering | `Get-Data("AccountingDocsType", limit: 20)` — `NumLast` per type matches written confirmation |
 | Clearing | `Get-Data("CreditClearingTerminal")`; after any test charge `Get-Data("PaymentsLog")` |
 | Retainers | `Get-Data("Retainers")` `Active` flags + `RetainerRows`; later `RetainerChargeLog` |
+| מס״ב | `Get-Data("MasavCharges")` `Active` + bank block; per batch `Get-Data("MasavGroups")` status and `Get-Data("MasavChargesLog")` `Charged`/`DocumentId` |
 | Payment pages | `Get-Data("PaymentBtns")` + public link renders |
 | Email dispatch | resend test received by the customer |
 
@@ -139,7 +152,7 @@ Executes the **MyBooks slice of WP9 (מסמכים ותקשורת)** in the build
 
 Read on demand — do not embed their facts elsewhere:
 
-- `../myb-p-kb/references/10-modules/02-mybooks.md` — module truth: document types (§3), lifecycle & numbering (§4), linked docs (§5), collection/clearing/payment pages (§6), retainers (§7), inventory (§8), Israeli compliance (§9), dispatch (§10), reports (§11), page map (§12), configuration checklist (§14), limitations.
+- `../myb-p-kb/references/10-modules/02-mybooks.md` — module truth: document types (§3), lifecycle & numbering (§4), linked docs (§5), collection/clearing/payment pages (§6), retainers (§7), bank direct debit / מס״ב (§7.1), inventory (§8), Israeli compliance (§9), dispatch (§10), reports (§11), page map (§12), configuration checklist (§14), limitations.
 - `../myb-p-kb/references/20-data-model/03-module-tables.md` — §2 MyBooks table shapes (the read-back surface) + verification caveats.
 - `../myb-p-kb/references/80-capability-matrix/01-capability-matrix.md` — §10 Billing rows (Native vs Custom-Server boundaries, e.g. installments/US gateways/refunds are Custom-Server).
 - `the work-plan playbook` — WP9 contract.

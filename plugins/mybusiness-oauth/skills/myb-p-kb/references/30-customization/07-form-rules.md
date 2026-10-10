@@ -1,7 +1,7 @@
 # Form Rules — Client-Side Field Behavior
 
 > **Purpose:** Reference for כללי טופס (Form Rules) — the client-side rules engine that hides/requires/locks fields, fills values, and shows messages on form pages, including the canonical action list, condition structure, the Set-vs-Edit replace-all gotcha, and worked examples.
-> **Last updated:** 2026-06-10 · **Status:** draft
+> **Last updated:** 2026-10-09 (§9 rules on public pages: `value-from-url` parameter naming, radio groups cannot be conditions, string comparison on selects) · previously 2026-10-06 (§8 layout consequences of `hidden`, verified in the page runtime + browser) · previously 2026-06-10 · **Status:** draft
 
 ## 1. What form rules are (and are not)
 
@@ -266,6 +266,30 @@ Recommended by `guide_advanced_permissions.md` to guarantee `OwnerId` is populat
 3. Hard-refresh (Ctrl+F5) after rule changes — rule definitions are loaded with the page.
 
 To find the right `pageId`: `Get-Site-Pages()` and match the form page path (e.g. `apps/mybusiness/Sale` for the Sale card). Form pages are the singular-named pages; the plural pages are table views without forms.
+
+## 8. What `hidden` does to the layout (verified 2026-10-06)
+
+`hidden` hides the field's **`.form-group` only** — `field.closest('.form-group').hide()` in the page runtime's `autoRules()` (`simbla.js`). The grid column around it (`div.sDivider.col-*`) stays, at full width. Measured in the browser on the playground (`[4,4,4]` rows at 1440px):
+
+| Where the hidden field sits | What the user sees |
+|---|---|
+| The first or a middle column of a row whose other fields stay | **A hole** — a 480px blank inside the row; the neighbours do not close up |
+| The last column (leftmost in RTL) | The row simply ends early — reads as a shorter row |
+| Every field of the row hidden by the same condition | The row collapses to its padding — about 21px of extra vertical gap on a `MasterTicket` card, 1px on a `NewMaster` card |
+| A column that stacks several fields | The fields below the hidden one move up — the column falls out of line with its neighbours |
+
+Built-in cards are laid out around this. On Account, the rule that hides `TypeId`/`StatusId`/`OwnerId` while the record is a lead hides one whole row; the lead-only `LeadStatusId`/`LeadSourceId`/`LeadOwnerId` share another row; `LeadConversionDate` sits alone in its own row. On Sale, `ReasonForLost` (shown only when the sale failed) sits alone in its own row. Layout rules that follow: [03-pages-and-layouts.md](03-pages-and-layouts.md) §4.
+
+## 9. Rules on public pages and with special inputs (verified 2026-10-09)
+
+Rules run for anonymous visitors on public pages exactly as on staff pages ([15-public-forms.md](15-public-forms.md) §3.6). Read in the page runtime (`autoRules`) and exercised live:
+
+- **`value-from-url` reads the URL parameter named like the field** (or its lowercase form); the rule's `value` is ignored. It sets `.val()` without a change event. Works on text, number, date, hidden inputs and on a `select-pointer` whose lookup options already loaded.
+- **A radio group can never be a condition** — the evaluator needs exactly one element with the field's name and silently skips the condition otherwise. A value that drives a rule must be a `select` or an `input type=number`.
+- **Plain `select` / text conditions are strict string comparisons** with `equalTo` / `notEqualTo` only — pass values as strings (`"1"`). Other operators fall through to "not equal".
+- **Numeric operators** (`lessThan`, `greaterThan`, …) apply to `input type=number` only; `empty` and the date operators to `input type=date`.
+- **`show-message`** opens the platform modal, once per message per page.
+- **`hidden` leaves `required` in force** — a hidden empty required field blocks the save with no visible message (§8 covers the layout side).
 
 ## Limitations & gotchas
 

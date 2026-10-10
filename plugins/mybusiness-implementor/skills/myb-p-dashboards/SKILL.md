@@ -1,13 +1,13 @@
 ---
 name: myb-p-dashboards
-description: "Create, modify, and maintain analytical dashboards in MyBusiness CRM. Invoke whenever the user wants to build a dashboard for any entity (Sales, Leads, Cases, custom entities), redesign one, add KPI counters, charts (Bar/Line/Pie/Doughnut) or embedded data tables to a dashboard page, integrate it into the CRM 'Dashboard Menu', or troubleshoot a broken-looking dashboard (empty charts, page with no nav, missing menu entry, two elements in one slot). Strong triggers: דשבורד, דאשבורד, KPI, מד, ספירה, גרפים, simbla-counter, simbla-chart, DashboardSales, DashboardLeads, Dashboard Menu, Create-Table-View-Page with copyFromPageId, Add-Edit-Counter-Element, Add-Edit-Chart-Element, dashboard, analytics page, metrics page. Even 'תקים דאשבורד ל-X', 'בנה לי מבט-על על Y' or 'תוסיף KPI לדף הזה' is this skill. STATUS: DRAFT — MCP tooling gaps documented in references/tooling-gaps.md; revise once filled."
+description: "Create, modify, and maintain analytical dashboards in MyBusiness CRM. Invoke whenever the user wants to build a dashboard for any entity (Sales, Leads, Cases, custom entities), redesign one, add KPI counters, charts (Bar/Line/Pie/Doughnut) or embedded data tables to a dashboard page, integrate it into the CRM 'Dashboard Menu', or troubleshoot a dashboard that does not render as expected (empty charts, page with no nav, missing menu entry, two elements in one slot). Strong triggers: דשבורד, דאשבורד, KPI, מד, ספירה, גרפים, simbla-counter, simbla-chart, DashboardSales, DashboardLeads, Dashboard Menu, Create-Table-View-Page with copyFromPageId, Add-Edit-Counter-Element, Add-Edit-Chart-Element, dashboard, analytics page, metrics page. Even 'תקים דאשבורד ל-X', 'בנה לי מבט-על על Y' or 'תוסיף KPI לדף הזה' is this skill."
 ---
 
 # MyBusiness CRM Dashboards
 
 Build dashboards that look and behave like the existing `apps/mybusiness/DashboardSales` / `DashboardLeads` / `DashboardCaseManager` — full grid with date-filter header, KPI counters, charts, and an embedded data table — for any entity in the CRM.
 
-> **DRAFT NOTICE.** This skill was authored on 2026-04-29 after a single end-to-end build (Affiliates + Suppliers dashboards) plus a follow-up extension exercise. Several MCP tools are missing today, requiring workarounds. See [references/tooling-gaps.md](references/tooling-gaps.md). When those tools land, the workflow below should be simplified — DO update this file at that point.
+> **Scope note.** This workflow was written from an end-to-end build of two dashboards plus a later extension exercise. A few page-editing operations have no direct MCP tool, so some steps take an indirect route — each one is named, with its symptom check, in [references/tooling-gaps.md](references/tooling-gaps.md).
 
 This skill covers two flows:
 1. **Build a new dashboard** (clone an existing one, repoint elements in place via `elemId`) — the bulk of the workflow below.
@@ -170,9 +170,9 @@ Edit-Table-View(
 
 Always include `createdBy: "_User", updatedBy: "_User"` in `classPointers` — omitting them silently breaks sort by created/updated date (KI-8 from `myb-p-page-tables`).
 
-### 7. Restore the date-filter form (workaround)
+### 7. Restore the date-filter form
 
-`Create-Table-View-Page` overwrote the `FromDate` input in `<form name="genericform">` with a String input named `Name`, and removed `ToDate` entirely. There's no MCP tool to edit inputs in non-main forms (gap documented in references/tooling-gaps.md). Workaround: inject JS via `Edit-Page-CSS-JS` that fixes the form on page load.
+`Create-Table-View-Page` overwrote the `FromDate` input in `<form name="genericform">` with a String input named `Name`, and removed `ToDate` entirely. There is no MCP tool to edit inputs in non-main forms (see references/tooling-gaps.md B3). The route: inject JS via `Edit-Page-CSS-JS` that restores the form on page load.
 
 ```
 Edit-Page-CSS-JS(
@@ -209,7 +209,7 @@ Set-Menu-Items(menuId: "<dashMenuId>", items: [{
 }])
 ```
 
-**Icon caveat (verified):** if you pass `icon: "fa fa-truck"`, the system adds another `fa ` and you get `fa fa fa-truck` — broken icon. Pass only `fa-truck`.
+**Icon caveat (verified):** if you pass `icon: "fa fa-truck"`, the system adds another `fa ` and you get `fa fa fa-truck`, which renders no icon. Pass only `fa-truck`.
 
 **Visibility:** existing items use `[]`. Setting `["loggedIn"]` may filter the item out depending on context. Match what's already there.
 
@@ -235,7 +235,7 @@ Sequence per dashboard, in order:
 
 When the user wants to **add** a new section (more counters / charts / a table) below an existing dashboard, the workflow is different from clone+repoint. Here you're not modifying inherited slots — you're creating fresh ones in fresh rows.
 
-> 💡 **Fastest path — duplicate an existing card (`Duplicate-Element`, shipped 2026-06-24).** If the new element resembles one already on the page (a KPI counter card, a chart card), don't hand-build the container + nested rows below. `Duplicate-Element(pageId, elemId)` deep-clones the whole card (container ▸ rows ▸ icon + caption + counter) in one call, with new ids and all styling intact. Then `Get-Page-Content(minimal:false)` for the new ids and repoint the copy — `Add-Edit-Counter-Element(elemId, criteria:[])` / `Add-Edit-Chart-Element(elemId, …)` + `Add-Edit-Text-Element(elemId)` for the caption. This sidesteps the manual container/nested-row build entirely (and the B5 `toExistingColumn` bug) — it's exactly how three DashboardLeads counter cards were replicated on 2026-06-24. Keep the manual build below as the fallback for when no similar card exists yet. Full spec: `../myb-p-kb/references/40-integrations-api/02-mcp-tools-catalog.md`; gap impact in [references/tooling-gaps.md](references/tooling-gaps.md).
+> 💡 **Fastest path — duplicate an existing card (`Duplicate-Element`, shipped 2026-06-24).** If the new element resembles one already on the page (a KPI counter card, a chart card), don't hand-build the container + nested rows below. `Duplicate-Element(pageId, elemId)` deep-clones the whole card (container ▸ rows ▸ icon + caption + counter) in one call, with new ids and all styling intact. Then `Get-Page-Content(minimal:false)` for the new ids and repoint the copy — `Add-Edit-Counter-Element(elemId, criteria:[])` / `Add-Edit-Chart-Element(elemId, …)` + `Add-Edit-Text-Element(elemId)` for the caption. This sidesteps the manual container/nested-row build entirely (and the B5 `toExistingColumn` behaviour) — it is exactly how three DashboardLeads counter cards were replicated. Keep the manual build below as the fallback for when no similar card exists yet. Full spec: `../myb-p-kb/references/40-integrations-api/02-mcp-tools-catalog.md`; see also [references/tooling-gaps.md](references/tooling-gaps.md).
 
 ### Where to insert
 
@@ -378,7 +378,7 @@ Or if `exists` isn't supported in your chart context, filter to known values via
 - **Adding instead of replacing.** Calling `Add-Edit-Counter-Element(rowId, columnNumber)` on a slot that already has an inherited counter creates a SECOND counter in the same slot. Use `elemId` to update.
 - **Forgetting `criteria: []`.** Inherited Sales/Cases criteria stay and break the new query.
 - **Not restoring the date form.** Charts that reference `genericform:FromDate` silently fall back to no-filter; the user clicks 'הפעל' and nothing changes.
-- **Wrong icon format in menu.** `"fa fa-truck"` becomes `"fa fa fa-truck"` — broken.
+- **Wrong icon format in menu.** `"fa fa-truck"` becomes `"fa fa fa-truck"`, and no icon renders.
 - **Adding a chart/counter straight into a column (no container).** When *extending* a dashboard, `Add-Edit-*-Element(rowId, columnNumber)` drops the element bare into the `sDivider` — no `containerHolder`/`container`, so the Simbla page-builder shows **no "Container"** for it. Always `Add-Container-to-Page` first, then add into its `innerContainerId`.
 - **Spacing rows with CSS margins.** Use an **empty spacer container** between chart rows (the native `P159`/`P210` pattern, via `Add-Container-to-Page(afterElement=…)`), not `Edit-Page-CSS-JS` margins.
 - **Root-level rows render outside the page frame.** Adding a section as a row *after* the main content row (a sibling at the page root) can fall **outside** the dashboard's content frame ("floating below the page"). To place something **below the table**, add the row **inside the table's column**: `Edit-Page(add-row, toExistingRow=<mainRow>, toExistingColumn=<tableColIndex>)`. Confirm with div-depth — the new row should sit at the **same nesting depth as the table**, not at root.

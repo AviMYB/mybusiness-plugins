@@ -194,7 +194,7 @@ Connect a WhatsApp Business API account as a channel (MyCampaigns/MyChat setting
 Guide: https://www.mybusiness.co.il/support/הגדרת-חשבון-whatsapp/ · https://www.mybusiness.co.il/support/הגדרות-והקמה/
 
 **ש: הודעת וואטסאפ לא נשלחת — מה בודקים?**
-(1) Use the `Identity` value from the Channels table as the sender — NOT the channel's `objectId` (the most common integration bug); (2) template status must be APPROVED; (3) recipient number in international format; (4) channel connected and active in MyChat settings; (5) check `_syslogEvents` for the send error.
+(1) Use the `Identity` value from the Channels table as the sender — NOT the channel's `objectId` (the most common integration mistake); (2) template status must be APPROVED; (3) recipient number in international format; (4) channel connected and active in MyChat settings; (5) check `_syslogEvents` for the send error.
 Ref: the support reference §5, CLAUDE.md technical rules
 
 **ש: איך שולחים SMS, ומה צריך בשביל זה?**

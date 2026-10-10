@@ -209,7 +209,7 @@ The user-facing **search form** above the table is separate HTML (`form.dbFormQu
 - **Dependent inline dropdown** (SubType filtered by Type): child column `inlineOptions:{type:"select", parentSelect:"CaseTypes"}` + `subclassPointers` listing the parent pointer.
 - **Embedded child table on a card:** 3-step pattern — `Add-Table-View-to-Form-Page` (safe `insertAfterRow`!) → verify placement ancestors → `Edit-Table-View` to finalize (aggrFields, classPointers incl. the pointer to the form's class — that pointer drives the **auto-filter** to the open record; `criteria` only for additional filters). Full placement rules in [03-pages-and-layouts.md](03-pages-and-layouts.md) §6.
 
-## 9. Known issues (platform behaviors, 2026-04 audit)
+## 9. Known behaviours to design around
 
 | # | Issue | Workaround |
 |---|---|---|

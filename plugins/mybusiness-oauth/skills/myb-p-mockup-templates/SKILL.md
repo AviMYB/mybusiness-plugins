@@ -1,6 +1,6 @@
 ---
 name: myb-p-mockup-templates
-description: "Build interactive local MyBusiness CRM prototypes and product mockups with reusable screen templates, synthetic data, navigation, working forms, filters and browser-local state. Use for feature previews, approval walkthroughs, clickable mockups, screen design and local demos: 'מוקאפ', 'מוקאפים', 'אב טיפוס', 'תשרטט מסך', 'דמו אינטראקטיבי', 'משהו שרץ מקומית', 'איך זה ייראה במערכת', 'interactive mockup', 'clickable prototype', 'local demo', 'preview this feature'. Prefer this for a local simulation; use myb-p-page-builder or myb-p-create-entity for actual CRM changes, and myb-p-dashboards for a live dashboard. Includes CRM and module visual references plus twelve interactive page patterns."
+description: "Build interactive local MyBusiness CRM prototypes and product mockups with reusable screen templates, synthetic data, navigation, working forms, filters and browser-local state. Use for feature previews, approval walkthroughs, clickable mockups, screen design and local demos: 'מוקאפ', 'מוקאפים', 'אב טיפוס', 'תשרטט מסך', 'דמו אינטראקטיבי', 'משהו שרץ מקומית', 'איך זה ייראה במערכת', 'interactive mockup', 'clickable prototype', 'local demo', 'preview this feature'. Prefer this for a local simulation; use myb-p-card-design or myb-p-create-entity for actual CRM changes, and myb-p-dashboards for a live dashboard. For a customer implementation, the mockup is generated from the approved data model (native-map.csv), tags every element with its native mechanism, keeps non-native patterns off by default and mirrors the built slice when one exists. Includes CRM and module visual references plus twelve interactive page patterns."
 ---
 
 # MyBusiness interactive mockups
@@ -19,10 +19,24 @@ is insufficient unless the user explicitly requests a static deliverable.
 - `references/interaction-contract.md` — state, navigation, keyboard access, offline boundaries and QA.
 - `assets/prototype/` — runnable starter with twelve screen patterns and a visual gallery.
 - `scripts/scaffold.mjs`, `scripts/serve.mjs` — dependency-free project copying and loopback HTTP serving.
+- `../myb-p-kb/references/20-data-model/06-native-before-new-table.md` §6 — **the native UI vocabulary**: what a customer-facing mockup may show, and what is "requires code". Read before every customer-solution mockup.
+- `../myb-p-kb/references/60-implementation-methodology/08-solution-model.md` — the approved model (`data-model.html` + `native-map.csv`) a customer-solution mockup is built from.
+- `../myb-p-kb/references/80-capability-matrix/02-known-limitations.md` §16 and §21 — card and table mechanics that look possible in a mockup and are not.
 
 Running the local starter needs no account or CRM connection. Establishing visual fidelity
 requires a reference: inspect the authorized current product screen when access is available.
 Product facts come from the knowledge base and observed UI, not invented sample behavior.
+
+## 0. Customer solution mockups start from the approved model
+
+Two kinds of mockup use this skill. A **product preview** (a feature idea, a module concept) may invent its data. A **customer solution mockup** (screens of a customer's implementation, shown for approval) may not:
+
+- **Input is the approved solution model** — `docs/model/data-model.html` + `native-map.csv` (pipeline contract). If it does not exist, stop and offer the solution-model stage first; a mockup must never be the place where entities, fields or statuses are decided.
+- **Entities, fields, sections, statuses and lookup values come from `native-map.csv`.** Only record *values* are invented.
+- **Every screen element carries its mechanism:** `data-native="field:Cases.StatusId"`, `lookup:LeaveReasons`, `formrule:<rule name>`, `tableview:Tasks`, `tab:<name>`, `section:<title>`. An element without a tag fails QA (§5 step 8).
+- **Only the native UI vocabulary** (KB `20-data-model/06` §6). Non-native patterns — wizards, record-creating action buttons, drag boards on custom entities, line-item editors outside quotes, client-side computed dates — are **off by default**; if the owner asks to see one, label it on screen "דורש פיתוח" with its cost from the model.
+- **R1 before R2:** show cards, fields, relations, statuses and form-rule effects; automations appear only as a note ("בשחרור 2").
+- **Mirror mode:** when an R1 slice already exists in the tenant, the mockup mirrors the built cards — same sections, fields, order and tabs. The build leads, the mockup follows; when the build changes, update the mockup (or skip the mockup and walk the tenant).
 
 ## 1. Turn the brief into a small journey
 
@@ -85,7 +99,7 @@ explain that the preview was not run and offer the original static HTML as a lim
 ## 4. Adapt the prototype to the requested feature
 
 - Edit `config.js` for the project title, initial page and unique storage namespace.
-- Edit `data.js` for **invented** records, statuses, dates and labels. Use `example.com` for
+- Edit `data.js` for **invented** records, statuses, dates and labels — in a customer solution mockup only the record values are invented; entities, fields, statuses and lookup values are generated from `native-map.csv` (§0). Use `example.com` for
   email samples, generic roles instead of real people, and explicit demo record identifiers.
 - Edit the relevant `pages/*.js`, `app.js` and `app.css` for the journey. Preserve the shell,
   typography, component shapes and RTL logical spacing from the chosen visual reference.
@@ -124,6 +138,7 @@ in the current environment. Read `references/interaction-contract.md` for the fu
    matching navy colors alone is insufficient. Document remaining differences.
 7. Check the console and requests. The interactive starter works offline after serving and
    makes no external requests. Original reference pages use optional font/icon CDNs.
+8. Customer solution mockups: every visible field, table, tab, section and rule effect carries `data-native`; list the untagged elements (e.g. `document.querySelectorAll('input,select,textarea,table,[role=tab]')` minus `[data-native]` ancestors) and fix or remove them. Also check each tag against `native-map.csv` — a tag with no row is an undecided element.
 
 Record actual results in the task output. Do not claim native CRM, channel delivery, secure
 authentication, multi-user persistence or successful browser testing from local simulation.
@@ -139,6 +154,7 @@ The application itself uses the product shell rather than the report-document la
 ## Known limitations
 
 - These are browser-local simulations with invented data; no CRM writes or real integrations.
+- A customer solution mockup is only as native as its model: it inherits `native-map.csv` and cannot validate a mechanism the model assumed — the R1 slice in the tenant does that.
 - Core CRM geometry was compared with the live product on 2026-09-20. Module references
   remain historical; tenant configuration and later product changes require comparison.
 - Activities and Reports have verified composition with a local subset of actions. Reports

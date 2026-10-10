@@ -168,7 +168,7 @@ Compact form: `{"F": field, "C": condition, "T": type, "V": value, "P": pointer}
 | Form-rule actions | `readonly, required, hidden, fixed-value, dynamic-value, formula-value, show-message, value-from-url` — none can filter dropdown options (use §6) |
 | Menu-item ids | MongoDB 24-hex format |
 
-## 9. Template input write-back — `name="Table.Field"` (known issue)
+## 9. Template input write-back — `name="Table.Field"` (behaviour to design around)
 
 Price-quote (PDF) templates support customer-fillable `<input>`/`<textarea>` elements on the public signing page (`PriceQuoteSign`); the `name` attribute binds the value back to the database:
 
