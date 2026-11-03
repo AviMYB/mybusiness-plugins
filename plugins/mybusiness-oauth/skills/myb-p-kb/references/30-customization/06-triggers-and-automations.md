@@ -1,7 +1,7 @@
 ﻿# Triggers & Automations — the Server-Side Automation Engine
 
-> **Purpose:** Complete reference for the trigger engine — טריגר (Trigger) / אוטומציה (Automation) — in MyBusiness CRM: event types, condition formats, all 8 action types, scheduled triggers, dynamic placeholders, chains, logging and debugging. Spec-ready for AI implementers.
-> **Last updated:** 2026-07-28 (§13 User-Assignments round-robin engine — rule shape, the הקצאה כאשר→events mapping, measured rotation/cap/latency/fairness) · **Status:** draft
+> **Purpose:** Complete reference for the trigger engine — טריגר (Trigger) / אוטומציה (Automation) — in MyBusiness CRM: event types, condition formats, all 8 action types, scheduled triggers, dynamic placeholders, chains, logging and debugging — plus scheduled jobs (clock-based function/agent runs, §14). Spec-ready for AI implementers.
+> **Last updated:** 2026-11-03 (§5.9 `trigger-ai-agent`, §8 two trigger levels, scheduled-trigger timing measured 2026-10-25/26, keys in http actions) · previously 2026-11-03 (§14.1 a scheduled trigger cannot run an agent; §14.7 business hours, owner-only screen, `jobId` vs `_id`) · previously 2026-11-01 (§14 scheduled jobs — clock-based function/agent runs via `Get-Scheduled-Jobs` / `Create-or-Update-Scheduled-Job`, measured live; limitations 17-20) · previously 2026-07-28 (§13 User-Assignments round-robin engine — rule shape, the הקצאה כאשר→events mapping, measured rotation/cap/latency/fairness) · **Status:** draft
 
 ## 1. Architecture — two-step model
 
@@ -153,6 +153,18 @@ Note the deliberate spelling **`equesition`** (not "equation"/"condition") — i
 
 ⚠️ **`shcedulerHours: 0` is rejected** with `"Scheduler hours is required"` (hands-on verified in the trigger skill and SLA skill). The older `mcp-tool-guides.md` claims `0` = "exactly at the date" — that documentation is outdated; trust the verified behavior. Note: two legacy platform-template scheduled triggers in the playground (`TaskReminder`, `Activity Reminder`) do carry `shcedulerHours: "0"` — they were created by provisioning, not via the MCP path.
 
+**Measured 2026-10-25/26:**
+- **Fractional `shcedulerHours` are rounded down to a whole hour.** `-0.5`, `-0.2` and `-0.01` fired 1 h after the date; `+0.5` fired at the date. A fraction never gives sub-hour timing, and a leftover `-0.5` fires an hour late.
+- **`0`:** the MCP tool text now describes `0` as "on time". Re-test before relying on it; `+0.5` behaved as `0`.
+- **Accuracy:** the scheduler ran in passes about every 10 minutes, at fixed minutes, so expect about ±10 minutes (offsets −9 to +3 min measured).
+- **Sub-hour delay pattern:** a data-change trigger sets a date field to the event time shifted by (X − 60) minutes with `timeGap`, and a `-1` scheduled trigger watches that field (X = 10 fired at 10.6 min). This does not work on a table the server saves without triggers (e.g. `AiActivities`). For clock-based work, prefer a scheduled job (§14).
+- **Other scheduled-trigger behaviour:**
+  - it leaves no `_syslogTriggers` row;
+  - `Set-Trigger` on an existing scheduled trigger replaces its data;
+  - its actions do not resolve pointer paths (`AccountId.Name`);
+  - an `http` action from it to the MyAgents server gets 403;
+  - the AI-agent action never runs from it (§5.9).
+
 Scheduler semantics: the platform scheduler continuously scans records whose `schedulerField` is X hours away, evaluates `criterias` **at fire time** (not creation time), and runs the actions. Expect a few minutes' resolution, not exact-minute delivery. The date field must hold a real future (or recently passed, for negative hours) value.
 
 ## 4. `Set-Trigger-Action` — parameter spec
@@ -170,6 +182,8 @@ Scheduler semantics: the platform scheduler continuously scans records whose `sc
 Multiple actions per trigger: call `Set-Trigger-Action` repeatedly with the same `triggerId`; actions append and run in order (verified: notification + http on one trigger).
 
 ## 5. The 8 action types (all verified working via MCP)
+
+The MCP `Set-Trigger-Action` enum (2026-11) has two more: `trigger-ai-agent` (§5.9, verified) and `update-user-role` (not documented or tested yet).
 
 ### 5.1 `email`
 
@@ -339,6 +353,8 @@ Cross-table dot-notation in `fieldsValue` is supported (live example on `SaleRow
 
 `method`: `GET` / `POST` / `PUT` / `DELETE` / `AUTO` (AUTO = POST on create, PUT on update). **The request body is automatically the full record JSON.** `{{{Field}}}` placeholders work inside the URL. Platform-internal automations use this action too (live example: inventory update calling `https://apps.simbla.com/functions/src-application-id/inventory-update`).
 
+**Keys in `http` actions are exposed:** on a table with a keyed `http` action, `Set-Trigger`, `Set-Trigger-Action` and `Get-Triggers` print every key. `_syslogTriggers` stores the keyed URL when the call fails. Read and edit such triggers through a script that filters secrets, and never paste their output (measured 2026-10-25).
+
 ### 5.8 `server-side-code`
 
 ```json
@@ -351,6 +367,29 @@ Cross-table dot-notation in `fieldsValue` is supported (live example on `SaleRow
 ```
 
 Runs a pre-deployed cloud function with the triggered record as context. MCP cannot create cloud functions — the function must already exist (dev-team deliverable). Use for anything beyond declarative actions: business-day math, SLASettings lookups, aggregation/summing, conditional branching.
+
+### 5.9 `trigger-ai-agent` — run a MyAgents AI agent
+
+```json
+{
+  "actionType": "trigger-ai-agent",
+  "actionData": { "trigger-ai-agent": { "agentId": "<AiAgents objectId>", "agentName": "<agent name>" } }
+}
+```
+
+**What it does:**
+- Starts a MyAgents agent (text or voice) when the trigger fires on **create or update** (measured 2026-10-25/26: a text agent started about 1 s after a save, at about 0.3 credits). Runs are queued per agent; a brand-new agent's first run starts about a minute late.
+- **The agent receives the raw saved record** as JSON: `{"object":{…the row, pointers as bare ids…},"event","time","trriger","objectClass"}`. There is no message template, so the agent's prompt must say what to read and what to do. A voice agent dials the first phone-like number in it.
+- **The agent's business hours apply:** outside them the run is queued or refused ([MyAgents](../10-modules/09-myagents.md) §7-§8).
+
+**When it does not run:**
+- **on delete**;
+- **from a scheduled (date-field) trigger** (measured 2026-10-29) — use a scheduled job (§14);
+- **from a trigger on `AiActivities`**: the agent server's own saves fire no data-change triggers, so nothing can chain off an agent's result (measured 3 times).
+
+**Verifying and safety:**
+- It leaves **no `_syslogTriggers` row of its own**. Verify by the agent's output (the activity, or the record it wrote).
+- **Before an agent writes to a vanilla table, read that table's triggers.** On one tenant, Activity triggers synced to Outlook when both `StartTime` and `EndTime` were set, and another stamped the account's `LastUpdate`.
 
 ## 6. Field value types in `fieldsValue` (create-object / update-object)
 
@@ -405,7 +444,8 @@ Usable in: email subjects + bodies, SMS content, notification content, HTTP URLs
 
 ## 8. Trigger chains
 
-- A trigger action that writes data can fire other triggers. **Maximum chain depth: 3 levels.** Exceeding it logs `"Max trigger depth reached"` in `_syslogTriggers`.
+- A trigger action that writes data can fire other triggers. **In practice there are two trigger levels:** a user save fires T1, T1's write fires T2, and T2's writes fire nothing (measured 2026-10-21; the MCP `Set-Trigger` text describes the same). Older documentation said "maximum chain depth 3" and `"Max trigger depth reached"`.
+- **A write back to the same record from a chained trigger is blocked.** The log shows `blocked! dontRunSimblaTriggersUpdate is set to true` (measured 2026-10-25).
 - Self-update loops (trigger on table X updates table X) are bounded by `onSetFields` — make sure the field your action writes is NOT in the trigger's own `onSetFields`.
 - Keep escalation/notification actions (email/SMS/notification) at the chain ends — they don't propagate chains.
 
@@ -661,6 +701,84 @@ distribution; turning it off restores the skew.
 4. The CRM new-lead form pre-fills `LeadOwnerId` with the current user, so leads created by hand from
    that form do not qualify for a rule conditioned on "assignment field is empty".
 
+## 14. Scheduled jobs — clock-based automation (function or AI agent)
+
+A **scheduled job** (עבודה מתוזמנת; stored by the platform as an *HttpTrigger*) runs on the clock and calls one target: a **cloud function** of the database, or a **MyAgents AI agent**. It is the right tool for "every morning at 08:00", "every 15 minutes during business hours", "on the 1st of the month" — work that is not caused by a record change and not tied to one record's date. Measured live 2026-11-01 on a test tenant (30 jobs created through MCP (29 by the tester, 1 by an agent), run results captured on the next ticks) and read from the runner source.
+
+### 14.1 Scheduled job vs scheduled trigger
+
+| | Scheduled trigger (§1, `type: "scheduled"`) | Scheduled job (this section) |
+|---|---|---|
+| Fires | X hours before/after **a Date field of each record** | On the **clock** (interval in a window, daily, monthly) |
+| Bound to | One table; runs once per matching record | Nothing — no table, no record |
+| Does | The trigger actions (email, sms, update-object, …) | Calls one cloud function, or one AI agent with a fixed prompt |
+| Configured with | `Set-Trigger` + `Set-Trigger-Action` | `Create-or-Update-Scheduled-Job` |
+| Listed by | `Get-Triggers` (`scheduledTriggers`) | `Get-Scheduled-Jobs` — never in `Get-Triggers` |
+| In the CRM | Admin → table → Triggers | MyAgents → אוטומציות → **עבודות מתוזמנות** (also the admin *Jobs* tab) |
+
+A job has no record context. An agent job must find its own data (its prompt says what to query); a function job must do the same in code.
+
+**A scheduled trigger cannot run an AI agent.** A scheduled (date-field) trigger whose action is the AI agent is saved, but the agent never runs. Measured 2026-10-29, twice: the trigger's other action ran on time, and the agent left no activity and no log row. For a time-based agent run, use a scheduled job. For "X hours before a record's date", have a job's agent query the records that are due.
+
+### 14.2 The job object
+
+| Field | Meaning |
+|---|---|
+| `name` | Display name. |
+| `description` | Free text. **For an agent job it is the prompt** — delivered verbatim (Hebrew, quotes, `&`, `<b>`, URLs unchanged — measured). |
+| `url` | The target: `agent:<AiAgents objectId>` or `function:<name>:appId:<appId>`. Set it through `actionType` + `agentId`/`functionName`; never hand-build it. |
+| `interval` | `15 minutes` · `30 minutes` · `hour` · `daily` · `monthly`. |
+| `days` | Weekdays `0` (Sunday) … `6` for every interval except `monthly`; days of the month `1`…`31` for `monthly`. An active job needs at least one. |
+| `dailyAt` | `daily`/`monthly`: the run time. |
+| `start`, `end` | Interval types: the window. **Both are required in practice** (§14.4). |
+| `active` | Boolean. |
+| `lastExec`, `lastStatus`, `lastResponse` | Written by the runner after each run (read-only). |
+
+**All times are minutes from midnight in UTC** and must sit on the quarter hour: `0` = 00:00, `480` = 08:00, `1425` = 23:45. Israel is UTC+2 in winter and UTC+3 in summer, so 08:00 Israel = `360` in winter and `300` in summer — and every job shifts by an hour at each clock change unless it is edited.
+
+### 14.3 How the runner fires (confirmed by the 2026-10-29 and 2026-11-01 runs)
+
+- One tick every 15 minutes, at :00/:15/:30/:45 UTC; a job starts ~4–12 s after the tick. Jobs due on the same tick run in parallel (5 at once, measured).
+- `daily` fires when today's weekday is in `days` and `dailyAt` equals the tick; `monthly` when today's date is in `days` and `dailyAt` equals the tick. Day 31 in a 30-day month never fires.
+- Interval jobs fire when the weekday is in `days` **and `start <= tick <= end`** (both ends inclusive). `30 minutes` is aligned to `start` (a `start` on :15/:45 runs on :15/:45); `hour` runs on the quarter that `start` falls on (`start` 09:15 → 09:15, 10:15, …).
+- **Agent job:** the runner POSTs to the agent service with the database's master key; the agent gets the message `{"jobId":…, "description":…, "time":…}` and runs with its own tools and roles. The database is taken from the stored job, never from the URL. The run shows in the MyAgents workspace as a conversation whose "user message" is that raw JSON (no job name, `createdBy` empty — found 2026-10-29). Measured 2026-11-01: the message arrived verbatim, e.g. `{"jobId":"6ae6…","description":"[X1] …","time":"2026-11-01T09:00:05.545Z"}`.
+- **Function job:** the runner calls the cloud function `GET <parse>/functions/<appId>/<name>` without a session. A missing function → `lastStatus 400`, `{"error":"User function not found"}`. (measured on an MCP-created function job 2026-11-01). After two consecutive "Application not found" answers the runner deactivates the job.
+- A run is cut after 120 s: `lastStatus` becomes `null` and `lastResponse` the timeout message — on the jobs list that looks like a job that never ran (found 2026-10-29).
+- `lastStatus` is the **HTTP code of the call, not the result.** An agent job whose agent is inactive or missing records `200` with `success:true` and `"Error: Agent not found"` in the body (measured 2026-10-29, re-measured 2026-11-01). Read `lastResponse` / the MyAgents activity, not the status.
+
+### 14.4 Creating and editing a job through MCP
+
+1. `Get-Scheduled-Jobs` — see what exists (names are not unique; the tool does not stop duplicates).
+2. For an agent job, read the agent: it must be **Active** and have the tools and roles the prompt needs. The tool accepts a missing or inactive agent.
+3. Convert the wanted local time to UTC minutes on the quarter hour.
+4. `Create-or-Update-Scheduled-Job` with every field the job needs — for interval jobs **always both `start` and `end`** (`0`/`1425` for all day). Keep `active: false` until checked if the job is expensive.
+5. Read back with `Get-Scheduled-Jobs` and compare field by field — the tool saves values that will never run (§14.5).
+6. After the first tick, check `lastExec` / `lastResponse`, and for an agent the activity in MyAgents.
+
+Editing: pass `jobId` + only the fields to change; the rest is kept (including `description`, `start`, `end`, contrary to the tool's text). To change the target, send `actionType` with `agentId`/`functionName` — the id alone is ignored without an error. To stop a job, `active: false`; there is no delete through MCP.
+
+### 14.5 Values the tool accepts that never run (measured 2026-11-01)
+
+| Saved | Why it never runs | Screen shows |
+|---|---|---|
+| Interval job with no `start`/`end`, or only one of them | The runner needs `start <= tick <= end` — measured: such jobs stayed silent on every tick while a windowed twin ran on time | normal row, Active |
+| `dailyAt`/`start`/`end` not a multiple of 15 (`487`, `600.5`), negative, or `>= 1440` | exact quarter-hour match only | `487` → "daily at 8:07", `1440` → "daily at 24:00" |
+| `start` > `end` (window over midnight) | no tick satisfies both bounds | normal row |
+| weekday `7`; month day `0` or `32` | no such day | normal row |
+| `agentId` that does not exist / inactive agent | agent service refuses at run time | `200` after each run |
+
+### 14.6 Cost and safety
+
+- An agent job is billed per run like any agent run (2026-10-29: 0.19–0.35 credits for a short Haiku run, 23.5 for a 30-record Sonnet run). Every 15 minutes all day = 96 runs a day; a heavy prompt on that interval empties a monthly allowance in days. There is no cost estimate, run cap or alert in the job editor.
+- **An AI agent given these tools can create and change scheduled jobs whatever its role** (measured 2026-11-01: an agent with only a low, non-admin role, fired by a job, listed all the database's jobs and created a new one). An agent with roles reaches the MCP with the database master key plus a role header, and the job tools ignore the role — they sign in to the admin as the owner. A careless or prompt-injected agent can therefore schedule paid agent runs or re-point/deactivate existing jobs, and a job carries no record of who created it. Give the two tools to an agent only when managing jobs is its purpose; the agent's tool picker offers them.
+
+### 14.7 Business hours, screen access and editing (2026-10-29, 2026-11-02)
+
+- **Agent jobs obey the agent's business hours** (since 2026-11-02). Measured: a job due at 06:45 UTC, on an agent whose hours open at 07:00 UTC, was queued and ran at 07:00:01. Without queueing, the run is refused and the activity says why. See [MyAgents](../10-modules/09-myagents.md) §8.
+- **Only the account owner can open the Jobs and Triggers tabs** of MyAgents → אוטומציות. Another Admin gets the raw message "resellerUser admin not found for username: … appId: …" (measured 2026-10-29).
+- **The editor is in English**, with the note "All times are in UTC zone time". The description, which is an agent job's prompt, is a 3-line left-to-right field.
+- **Update through MCP with `jobId`.** A key named `_id`, which is the name `Get-Scheduled-Jobs` returns, is dropped silently, and the call **creates a new job** (measured 2026-11-02).
+
 ## Limitations & gotchas
 
 1. **Triggers fire on Master-key/API writes too (live-verified §9)** — bulk writes can storm automations; suppression exists only on `Create-Many` (`skipTriggers`/`skipTimeline`); plan every import's trigger behavior explicitly.
@@ -671,7 +789,7 @@ distribution; turning it off restores the skew.
 6. **"Add to Timeline" trigger type is UI-only.**
 7. **Self-update connection must be exactly `current.objectId`.**
 8. **`oneachupdate: false`** marks the record processed forever — re-stamping requires `true` (but `true` + careless criteria = repeated sends).
-9. **Chain depth max 3**; `onSetFields` is your loop guard.
+9. **Two trigger levels in practice** (§8): T2's writes fire nothing, and a chained write back to the same record is blocked. `onSetFields` is your loop guard.
 10. **`Get-WhatsApp-Template-Params` unreliable for ≥2 params** — count `{{N}}` manually.
 11. **Email templates, SMTP accounts, WhatsApp templates cannot be created via MCP** — UI/Meta-approval prerequisites.
 12. **`_syslogTriggers` is not guaranteed to be populated** in every environment; `_Timeline` is ground truth.
@@ -680,3 +798,9 @@ distribution; turning it off restores the skew.
 15. **User-Assignments rules with no "הקצאה כאשר" checkbox ticked** produce a companion trigger with
     `events: []` — active-looking rule, zero assignments, no warning. See §13.2.
 16. Criteria date keywords (`"today"`, `"30 days period"`, …) come from the Usage-Guide condition spec; their evaluation inside *trigger* criteria specifically is ⚠️ UNVERIFIED (verified usages are Pointer/Number/Boolean/String/exists).
+17. **Scheduled jobs are not triggers** — clock-based, no table/record, listed only by `Get-Scheduled-Jobs`, never by `Get-Triggers`. See §14.
+18. **The scheduled-job tool saves values that never run** — an interval job without both `start` and `end`, off-quarter or out-of-range times, out-of-range days, a window over midnight, a missing/inactive agent. Read back and check every field (§14.5).
+19. **A scheduled job's `lastStatus` is the HTTP code, not the result** — an agent job with an inactive agent shows `200`. Read `lastResponse` / the MyAgents activity (§14.3).
+20. **No scheduled-job delete through MCP** — `active: false` only; delete on the screen.
+21. **A scheduled trigger with the AI-agent action never fires.** Use a scheduled job (§14.1).
+22. **Update a scheduled job with `jobId`, never `_id`.** `_id` creates a duplicate job (§14.7).

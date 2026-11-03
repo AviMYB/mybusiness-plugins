@@ -1,7 +1,7 @@
 # MCP Tools Catalog
 
 > **Purpose**: THE complete catalog of the MyBusiness MCP server tools (https://mcp.mbapps.co.il/) — per-tool purpose, spec-ready parameters, read-only/mutating classification, and gotchas — so an implementer (human or AI) can plan and execute work without trial-and-error.
-> **Last updated**: 2026-09-27 (`Config` reachable from MCP) · previously 2026-06-24 (added `Duplicate-Element`) · **Status**: draft
+> **Last updated**: 2026-11-03 (§8b `_id` vs `jobId`) · previously 2026-11-01 (§8b scheduled jobs — `Get-Scheduled-Jobs`, `Create-or-Update-Scheduled-Job`, measured live; tool count 69; summary lists reconciled with the live `tools/list`) · previously 2026-09-27 (`Config` reachable from MCP) · previously 2026-06-24 (added `Duplicate-Element`) · **Status**: draft
 
 ---
 
@@ -11,7 +11,7 @@
 |---|---|
 | MCP server URL | `https://mcp.mbapps.co.il/` |
 | Backing API | Parse Server at `https://api.mbapps.co.il/parse` (see [01-parse-rest-api.md](01-parse-rest-api.md)) |
-| Tool count (live) | **64** tools (63 as of 2026-06-10, + `Duplicate-Element` added 2026-06-24; the 2026-02-07 guide says "59 tools" but includes 9 `internal-mcp` agent-management tools that are NOT part of this server, and misses 14 newer tools that ARE live — both sets reconciled below) |
+| Tool count (live) | **69** tools on 2026-11-01 (30 read-only, 39 mutating — `Get-Sites`, `Get-Timeline-Settings`/`Set-Timeline-Settings` and, on 2026-11-01, `Get-Scheduled-Jobs`/`Create-or-Update-Scheduled-Job` added since the count of 64; history: 63 as of 2026-06-10, + `Duplicate-Element` added 2026-06-24; the 2026-02-07 guide says "59 tools" but includes 9 `internal-mcp` agent-management tools that are NOT part of this server, and misses 14 newer tools that ARE live — both sets reconciled below) |
 | Scope | One customer app per connection (credentials bound at the MCP connection level) |
 | First call | **`Usage-Guide`** — the server's own instruction says: "LLM should start with this prompt!!" |
 
@@ -275,6 +275,39 @@ Controls which tables write `create`/`update`/`delete` rows into `_Timeline` —
 
 **Validation is one-sided — read the return value.** Source-side violations are rejected atomically with a plain-string error (`Field X is not a Pointer in table T`, `Field X not found in table T`, `Class T does not exist.`), leaving the previous settings intact; a caller that ignores the result mistakes rejection for success. Target-side collisions are **not** validated: a type mismatch silently stores `null`, and mapping `objectId` onto a Pointer column of another class writes a permanently corrupt row that breaks full-row reads of `_Timeline` — unrepairable, because the table is read-only. Always `Get-Schema` on `_Timeline` and `Get-Timeline-Settings` on sibling tables before picking a column name.
 
+## 8b. Scheduled jobs (clock-based runs of a cloud function or an AI agent)
+
+A **scheduled job** runs on the clock — every 15/30/60 minutes inside a time window, daily, or monthly — and calls either a cloud function of the database or a MyAgents AI agent. It is **not** a trigger: it is not bound to a table or a record, and `Get-Triggers` never returns it. In the CRM it is the **MyAgents → אוטומציות → עבודות מתוזמנות** tab (also the admin *Jobs* tab); jobs created by MCP and by the screen are one list. Full mechanics, the runner's matching rules and the measured traps: [30-customization/06-triggers-and-automations.md](../30-customization/06-triggers-and-automations.md) §14. Live since 2026-11-01; measured live the same day.
+
+| Tool | R/W | Params | Notes |
+|---|---|---|---|
+| `Get-Scheduled-Jobs` | 🟢 | none | Every job of the database (screen-created ones too), `[]` when none. Each item: `_id` (24-hex), `name`, `description`, `url`, `interval`, `days`, `dailyAt`, `start`, `end`, `active` (Boolean), and after the first run `lastExec`, `lastStatus` (HTTP code, `null` on a runner error/timeout), `lastResponse` (raw body; for agent jobs it carries the model name and token usage). `url` encodes the target: `agent:<AiAgents objectId>` or `function:<name>:appId:<appId>`. Keys that were never set are absent (an MCP-created daily job has no `start`/`end`). |
+| `Create-or-Update-Scheduled-Job` | 🔴 | `jobId` (omit = create), `name`, `description`, `actionType` `function`\|`agent`, `functionName`, `agentId`, `interval` `15 minutes`\|`30 minutes`\|`hour`\|`daily`\|`monthly`, `days[]`, `dailyAt`, `start`, `end`, `active` | Create returns `{"_id":"<24-hex>"}`; update returns `{"success":true}`. All times are **minutes from midnight UTC**. `days` = weekdays `0`(Sun)–`6` for every interval except `monthly`, where it is days of the month `1`–`31`. `dailyAt` is for `daily`/`monthly`; `start`+`end` are the window for the three interval types. For an agent job, `description` is the prompt the agent receives. |
+
+**Required, enforced by the tool:** on create — `name`, `interval`, `actionType` (+ `agentId` or `functionName` to match), `dailyAt` for `daily`/`monthly`; on any write — at least one day when the job is active (`active` defaults to `true` on create). Errors come back as plain text starting `Error:` in a normal (non-`isError`) result — **read the text**, a client that only checks for a protocol error sees success.
+
+**Accepted but never runs — the tool does not validate these (measured):**
+- An interval job (`15 minutes`/`30 minutes`/`hour`) **without both `start` and `end`** is saved and listed as active but **never fires** — the runner matches only `start <= now <= end`. The tool description calls the window optional; it is not. Always send `start` and `end` (`0` and `1425` for "all day"). Measured: two such jobs stayed silent on every tick while a windowed twin ran on time.
+- `dailyAt`/`start`/`end` that are **not a multiple of 15**, negative, or `>= 1440` (`487`, `600.5`, `-15`, `1440` all saved). The runner fires only on an exact quarter-hour match, so these never run — and the screen shows them as normal times (`487` → "daily at 8:07", `1440` → "daily at 24:00").
+- `days` out of range (`7` for a weekday; `0` or `32` for a month day) or duplicated.
+- A window where `start` > `end` (crossing midnight, e.g. `1320`→`690`) — never runs (same rule as the screen, found 2026-10-29). Split it into two jobs.
+- An `agentId` that does not exist or belongs to an **inactive** agent — saved; at run time the agent call fails while the job list shows `200`.
+
+**Blocked:** a `:` inside `agentId`/`functionName` (`Failed to POST scheduled job (400): invalid action`) — so the target cannot be pointed at another database; path characters (`../`, `?`) are rejected at the edge with an HTML `403`.
+
+**Update semantics (measured — differ from the tool's own description):**
+- Omitted fields **keep their current values — including `description`, `start` and `end`.** The tool text says those three are cleared when omitted; in practice the server merges, and `Get-Scheduled-Jobs` returns all three.
+- **Changing the target needs `actionType` together with the id.** `agentId` alone or `functionName` alone is silently ignored (`{"success":true}`, nothing changes); `actionType` alone errors (`functionName is required …`).
+- Switching `interval` leaves the old `start`/`end` or `dailyAt` stored (harmless — the runner ignores them for the other interval type). A field cannot be cleared through the tool; `name` cannot be emptied.
+- An unknown `jobId` → `Error: Scheduled job not found: <id>`.
+- **A key named `_id` instead of `jobId` is dropped silently, and the call creates a new job** (measured 2026-11-02). Unknown keys are stripped by the tool schema. Always pass `jobId`, using the `_id` value that `Get-Scheduled-Jobs` returns.
+
+**No delete tool.** Deactivate with `active: false`. Deleting is a screen action (bin icon on the jobs tab).
+
+**Access.** The tools sit in the `edit-page-and-schema` permission group. With the master key they are always available (measured); with an API key too, by the server code (not measured). Over OAuth the user also needs that permission, and the tool logs into the admin site **as that user**, which today works only for the account owner (a second admin gets `resellerUser admin not found …` on the jobs tab, measured 2026-10-29) — ⚠️ the OAuth path itself is UNVERIFIED.
+
+**An AI agent given these tools can create and change scheduled jobs whatever its role** (measured 2026-11-01: an agent with only a low, non-admin role, fired by a job, listed all the database's jobs and created a new one). An agent with roles reaches the MCP with the database master key plus a role header, and the job tools ignore the role — they sign in to the admin as the owner. A careless or prompt-injected agent can therefore schedule paid agent runs or re-point/deactivate existing jobs, and a job carries no record of who created it. → Give the two tools to an agent only when managing jobs is its purpose; the agent's tool picker offers them.
+
 ## 9. Users, packages, roles, permissions
 
 | Tool | R/W | Params | Notes |
@@ -365,16 +398,16 @@ Full messaging architecture: [05-messaging-channels.md](05-messaging-channels.md
 
 ## 16. Read-only vs mutating summary
 
-**🟢 Read-only (19)**: Usage-Guide, Get-Data, Count-Data, Aggregate-Data, Get-Schema, Get-Site-Pages, Get-Page-Content, Get-Page-Settings, Get-Page-Versions, Get-Page-Version, Get-Optional-Fields, Get-Form-Rules, Get-Triggers, Get-Current-User, Get-all-Users, Get-Packages, Get-Roles, Get-Role-Users, Get-Table-Permissions, Get-Menus, Get-Menu-Items, Get-Reports, Get-Terminology-Dictionary, Get-Price-Quote-Templates, Get-File-Content, Get-SMTP-Accounts, Get-WhatsApp-Template-Params, Get-Timeline-Settings — *(27 listed; "Get-*" + Count/Aggregate/Usage-Guide)*.
+**🟢 Read-only (30)**: Usage-Guide, Get-Data, Count-Data, Aggregate-Data, Get-Schema, Get-Site-Pages, Get-Page-Content, Get-Page-Settings, Get-Page-Versions, Get-Page-Version, Get-Optional-Fields, Get-Form-Rules, Get-Triggers, Get-Current-User, Get-all-Users, Get-Packages, Get-Roles, Get-Role-Users, Get-Table-Permissions, Get-Menus, Get-Menu-Items, Get-Reports, Get-Terminology-Dictionary, Get-Price-Quote-Templates, Get-File-Content, Get-SMTP-Accounts, Get-WhatsApp-Template-Params, Get-Timeline-Settings, Get-Sites, Get-Scheduled-Jobs — *("Get-*" + Count/Aggregate/Usage-Guide; reconciled with the live `tools/list` 2026-11-01)*.
 
-**🔴 Mutating (37)**: Create-Data, Create-Many, Update-Data, Create-Table, Add-Field-to-Table, Edit-Page, Edit-Page-CSS-JS, Set-Page-Settings, Set-Page-Version, Create-Form-Page, Add-Container-to-Page, Duplicate-Element, Add-Edit-Text-Element, Add-Edit-Counter-Element, Add-Edit-Chart-Element, Add-Edit-Tabs-Element, Create-Table-View-Page, Edit-Table-View, Add-Table-View-to-Form-Page, Edit-Form-Rules, Set-Form-Rules, Set-Trigger, Set-Trigger-Action, Create-or-Update-User, Set-Package-for-User, Create-Role, Add-Users-to-Role, Remove-Users-from-Role, Set-Table-Permissions, Set-Menu-Items, Create-or-Update-Report, Set-Terminology-Dictionary, Replace-Terms, Create-Update-Price-Quote-Template, Create-Price-Quote, Upload-Public-File, Send-WhatsApp-Message, Set-Timeline-Settings.
+**🔴 Mutating (39)**: Create-Data, Create-Many, Update-Data, Create-Table, Add-Field-to-Table, Edit-Page, Edit-Page-CSS-JS, Set-Page-Settings, Set-Page-Version, Create-Form-Page, Add-Container-to-Page, Duplicate-Element, Add-Edit-Text-Element, Add-Edit-Counter-Element, Add-Edit-Chart-Element, Add-Edit-Tabs-Element, Create-Table-View-Page, Edit-Table-View, Add-Table-View-to-Form-Page, Edit-Form-Rules, Set-Form-Rules, Set-Trigger, Set-Trigger-Action, Create-or-Update-User, Set-Package-for-User, Create-Role, Add-Users-to-Role, Remove-Users-from-Role, Set-Table-Permissions, Set-Menu-Items, Create-or-Update-Report, Set-Terminology-Dictionary, Replace-Terms, Create-Update-Price-Quote-Template, Create-Price-Quote, Upload-Public-File, Send-WhatsApp-Message, Set-Timeline-Settings, Create-or-Update-Scheduled-Job.
 
 (`Send-WhatsApp-Message` with only `getNumbers`/`getTemplates` is effectively read-only, but classify the tool as mutating for permission gating.)
 
 ## Limitations & gotchas
 
 - **Guide vs live drift**: the 2026-02-07 export documents 50 product tools + 9 `internal-mcp` tools (Add-Tool-Docs, Create/Edit-Agent, Get-Agent(s), Get-Agent-Models, Get-Tool(s)) that belong to the AI-CRM-Implementor host app, NOT this MCP server. 14 live tools (Create-Many, Edit-Table-View, Add-Container-to-Page, Duplicate-Element, Add-Edit-Tabs-Element, Create-Role, Remove-Users-from-Role, Get/Set-Table-Permissions, Get/Set-Terminology-Dictionary, Replace-Terms, Get/Set-Page-Settings) are missing from the guide — their schemas above come from the live server and may still evolve.
-- **No delete tools**: no record-delete, no table-delete, no page-delete, no trigger-delete/disable tool (disable via `Set-Trigger` with `active:false` re-creation is ⚠️ UNVERIFIED — the guide doesn't document trigger update semantics).
+- **No delete tools**: no record-delete, no table-delete, no page-delete, no scheduled-job delete (deactivate with `active:false`, §8b), no trigger-delete/disable tool (disable via `Set-Trigger` with `active:false` re-creation is ⚠️ UNVERIFIED — the guide doesn't document trigger update semantics).
 - **`Config` table is reachable** — `Get-Data`/`Create-Data`/`Update-Data` on `Config` work, so web-lead toggles and PBX/Twilio/payment settings can be read and set from MCP. Earlier MCP versions returned `Error: Table is restricted`; if you still see it, fall back to master-key REST ( only).
 - **Replace-not-merge traps**: `Set-Form-Rules` (all rules), `Edit-Page`/`Edit-Page-CSS-JS` css/js (whole blob), `Set-Menu-Items` item `type` required on every update.
 - **MongoDB ids vs Parse ids**: menus/pages use Mongo `_id` (24-hex); data records use Parse `objectId` (10-char). Never feed names where ids are expected.

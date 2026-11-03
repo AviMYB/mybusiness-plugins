@@ -7,7 +7,7 @@
 | Section | Contents |
 |---|---|
 | **00-overview** | Product overview, architecture, bilingual glossary, environments & access |
-| **10-modules** | CRM Core, MyBooks (Israeli billing), MyCampaigns, MyChat, MyCollege, TimeSheet, MyInbox |
+| **10-modules** | CRM Core, MyBooks (Israeli billing), MyCampaigns, MyChat, MyCollege, TimeSheet, MyInbox, MyAgents (AI agents) |
 | **20-data-model** | Data model, core & module tables, system/log tables, field types & conventions |
 | **30-customization** | The customization surface: tables/fields, pages, table views, dashboards & reports, triggers, form rules, users & permissions, terminology, quote templates, field patterns, solution blueprints, customer portals |
 | **40-integrations-api** | Parse REST API, MCP tools catalog, web2lead/web2table, server-side extensions, messaging channels, files |

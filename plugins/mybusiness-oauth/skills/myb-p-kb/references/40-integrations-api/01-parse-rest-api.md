@@ -1,7 +1,7 @@
 # Parse REST API
 
 > **Purpose**: Canonical reference for the MyBusiness CRM Parse REST API — authentication, CRUD, queries, batch, users, files, aggregates, and product-specific conventions — for developers/implementers integrating external systems.
-> **Last updated**: 2026-09-27 (`Config` reachable from MCP) · previously 2026-06-10 · **Status**: draft
+> **Last updated**: 2026-10-14 (§2.2 login 2FA challenge) · previously 2026-09-27 (`Config` reachable from MCP) · previously 2026-06-10 · **Status**: draft
 
 ---
 
@@ -69,6 +69,8 @@ X-Parse-Session-Token: r:xxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
 Access with a session token is constrained by the user's roles and table CLP (Class-Level Permissions). Logout: `POST /parse/logout` with `X-Parse-Application-Id` + `X-Parse-Session-Token` headers.
+
+> **Tenants with login 2FA (default on every tenant created since 2026-10-14):** this call returns HTTP 200 `{"_2FACodeId": "…", "cookie": "…"}` — no `sessionToken` — and emails (or texts) a 6-digit code to the user. Finish with `POST /parse/users/_2fa` `{username, _2faId, code}` (returns the user + `sessionToken`; code valid 10 minutes, single use); re-send with `POST /parse/users/_resend2FAsms` `{username, _2faId}`. A server-side login that sends `X-Parse-Master-Key` with the real password skips 2FA. Full behaviour: [30/08 §9](../30-customization/08-users-roles-permissions.md).
 
 ### 2.3 API key (`X-Parse-API-Key`)
 
@@ -254,7 +256,7 @@ Response is an array in the same order; each element has `success` (normal REST 
 | Operation | Endpoint | Notes |
 |---|---|---|
 | Sign up | `POST /parse/users` body `{username, password, ...}` | Returns `objectId` + `sessionToken`. Product rule: `username` must be an email; password policy `(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}` (min 8, 1 lower, 1 upper, 1 digit) |
-| Log in | `POST /parse/login` body `{username, password}` | Returns `sessionToken` |
+| Log in | `POST /parse/login` body `{username, password}` | Returns `sessionToken` — or `_2FACodeId` when the tenant enforces 2FA (§2.2) |
 | Current user | `GET /parse/users/me` + `X-Parse-Session-Token` | 209 if token invalid |
 | Update user | `PUT /parse/users/<objectId>` | Own session or master key |
 | Password reset | `POST /parse/requestPasswordReset` body `{email}` | Sends reset email |

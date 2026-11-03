@@ -15,13 +15,13 @@ All product facts live in `references/` (generated from the canonical docs — d
 | First orientation / what is this product | `references/00-overview/01-product-overview.md` |
 | Architecture, page model, auth | `references/00-overview/02-architecture.md` |
 | Hebrew↔English term for anything | `references/00-overview/03-glossary.md` |
-| Module behavior (flows, pages, entities) | `references/10-modules/01-crm-core.md` … `07-myinbox-and-misc.md` (numbered per module) |
+| Module behavior (flows, pages, entities) | `references/10-modules/01-crm-core.md` … `09-myagents.md` (numbered per module; 09 = MyAgents AI agents; 08 is internal-only) |
 | Tables, fields, types, wire formats (Pointer/Date JSON), naming conventions, multi-select & cascading field mechanics | `references/20-data-model/05-field-types-and-conventions.md`; full model: `01`–`04` in same folder |
 | **Should this be a new table?** / designing a customer's data model / what a mockup may show natively | `references/20-data-model/06-native-before-new-table.md` (order of preference, D-rules, new-table justification, table budget, native UI vocabulary) |
 | Building/editing pages, views, dashboards, reports, menus | `references/30-customization/01-customization-overview.md` (map + build order) → detail docs `02`–`05` |
 | Triggers & automations grammar (events, conditions incl. the canonical `equesition` shape, actions, scheduled, chains, **API-write behavior**) | `references/30-customization/06-triggers-and-automations.md` |
 | Form rules | `references/30-customization/07-form-rules.md` |
-| Users, roles, CLP permissions | `references/30-customization/08-users-roles-permissions.md` |
+| Users, roles, CLP permissions; **login security — two-factor authentication (2FA by SMS or email, אימות דו-שלבי), remember-device, new-tenant default, effect on REST/API logins** | `references/30-customization/08-users-roles-permissions.md` (2FA = §9) |
 | Terminology renaming | `references/30-customization/09-terminology-localization.md` |
 | Quote PDF templates (`{{ }}`, `data-repeat`, signature block) **and** MyBooks accounting-document templates (invoice/receipt — a separate engine in the same table: `{{{ }}}` + `relatedData` repeats, §8) | `references/30-customization/10-price-quotes-documents.md` |
 | Field patterns (multi-select, parent-child, timestamp) | `references/30-customization/11-field-patterns.md` |

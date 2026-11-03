@@ -1,7 +1,7 @@
 # Users, Roles & Permissions — Access Control Model
 
 > **Purpose:** Reference for the three access-control pillars — משתמשים (Users), תפקידים (Roles) + חבילות (Packages/seats), and הרשאות טבלה (Table Permissions / CLP) — including spec-ready tool parameters, onboarding/offboarding flows, CLP design patterns, portal users and row-level filtering.
-> **Last updated:** 2026-10-09 (patterns 11–12 public intake / invite; `"*"` alongside roles; new-table defaults; `protectedFields` not via MCP) · previously 2026-06-10 · **Status:** draft
+> **Last updated:** 2026-10-14 (§9 login 2FA — email method, new-tenant default, API impact) · previously 2026-10-09 (patterns 11–12 public intake / invite; `"*"` alongside roles; new-table defaults; `protectedFields` not via MCP) · previously 2026-06-10 · **Status:** draft
 
 ## 1. Mental model — three independent decisions
 
@@ -271,6 +271,62 @@ Bulk: fetch packages+roles once; create users in sequence; group the role step i
 - Role membership? → `Get-Role-Users`.
 - CLP? → `Get-Table-Permissions` readback — never trust the write's "OK" alone.
 
+## 9. Login security — two-factor authentication (אימות דו-שלבי, 2FA)
+
+> Verified live 2026-10-14 on a freshly created tenant (UI login, admin screen and REST probes; codes read from the receiving mailbox). Email as a 2FA method shipped 2026-10-05; the new-tenant default on 2026-10-14.
+
+### 9.1 Where it is configured
+
+Per **tenant** (database), never per user. Path from inside the CRM: user menu (name, top-left) → **סביבת פיתוח** → admin opens in a new tab → **Databases** → *DB for MyBusiness* → **Security** tab → box **2 factor authentication**. Not readable or writable through any MCP tool.
+
+| Control | Behaviour |
+|---|---|
+| **Enforce 2 factor authentication** | Master switch for every user of the tenant — **portal users included** (verified 2026-10-14: a password login of an `isPortalUser` user returned `_2FACodeId`). Portal OTP logins (`/otp/*`, §13) are a separate flow. |
+| **Remember device for (days)** | How long a browser that passed 2FA is trusted. Default 14. Minimum **1** — a value below 1 is reset to 1 and that first **Save** click is swallowed without saving or any message; press Save again. "Ask on every login" is not possible. |
+| **Choose 2FA method** | `SMS` / `Email`. Choosing Email hides the SMS fields. The email's subject and HTML are fixed — not editable here (unlike the OTP section further down the same screen). |
+| SMS-only fields | Verification message (`{{code}}`), users' phone country prefix, SMS sender number. |
+| **Forget all Authorized devices** | Confirm dialog → `purge/_2FA`: every remembered browser **and every pending code** is wiped; everyone gets a code on the next login. |
+| **Require Both IP Range Restriction and 2FA** | See §9.5. |
+
+Changes are saved by the **Save** button at the bottom of the Security tab (`POST apps/<appId>/settings`) and take effect on the next login — measured immediate for both switching off and switching on.
+
+### 9.2 New tenants start with email 2FA ON (since 2026-10-14)
+
+Every newly created tenant now starts with `loginRequire2FA: {useEmail: true, cookieLength: 14}` — verified on a tenant created 2026-10-14: the box ticked, method Email, 14 days. **Existing tenants are unchanged.** Consequences: a new customer's first login asks for an emailed code; REST logins with username + password on a new tenant get a challenge instead of a session (§9.6).
+
+### 9.3 Which address receives the code
+
+`_User.email` when it holds a valid address, otherwise `username` when it is an address. Neither → the login is **refused** with `Missing email for 2FA` (HTTP 404, code 101) — the user cannot log in at all while email 2FA is on. `_User.email` is the admin user screen's **"User Email: If Different From Username"** field (Users tab → user → Details). `Create-or-Update-User` (MCP) has no `email` parameter — it sets `username` only; a separate address is set in that admin screen or by REST with the master key. `emailVerified` is not required. Verified: a user with `email` set received the code there and nothing reached the `username` address; a user whose username is not an address but whose `email` is set logged in normally.
+
+### 9.4 The login flow, as the user sees it
+
+1. Email + password on the regular login page → the server checks the password, emails a **6-digit code** and the browser is sent to the tenant page `login_2fa` (`?_2FA_id=…&username=…&redirectTo=…`). The page heading is **אימות דו שלבי**, but its field label reads *"הכנס קוד אימות שהתקבל ב-SMS"* in Email mode too.
+2. The email: sender `support@mybusiness.co.il` (display name *Mybusiness*), subject **קוד אימות דו שלבי**, fixed Hebrew template (the code, "valid 10 minutes, single use", "never share the code — not even with a MyBusiness representative"). Measured delivery 20–30 seconds. MyBusiness-branded regardless of tenant.
+3. The code is valid **10 minutes** (verified: the correct, unused code submitted 10 min 17 s after it was issued → `Invalid _2fa.`) and **single-use** (a replay of a used code → `Invalid _2fa.`). A wrong code shows the raw message `Invalid _2fa.` in a popup; the same challenge can be retried with the right code.
+4. **שלח קוד מחדש** is disabled for the first 60 seconds (earlier → `Too soon to resend 2FA.`). It re-sends the **same** code, not a new one, and only within the 10 minutes; if the user also has a phone, the resend goes to WhatsApp too (and SMS when a sender number is configured). Success popup text: `sms sent successfuly`.
+5. Success → session plus a device cookie `<appId>_<userObjectId>` (HttpOnly, Secure, SameSite=Lax, lifetime = the remember-days value). On that browser the next logins skip the code and **send no email** (verified) until the cookie expires or an admin presses *Forget all Authorized devices*.
+6. If sending the email fails, the server falls back to WhatsApp to `_User.phone` when one exists (source; not live-tested).
+
+Rate limits (per username, rolling 10 minutes): more than 10 code validations → `Too many requests` — **even the correct code is refused** until the window clears (verified; successful validations count too); more than 10 code emails → `Sending 2FA failed`.
+
+### 9.5 Interaction with the IP restriction (documented behaviour; not live-tested)
+
+With *Restrict login by IP ranges* set and 2FA on: a login from inside the range skips 2FA, a login from outside is asked for the code instead of being blocked. With *Require Both IP Range Restriction and 2FA* ticked: outside the range is blocked, inside the range still gets the code.
+
+### 9.6 API, integrations and agents
+
+| Call | On a tenant with 2FA on |
+|---|---|
+| `POST /parse/login` (App-Id only, username + password) | HTTP 200 `{ "_2FACodeId": "<10 chars>", "cookie": "…" }` — **no `sessionToken`**, and a code email goes to the user. Any integration or agent that logs in with a password breaks. |
+| `POST /parse/users/_2fa` `{username, _2faId, code}` | Completes the login → user object + `sessionToken`. Wrong/expired/used → 401 `Invalid _2fa.` |
+| `POST /parse/users/_resend2FAsms` `{username, _2faId}` | Re-sends the same code (rules in §9.4). |
+| `POST /parse/login` **with `X-Parse-Master-Key`** + the real password | `sessionToken` directly — **2FA is skipped for master-key logins**; the password is still checked. |
+| MCP (`mcp.mbapps.co.il`, master key / API key) | Unaffected (verified on a 2FA tenant). |
+| `POST /parse/users` (create user) | Returns a session for the new user without a challenge. |
+| `Simbla.User.logIn` on a custom page | Rejects with `"2FA is required, code: <id>"`; the stock login redirects to `login_2fa` — a custom login page has to do the same. |
+
+Every step is written to the tenant's security event log (`login`, `Validate2FA`, `ReSend2FA`).
+
 ## Limitations & gotchas
 
 1. **`Set-Table-Permissions` replaces all six actions** — read-modify-write or you silently revoke grants.
@@ -287,3 +343,8 @@ Bulk: fetch packages+roles once; create users in sequence; group the role step i
 12. **Row-level "advanced permissions" are UI-only** — no MCP read/write; audit manually.
 13. **Portal users** consume no standard seat but still need role+CLP design; their auth flow differs (⚠️ exact portal auth mechanics UNVERIFIED in examined sources).
 14. **CLP has no field-level granularity** — hiding specific fields per role requires separate pages/forms (or row-filtering), not CLP.
+15. **New tenants (since 2026-10-14) start with email 2FA on** — password-based REST logins get `_2FACodeId` instead of a session; use the master-key header for server-side logins, or complete the challenge (§9.2, §9.6).
+16. **With email 2FA on, a user with no email address cannot log in** (`Missing email for 2FA`) — every user needs an address in `username` or in the admin "User Email" field; MCP cannot set the latter (§9.3).
+17. **2FA is all-users-or-none per tenant** — no per-user or per-role exemption, no "ask every time" (minimum remember period 1 day), and the email template cannot be customised or re-branded (§9.1, §9.4).
+18. **The code page says "SMS" and shows English system messages** (`Invalid _2fa.`, `Too many requests`) in Email mode — prepare users: the code arrives by email, check spam, wait ~30 s (§9.4).
+19. **Tenant 2FA also challenges portal users' password logins** — a portal with hundreds of external users needs every one of them to have a working email before email 2FA is switched on (§9.1).

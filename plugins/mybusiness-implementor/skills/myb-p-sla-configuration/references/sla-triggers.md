@@ -220,8 +220,8 @@ The `computeSLADeadline` cloud function (which the customer's dev team must depl
 
 1. Read `request.object` (the case being created or updated).
 2. Look up the matching `SLASettings` row by `(CaseTypeId, CaseSubTypeId, CaseStatusId)`, preferring more specific matches.
-3. Read the active `BusinessHours` row.
-4. Compute the deadline by walking forward `SLADays` working days (skipping inactive `WeeklyHours` days, skipping `SpecialDates`, skipping Israeli holidays if `ConsiderIsraeliHolidays` is true).
+3. Read the `BusinessHours` row named `SLA` (shape in `business-hours.md`).
+4. Compute the deadline by walking forward `SLADays` working days (skipping `WeeklyHours` days with `isOpen: false`, applying `SpecialDates` — closed all day, or open with shorter hours —, skipping Israeli holidays if `ConsiderIsraeliHolidays` is true, and counting a case opened after `StartMaxTime` from the next business day).
 5. `request.object.set("SLADeadline", deadline)`.
 
 This is the proper implementation that aligns with the platform's original design intent. The simple `timeGap` triggers are the pragmatic v1 — document the trade-off with the customer when handing off.

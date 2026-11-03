@@ -100,7 +100,7 @@ Count-Data(table: "Cases", where: { SLADeadline: { $exists: true } })
 ```
 
 Read each and look for:
-- Empty `BusinessHours` or `SLASettings` → no SLA configured at all.
+- Empty `SLASettings`, or no `BusinessHours` row named `SLA` → no SLA configured at all. An `SLA` row whose `WeeklyHours` elements lack `d` / `openTime` / `closeTime` / `isOpen` is unreadable to the SLA hours screen — rewrite it per `business-hours.md`.
 - Missing `StateId` pointers on `CaseStatuses` → clock can't pause on close.
 - No SLA-named triggers in `Get-Triggers` → the most common root cause; the engine isn't running.
 - `Count-Data` with `SLADeadline $exists` returning 0 or near-0 → confirms triggers aren't populating.

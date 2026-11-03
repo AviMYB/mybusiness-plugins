@@ -27,7 +27,7 @@ No third variant. Install only one. OAuth discovery was checked; live sign-in st
 
 The plugin supplies skills; configure the personal MCP separately in Codex Settings. No custom window, Python or external vault is required. [Exact setup / הוראות מלאות](plugins/mybusiness-implementor/SETUP-CODEX.md). Upgrade the marketplace and reinstall to migrate from 1.2.0; existing personal MCP connections remain independent of the plugin.
 
-![AI agents](https://img.shields.io/badge/AI_agents-plugin-d97757) ![Agent Plugins](https://img.shields.io/badge/Agent_Plugins-1.0-24292e) ![version](https://img.shields.io/badge/version-1.5.2-007ec6) ![skills](https://img.shields.io/badge/skills-24-007ec6) ![ISO 27001](https://img.shields.io/badge/security-ISO_27001-2ea44f)
+![AI agents](https://img.shields.io/badge/AI_agents-plugin-d97757) ![Agent Plugins](https://img.shields.io/badge/Agent_Plugins-1.0-24292e) ![version](https://img.shields.io/badge/version-1.6.0-007ec6) ![skills](https://img.shields.io/badge/skills-25-007ec6) ![ISO 27001](https://img.shields.io/badge/security-ISO_27001-2ea44f)
 
 The official **[MyBusiness CRM](https://www.mybusiness.co.il)** plugin **for AI agents** — Claude Code, Codex, Claude Cowork, ChatGPT Work, Cursor, GitHub Copilot and the rest. MyBusiness is a Hebrew-first, Israeli business-management platform: CRM core (leads, accounts, sales, cases, tasks) plus the MyBooks (billing), MyCampaigns (marketing), MyChat (WhatsApp), MyCollege (courses) and TimeSheet modules.
 
@@ -70,6 +70,7 @@ Here the AI **does not write a system from scratch — it configures one on top 
 | Local prototypes | `myb-p-mockup-templates` |
 | Pages & UI | `myb-p-card-design` (record cards, layout & aesthetics) · `myb-p-page-tables` · `myb-p-create-settings-page` · `myb-p-dashboards` · `myb-p-create-update-reports` |
 | Automation | `myb-p-trigger-setup` · `myb-p-form-rules` · `myb-p-sla-configuration` · `myb-p-chatbots` (MyChat bots) |
+| AI agents | `myb-p-myagents` (MyAgents AI agents in the CRM: setup, roles, starting from a webhook, a trigger or a scheduled job, business hours, reading documents, call transcription) |
 | Data & integrations | `myb-p-data-import` · `myb-p-public-forms` (public forms: website forms, forms on a CRM page, one-click links) |
 | Service quality | `myb-p-public-forms` → `csat/` (post-case satisfaction survey) |
 | Billing & quotes | `myb-p-mybooks-setup` · `myb-p-price-quote-template` |
@@ -139,7 +140,7 @@ plugins/mybusiness-implementor/
 ├── mcp.json                         Agent Plugins MCP config     ← other clients
 ├── .claude-plugin/plugin.json       Claude Code manifest (+ its two configuration fields)
 ├── .mcp.json                        Claude Code MCP config
-└── skills/                          23 skills, each a folder with SKILL.md + references/
+└── skills/                          25 skills, each a folder with SKILL.md + references/
 ```
 
 **One folder, two packaging formats.** The same plugin is both a Claude Code plugin and an

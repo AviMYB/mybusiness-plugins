@@ -44,11 +44,31 @@ Three facts drive almost every decision:
 - Reading an existing history to investigate an incident — that is a query, not a configuration change; the patterns are in the reference §1.10.
 - Automations that *react* to a change → `myb-p-trigger-setup`. A timeline is passive.
 - The trigger execution log (`_syslogTriggers`) or request log — different tables, same reference doc §2.
-- Field-level "who changed this one field, and from what to what" with old-and-new values — the timeline records the new payload only. See Known limitations.
+- Field-level "who changed this one field, and from what to what" with old-and-new values — the whole new payload is recorded (A0), but the *previous* value never is. See Known limitations.
 
 ---
 
 # Part A — Recording
+
+## A0 — What actually gets recorded (read this before A2)
+
+**Once a table has timeline settings at all, every field sent in a create or an update is stored
+on the `_Timeline` row, in the `data` column (type `Object`) — mapped or not.** Capture is
+all-or-nothing per table, and the `index`/`displayFields` maps do not control it.
+
+Those maps serve a **secondary** purpose: they lift chosen fields out of `data` into their own
+`_Timeline` columns so the feed can *filter* on them (the scoping query in Part B matches a
+pointer column, never `data`) and *display* them (the `{{Col}}` bindings in the `<li>` template).
+A mapped column is **always** populated — if the field was absent from that write, the platform
+reads it from the DB. That is the per-write cost noted in A2, and the reason a mapped column
+is never a reliable signal of "this write touched this field".
+
+The practical consequences, both of which get misread:
+
+- **An unmapped field is not lost.** It is in `data`. Do not add a mapping "so the change gets
+  recorded" — add one only when the feed must filter or render that field.
+- **A mapped field being present proves nothing about the write.** It may have come from the DB.
+  To know what a given write actually changed, read `data`.
 
 ## A1 — Read the current state (never skip)
 
@@ -69,7 +89,7 @@ Build `index` from **Pointer fields only**, `displayFields` from **non-Pointer f
 - **When two pointers on your table target the same class** (a payer account and a recipient account, say), only one can own the shared column. Pick the one whose card should carry the history, and **write the choice down** — the other entity's card will not show these entries.
 - **New column names must not collide with a different type.** Check the A1 schema. A String mapped onto an existing `Number` column stores `null` forever, and a self-`objectId` mapped onto a Pointer column of another class writes an unrepairable row that breaks full-table reads. Both are accepted without error — the tool does not validate the target side.
 - **Never target a system column** — `data`, `event`, `objectId`, `Last`, `Pinned`, `Color`, `user`, `Referer`. They are accepted and they overwrite the audit fields themselves.
-- **Keep both maps as small as the UI actually needs.** Any mapped field absent from a write payload is fetched from the DB on every single write — the maps are a per-write cost, not free metadata.
+- **Keep both maps as small as the UI actually needs.** Any mapped field absent from a write payload is fetched from the DB on every single write — the maps are a per-write cost, not free metadata. Mapping is for *filtering and display only*; recording already happens without it (A0).
 
 Sanity check: 2-6 index entries and 1-4 displayFields is the shape of every shipped table. A dozen displayFields is a design smell.
 
@@ -260,7 +280,7 @@ Add a row, then `set-html-content` into it. On a card with a tabs element, ancho
 - **No custom entries.** An agent cannot write a timeline row directly; entries only arise from writes to a tracked table. A manual note belongs in `Notes` (which is itself tracked).
 - **The column set is per-tenant** — created lazily on first write, so never assume a column or a `_changed` flag exists in a tenant until seen in that tenant's `_Timeline` schema.
 - **`<Field>_changed` is presence, not difference** — re-saving a field with its existing value sets it, and it is absent rather than `false` when unchanged. Do not build "what actually changed" reporting on it.
-- **No old value.** `data` is the new write payload; the previous value is not recorded.
+- **No old value.** `data` is the new write payload — complete, every field sent (A0) — but the previous value is not recorded, so "changed from X to Y" requires diffing against the preceding row.
 - Attribution is `user`, never `createdBy`/`updatedBy` (always `Master` on the log row). MCP/API writes are attributed to `Master`, so agent-made changes are not distinguishable by person; trigger writes carry `updatedByTrigger` in `data`, and a populated `Referer` marks a browser edit.
 
 ## Tell the customer what it does and does not cover

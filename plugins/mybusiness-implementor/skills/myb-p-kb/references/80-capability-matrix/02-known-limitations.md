@@ -2,7 +2,7 @@
 
 > **Purpose:** Every verified limitation, gotcha, and platform sharp edge in one place — so fit-gap doesn't over-promise and builders don't step on landmines.
 > **Audience:** Implementers, developers, AI agents — read before classifying anything as "Config" and before any build/migration.
-> **Last updated:** 2026-10-09 (public forms — §23, item 37 corrected) · previously 2026-10-06 (card layout & aesthetics — §22) · previously 2026-09-28 (build mechanics that shape a design — §21) · previously 2026-09-27 (`Config` reachable from MCP) · previously 2026-08-23 (native page mechanisms & page JS — §16) · **Status:** draft — living document.
+> **Last updated:** 2026-11-03 (§27 MyAgents agents, items 143-157) · previously 2026-11-01 (scheduled jobs through MCP — §26) · previously 2026-10-14 (login 2FA — §24) · previously 2026-10-09 (public forms — §23, item 37 corrected) · previously 2026-10-06 (card layout & aesthetics — §22) · previously 2026-09-28 (build mechanics that shape a design — §21) · previously 2026-09-27 (`Config` reachable from MCP) · previously 2026-08-23 (native page mechanisms & page JS — §16) · **Status:** draft — living document.
 
 Format per item: **the edge** → why it bites → what to do.
 
@@ -208,6 +208,52 @@ Verified on the playground on 2026-10-09 (anonymous browser context + tokenless 
 117. **`getlead` answers `{result:{success,leadId}}`**; both endpoints' errors arrive as HTTP 400 + `{error}` — integration code that reads `success` or branches on 422/403 is wrong. ([40/03](../40-integrations-api/03-web2lead-web2table.md) §3–4)
 118. **`getlead` matches phone formats only for a digits-only `PhoneNumber`** — `+972-50-…` is compared exactly and misses an existing `0500000098`. → Send digits only. ([40/03](../40-integrations-api/03-web2lead-web2table.md) §3)
 119. **`web2table` adds 7 columns to the target table and names unnamed rows `פניה ראשונה` / `MainLandingPage`.** → Aim it only at intended intake tables (MCP cannot delete columns); send `table_Name`, `CampaignName`, `PageName`. ([40/03](../40-integrations-api/03-web2lead-web2table.md) §4)
+
+## 24. Login two-factor authentication (2026-10)
+
+Verified live on 2026-10-14 on a freshly created tenant (UI login, admin Security screen, REST). Fact source: [30/08 §9](../30-customization/08-users-roles-permissions.md).
+
+121. **Tenants created since 2026-10-14 start with email 2FA on.** → A new customer's first login asks for a code sent by email; password-based REST logins (integrations, scripts, agents) get `_2FACodeId` instead of a `sessionToken`. Use the master-key header for server-side logins, or complete `/parse/users/_2fa`. (§9.2, §9.6)
+122. **With email 2FA on, a user with no email address cannot log in** (`Missing email for 2FA`). The code goes to the admin "User Email" field if set, else to the username; MCP `Create-or-Update-User` cannot set the separate field. → Audit users before switching email 2FA on. (§9.3)
+123. **2FA is one switch for the whole tenant** — no per-user or per-role exemption, the shortest remember period is 1 day (a 0 is reset to 1 and the first Save is ignored), and the email template is fixed and MyBusiness-branded. (§9.1, §9.4)
+124. **After 10 code attempts in 10 minutes the user is refused even with the correct code** (`Too many requests`) until the window clears; resend is blocked for the first minute and re-sends the same code. (§9.4)
+125. **The code page reads "received by SMS" and shows English system messages in Email mode.** → Tell users in advance: the code arrives by email within ~30 s, valid 10 minutes, check spam. (§9.4)
+126. **Tenant 2FA also applies to portal users' password logins** (verified) — switching email 2FA on for a tenant with a customer portal requires an email for every portal user. (§9.1)
+
+## 26. Scheduled jobs through MCP (2026-11)
+
+Measured live on 2026-11-01 on a test tenant — 30 jobs created through `Create-or-Update-Scheduled-Job`, run results captured on the following ticks — and read from the MCP-server and job-runner source. Fact source: [30/06 §14](../30-customization/06-triggers-and-automations.md) · [40/02 §8b](../40-integrations-api/02-mcp-tools-catalog.md).
+
+137. **The scheduled-job tool saves jobs that can never run** — an interval job without both `start` and `end`, a time that is not a multiple of 15 (or negative, or ≥ 1440), a weekday `7` or month day `0`/`32`, a window over midnight, a missing or inactive agent. All are accepted and listed as normal on the screen (`487` shows as "daily at 8:07"). → Always send `start` + `end` (`0`/`1425` = all day), whole quarter hours, valid days; read back with `Get-Scheduled-Jobs` and compare. (§14.5)
+138. **A job's `lastStatus` is the HTTP code, not the result** — an agent job whose agent is inactive records `200` and `success:true` with `"Error: Agent not found"`; a run cut at 120 s records `null`. → Judge a run by `lastResponse` and the MyAgents activity. (§14.3)
+139. **The tool's own text is wrong about updates** — omitted `description`/`start`/`end` are kept, not cleared; `agentId` or `functionName` sent without `actionType` is silently ignored. → Re-target with `actionType` + id; do not rely on omission to clear a field. (§14.4)
+140. **No delete for scheduled jobs through MCP** — `active: false` only; delete on the screen (MyAgents → אוטומציות → עבודות מתוזמנות). (40/02 §8b)
+141. **Times are UTC only** — every job moves by an hour at each daylight-saving change. → Re-time jobs at the clock change, or schedule in a window wide enough to absorb it. (§14.2)
+142. **An AI agent given these tools can create and change scheduled jobs whatever its role** (measured 2026-11-01: an agent with only a low, non-admin role, fired by a job, listed all the database's jobs and created a new one). An agent with roles reaches the MCP with the database master key plus a role header, and the job tools ignore the role — they sign in to the admin as the owner. A careless or prompt-injected agent can therefore schedule paid agent runs or re-point/deactivate existing jobs, and a job carries no record of who created it. → Give the two tools to an agent only when managing jobs is its purpose; the agent's tool picker offers them. (30/06 §14.6)
+
+## 27. AI agents — MyAgents (2026-11)
+
+Measured live on fresh databases with the module installed from the app market. Fact source: [10/09](../10-modules/09-myagents.md).
+
+143. **Every accepted run answers the caller with success**, including runs the agent refused (inactive agent, outside the hours). → Judge a run by its conversation in the workspace. (§9)
+144. **The role requirement is enforced only in the agent card.** An agent created through the API can have no role, and then runs automatically without any CRM tools. → Give every agent a role. (§3)
+145. **An inactive agent cannot answer**, and the card's "שמור ונהל שיחה" and test-call buttons do not check it. → Tick "פעיל" before testing. (§6)
+146. **Queued requests do not keep their arrival order.** They run together when the business hours start. (§5)
+147. **Webhook data sent in the query string does not survive the queue.** → Send webhook data as a JSON body. (§5)
+148. **There is no screen to view or cancel queued requests**, and a queued request that cannot run when the hours start can stay marked as waiting. (§5)
+149. **A request refused outside the hours still answers the caller with success.** The reason is recorded in the conversation. (§5)
+150. **Business-hours calendar:**
+     - Hours that cross midnight are treated as closed.
+     - Independence Day is not reliable in every year.
+
+     → Split overnight hours over two days, and add important holidays as special dates. (§5)
+152. **Conversation names are not guaranteed**; some conversations get none. Rename with the ✓ icon (Enter and Esc are not supported). (§6)
+154. **Credits are checked before a run but not reserved**, and runs that end in an error are charged too, e.g. audio sent to a level that cannot hear it. (§2, §8)
+155. **A scheduled (date-field) trigger cannot run an agent**, and a delete trigger does not start one. → Use a scheduled job. (§4)
+156. **A webhook key sent as an HTTP header is not recognised.** → Put it in the JSON body. (§4)
+157. **Voice test call:**
+     - Use local numbers (`05…`).
+     - If the call does not connect, check the extension settings and the activity, not the summary in the window. (§7)
 
 ## Limitations & gotchas
 

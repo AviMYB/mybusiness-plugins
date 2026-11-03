@@ -1,7 +1,7 @@
 # Solution Blueprints — Proven End-to-End Patterns
 
 > **Purpose:** Catalog of field-proven, end-to-end solution patterns for fit-gap analysis and implementation planning. Each blueprint: problem → solution shape → components touched → effort class (S = hours, M = ~1 day, L = multi-day/dev involvement) → source skill. Detail lives in the linked skills and sibling docs; this file is the index an implementer scopes from.
-> **Last updated:** 2026-10-09 (blueprint 13 public form; CSAT native variant; blueprint 3 prerequisite corrected) · previously 2026-09-27 (`Config` reachable from MCP) · previously 2026-06-10 · **Status:** draft
+> **Last updated:** 2026-11-01 (blueprint 1: `BusinessHours` shape corrected to what the SLA hours screen reads — `{d, openTime, closeTime, isOpen}`, row `Name = "SLA"`) · previously 2026-10-09 (blueprint 13 public form; CSAT native variant; blueprint 3 prerequisite corrected) · previously 2026-09-27 (`Config` reachable from MCP) · previously 2026-06-10 · **Status:** draft
 
 ## Index
 
@@ -48,7 +48,7 @@ flowchart TD
 | Part | Shape |
 |---|---|
 | Taxonomy | `CaseTypes`, `CaseSubTypes(TypeId)`, `CaseStatuses(StateId→CaseStates)`; every status must map to a state — null `StateId` = clock runs forever. UI: הגדרות מערכת → הגדרות פניות |
-| `BusinessHours` (single row) | `{ Name, WeeklyHours: [{day, active, from, to}×7], SpecialDates: [{date, name, closed}], ConsiderIsraeliHolidays: true }` — one window only; multi-shift unsupported |
+| `BusinessHours` (one row, `Name = "SLA"`) | `{ Name: "SLA", WeeklyHours: [{d, openTime, closeTime, isOpen}×7], SpecialDates: [{id, name, date, openTime, closeTime, isOpen}], ConsiderIsraeliHolidays: true, StartMaxTime? }` — `d` 0 = Sunday … 6 = Saturday, times `"HH:MM"`, a closed day is `isOpen:false` with `"00:00"`; the SLA hours screen reads only the row named `SLA` (any other name is invisible to it); one window per day — multi-shift unsupported. Full shape: [04-system-tables-and-logs.md](../20-data-model/04-system-tables-and-logs.md) §6 |
 | `SLASettings` (one row per rule) | `{ CaseTypeId, CaseSubTypeId?, CaseStatusId?, SLAHours xor SLADays }`; precedence most-specific-wins (Type+SubType+Status > Type+SubType > Type) |
 | Trigger 1 — deadline on create | `events:["create"]`, criteria StatusId=פתוח, action `update-object current.objectId` → `SLADeadline = createdAt + timeGap` (2880 = 2 days) |
 | Trigger 2 — first response | `events:["update"]`, `onSetFields:["StatusId"]`, **`oneachupdate:false`**, criteria StatusId ≠ פתוח → `ResponseTime = updatedAt` (false is critical — true would re-stamp and destroy the metric) |

@@ -276,6 +276,16 @@ Beyond roles, you can whitelist a single user by their objectId as a key:
 
 Useful for exceptions — e.g., a manager who is not in the Admin role but needs update access on one sensitive table. Prefer roles for anything that generalizes; reserve user-level keys for true one-offs so permissions remain maintainable.
 
+## Roles for AI agents (MyAgents)
+
+An agent's CRM permissions come from the roles on `AiAgents.MCPRoles_Pointer__Role`. The agent server sends them as a role header, and the CRM evaluates the union of those roles' CLP/ACL. Details: KB `10-modules/09-myagents.md` §3.
+
+- **Every agent needs a role.** The agent card requires one, but an agent created through the API is not checked. An automated run of a role-less agent has no CRM tools.
+- **Prefer an existing staff role that already writes the tables the agent needs.** It worked for unattended agents, including on a table whose CLP has `requiresAuthentication`; writes are stamped as that role.
+- **A dedicated agent role** (a role with no users, merged into only the tables the agent writes) is the least-privilege pattern. On a table whose CLP has `requiresAuthentication` it is not proven yet: one narrow role failed with "No current user", but its only member was a disabled user. Test with a real write before you rely on it.
+- **Give an agent the Admin role only with the owner's approval.**
+- **Before blaming row-level ACLs** for a "Permission denied", count `_rperm` / `_wperm` with `Count-Data`. `Get-Data` with `keys` hides the ACL.
+
 ## Pitfalls & Why They Bite
 
 1. **`Set-Table-Permissions` replaces all six actions.** Always read first, modify, then write. Forgetting an action silently revokes it.

@@ -1,6 +1,6 @@
 ---
 name: myb-p-trigger-setup
-description: "Create, configure, and manage triggers (automations) in MyBusiness CRM using MCP tools. Use this skill whenever a customer wants to set up automations, create triggers, configure automatic actions on record create/update, schedule time-based triggers, send automatic emails/SMS/WhatsApp on status change, auto-create records, auto-update related records, send notifications, call webhooks, or run server-side code. Also use when troubleshooting existing triggers or when the user mentions: טריגר, אוטומציה, כלל אוטומטי, שליחת מייל אוטומטית, שליחת SMS אוטומטי, יצירת רשומה אוטומטית, עדכון אוטומטי, התראה אוטומטית, תזמון, trigger, automation, auto-send, auto-create, auto-update, webhook, scheduled trigger, notification trigger."
+description: "Create, configure, and manage triggers (automations) and scheduled jobs in MyBusiness CRM using MCP tools. Use this skill whenever a customer wants to set up automations, create triggers, configure automatic actions on record create/update, schedule time-based triggers, run a cloud function or an AI agent on a clock schedule (scheduled job), send automatic emails/SMS/WhatsApp on status change, auto-create records, auto-update related records, send notifications, call webhooks, or run server-side code. Also use when troubleshooting existing triggers or scheduled jobs or when the user mentions: טריגר, אוטומציה, כלל אוטומטי, שליחת מייל אוטומטית, שליחת SMS אוטומטי, יצירת רשומה אוטומטית, עדכון אוטומטי, התראה אוטומטית, תזמון, עבודה מתוזמנת, עבודות מתוזמנות, להריץ סוכן כל בוקר, trigger, automation, auto-send, auto-create, auto-update, webhook, scheduled trigger, scheduled job, cron, notification trigger, Get-Scheduled-Jobs, Create-or-Update-Scheduled-Job."
 ---
 
 # Trigger Setup / הגדרת טריגרים
@@ -35,6 +35,7 @@ TRIGGER (When)                    ACTIONS (What) -- one or more
 - Deactivating triggers (`active: false`)
 - Deleting individual actions from a trigger
 - Querying existing triggers (`Get-Triggers`)
+- **Scheduled jobs** — clock-based runs of a cloud function or an AI agent, not tied to a table (`Get-Scheduled-Jobs`, `Create-or-Update-Scheduled-Job`) — see the "Scheduled jobs" section below
 
 ### NOT Covered / Limitations
 - **Deleting triggers entirely** -- MCP can only deactivate, not delete. To delete: user must go to Admin > Databases > Tables > [Table] > Triggers and remove manually
@@ -47,7 +48,7 @@ TRIGGER (When)                    ACTIONS (What) -- one or more
 
 ## Verified Gotchas (from hands-on testing)
 
-1. **`shcedulerHours: 0` FAILS** -- the system rejects value 0 with "Scheduler hours is required". Use `1` (1 hour before) or `-1` (1 hour after) as the minimum. There is no "exactly at time" option via MCP.
+1. **`shcedulerHours: 0` FAILS** -- the system rejects value 0 with "Scheduler hours is required". Use `1` (1 hour before) or `-1` (1 hour after) as the minimum. There is no "exactly at time" option via MCP. (The MCP tool text now calls `0` "on time"; re-test before relying on it. **Fractions are rounded down to a whole hour**, so `+0.5` behaves as `0` and `-0.5` fires an hour late. Expect about ±10 minutes of accuracy. KB `30-customization/06` §3 "Scheduled trigger timing", including the sub-hour delay pattern.)
 2. **Scheduled triggers return a different ID format** -- they return a MongoDB ObjectId (`{"value":"69df53414167a73a568f34df"}`) instead of the Parse-style `_id`. Use the `value` field as the `triggerId` when adding actions.
 3. **Scheduled trigger action responses are different too** -- they return a MongoDB document format (`{"ok":1,"value":{...}}`) instead of the full class schema.
 4. **Deleting an action requires `actionData`** -- even when `deleteAction: true`, you MUST provide a valid `actionData` object for the action type. Without it, you get `"Cannot read properties of undefined"`. Send dummy/minimal actionData alongside `deleteAction: true`.
@@ -60,6 +61,14 @@ TRIGGER (When)                    ACTIONS (What) -- one or more
 11. **Email `emailTarget` supports pointer traversal** -- e.g., `"OwnerId.email"` sends to the owner's email. Both `"field"` and `"fixed"` emailType work correctly.
 12. **Email subject supports date formatting** -- `{{{DateField.format(date,he-IL,Asia/Jerusalem)}}}` works in email subjects, not just body.
 13. **Multiple email actions on same trigger** -- works (tested field + fixed email on same trigger).
+14. **Run an AI agent: action `trigger-ai-agent`** with `actionData: {"trigger-ai-agent": {"agentId": "<AiAgents objectId>", "agentName": "<name>"}}` (both required).
+    - **When it runs:** on create/update only, never on delete. It never runs from a **scheduled** trigger (use a scheduled job, below) or from a trigger on `AiActivities`.
+    - **What the agent gets:** the raw saved record as JSON, so its prompt must say what to read and do.
+    - **Verifying:** it leaves no `_syslogTriggers` row of its own; check the agent's activity or output.
+    - Details: KB `30-customization/06` §5.9.
+15. **Two trigger levels in practice** -- a user save fires T1, T1's write fires T2, and T2's writes fire nothing. A chained write back to the same record is blocked (`blocked! dontRunSimblaTriggersUpdate is set to true`). Design flows as one level of chaining. KB §8.
+16. **Keys in `http` actions are exposed.** `Set-Trigger`, `Set-Trigger-Action` and `Get-Triggers` print every key of a keyed `http` action on that table, and `_syslogTriggers` stores the keyed URL on errors. Read and edit such triggers through a script that filters secrets; never paste the output.
+17. **Before a trigger or an agent writes to a vanilla table, read that table's existing triggers** (`Get-Triggers`). Built-in triggers can sync to an external calendar or stamp the parent record.
 
 ## Workflow
 
@@ -159,7 +168,7 @@ Test via an MCP write, or have the user test through the CRM UI:
    - `criterias` not matching (wrong objectId, wrong type)
    - Trigger is inactive
    - `oneachupdate: false` and trigger already fired for this record
-   - Trigger chain depth exceeded (max 3 levels)
+   - Trigger chain too deep: in practice only two trigger levels fire (gotcha 15)
    - Record was written with `Create-Many(skipTriggers: true)`
 
 ## Quick Reference: Criteria Object
@@ -200,6 +209,29 @@ Use `{{{FieldName}}}` in email subjects, SMS content, notification content, and 
 | Scheduled reminder | `type: "scheduled"`, `shcedulerHours: 24` | sms / notification |
 | Webhook to external system | `events: ["create", "update"]` | http POST |
 | Record timestamp on change | `events: ["create", "update"]`, `onSetFields: ["<field>"]` | update-object current.objectId with updatedAt |
+| Run an AI agent on a record change | `events: ["create"]` or `["update"]` with `onSetFields` | trigger-ai-agent (gotcha 14) |
+
+## Scheduled jobs (clock-based: a function or an AI agent)
+
+Use a **scheduled job**, not a trigger, when the work is driven by the clock rather than by a record: "every morning at 08:00 let the agent summarise yesterday's leads", "every 15 minutes during business hours sync X", "on the 1st of the month run the billing function". A **scheduled trigger** is still the tool for "X hours before/after a date field of each record".
+
+**Knowledge sources (read before building):**
+- `../myb-p-kb/references/30-customization/06-triggers-and-automations.md` §14 — what a job is, the job object, how the runner fires, the values that never run, cost.
+- `../myb-p-kb/references/40-integrations-api/02-mcp-tools-catalog.md` §8b — the two tools, parameters, update semantics, access.
+
+**Procedure:**
+1. `Get-Scheduled-Jobs` — what already exists (the screen's jobs are in the same list; names are not unique).
+2. Agent job: confirm the agent is **active** and has the tools and roles its prompt needs — the tool accepts a missing or inactive agent and the run then fails quietly. The job's `description` is the agent's prompt, and the agent gets no record — the prompt must say what to read and write.
+3. Convert the wanted local time to **UTC minutes from midnight on a quarter hour** (Israel 08:00 = `360` in winter, `300` in summer).
+4. `Create-or-Update-Scheduled-Job` with every field the job needs. For `15 minutes` / `30 minutes` / `hour` **always send both `start` and `end`** (`0` and `1425` = all day) — without them the job is saved but never runs. Use `active: false` first when one run is expensive.
+5. **Read back** with `Get-Scheduled-Jobs` and compare field by field — the tool saves values that never run (off-quarter times, out-of-range days, a window over midnight) and the screen shows them as normal.
+6. After the next tick (:00/:15/:30/:45 UTC), check `lastExec` and `lastResponse` — **not** `lastStatus`, which is the HTTP code (`200` even when the agent was inactive). For an agent job also open the run in MyAgents.
+
+**Editing:** pass `jobId` + only the fields to change; the rest is kept. To change what the job runs, send `actionType` **with** `agentId`/`functionName` — the id alone is ignored without an error. **Stopping:** `active: false`; there is no delete tool (delete on the screen: MyAgents → אוטומציות → עבודות מתוזמנות).
+
+**Before activating an agent job, state the cost** to the user: it is billed per run, and an all-day 15-minute job is 96 runs a day.
+
+**Do not add the two job tools to a MyAgents agent's tool list** unless managing jobs is that agent's purpose — an agent given them can create and change jobs whatever its role (KB §14.6).
 
 ## Updating and Managing Triggers
 

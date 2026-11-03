@@ -1,7 +1,7 @@
 # Customer Portals (Public Edition) — פורטלי לקוח
 
 > **Purpose:** How customer-facing portals are built on MyBusiness CRM — external users (parents, students, examinees, citizens, clients) logging into dedicated page sets with their own data scope.
-> **Last updated:** 2026-07-10 (OTP contract, built-in OTP element, four-layer scoping model, PrivateFile, impersonation, isolation test) · **Status:** draft (public tier; examples anonymized to vertical archetypes)
+> **Last updated:** 2026-10-14 (tenant login 2FA applies to portal users) · previously 2026-07-10 (OTP contract, built-in OTP element, four-layer scoping model, PrivateFile, impersonation, isolation test) · **Status:** draft (public tier; examples anonymized to vertical archetypes)
 
 ## 1. What a portal is
 
@@ -68,6 +68,8 @@ Key mechanics:
 Portals are **L–XL, phased** engagements: a working v1 (auth + personal area + one core flow) first; payments/appeals/uploads as phase B. New portal *audiences* are new projects, not increments.
 
 ## Limitations & gotchas
+
+- **Tenant login 2FA applies to portal users too** (verified 2026-10-14): with *Enforce 2 factor authentication* on, a portal user's password login gets an emailed/SMS code challenge like staff — and a portal user with no email cannot log in under email 2FA. Tenants created since 2026-10-14 start with email 2FA on. See [08 §9](08-users-roles-permissions.md).
 
 - **First-load race conditions** are endemic: page JS that runs before the user's record loads renders empty forms/tables intermittently — bind logic to the account-loaded event, never to DOMContentLoaded.
 - **Logout lands on the staff login** unless a redirect cookie/handler is set in the portal master JS.

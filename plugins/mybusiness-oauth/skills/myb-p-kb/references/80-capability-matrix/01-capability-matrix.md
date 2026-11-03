@@ -2,7 +2,7 @@
 
 > **Purpose:** The single lookup table for fit-gap classification: what the product does natively, what is configurable, what requires custom work, and what it cannot do today. Every row is evidence-backed by this package's section docs.
 > **Audience:** Implementers/AI agents in fit-gap (phase 3) and spec authoring (phase 4); sales for qualification.
-> **Last updated:** 2026-10-09 (public forms rows — §16) · previously 2026-09-27 (`Config` reachable from MCP) · previously 2026-08-27 (bank direct debit / מס״ב) · **Status:** draft — **living document: update on every fit-gap that discovers something new.**
+> **Last updated:** 2026-11-03 (§19 MyAgents — 8 rows) · previously 2026-11-01 (scheduled jobs row + MCP tool count 69 — §6/§17) · previously 2026-10-14 (login 2FA by email row — §8) · previously 2026-10-09 (public forms rows — §16) · previously 2026-09-27 (`Config` reachable from MCP) · previously 2026-08-27 (bank direct debit / מס״ב) · **Status:** draft — **living document: update on every fit-gap that discovers something new.**
 
 **Levels:** `Native` works out of the box · `Config` no-code via UI/MCP · `Custom-JS` page JS/CSS · `Custom-Server` server function (Jira) · `External` outside service (Make/Zapier/GCP) · `Gap` not acceptably solvable today. Mixed values mean "base level + caveat in Notes". ⚠️ = verify before promising (see source doc).
 
@@ -90,6 +90,7 @@
 |---|---|---|---|
 | Data-change triggers (create/update; AND+OR; onSetFields) | Config | OR support since 01/2026 | [30/06](../30-customization/06-triggers-and-automations.md) |
 | Scheduled triggers (offset from any date field) | Config | `shcedulerHours` (sic); value 0 rejected via MCP ⚠️ | [30/06](../30-customization/06-triggers-and-automations.md) |
+| Scheduled jobs — run a cloud function or an AI agent on the clock (every 15/30/60 min in a window, daily, monthly; weekday/month-day filters) | Native + Config | UTC times on the quarter hour; screen = MyAgents → אוטומציות → עבודות מתוזמנות; MCP `Get-Scheduled-Jobs` / `Create-or-Update-Scheduled-Job` (2026-11-01) — the tool saves values that never run, read back ⚠️; no delete via MCP | [30/06](../30-customization/06-triggers-and-automations.md) §14 · [40/02](../40-integrations-api/02-mcp-tools-catalog.md) §8b |
 | Actions: email/SMS/WhatsApp/notification/create/update/http/server-code | Config | 8 types verified | [30/06](../30-customization/06-triggers-and-automations.md) |
 | Dynamic placeholders in messages (`{{{Field}}}`, pointer paths, date format) | Native | | [30/06](../30-customization/06-triggers-and-automations.md) |
 | Trigger fire on API / master-key writes | Native | **Live-verified 2026-06-10**: `Create-Data`, `Update-Data`, `Create-Many` all fire create/update triggers; opt-out only via `Create-Many(skipTriggers, skipTimeline)` (master-key); REST `/batch` and single-record tools have no skip flag | [30/06](../30-customization/06-triggers-and-automations.md) |
@@ -120,7 +121,8 @@
 | Row-level permissions (owner/team/branch) | Config ⚠️ | UI-only ("advanced permissions"), no MCP; heavy use → role explosion (78 roles seen) | [30/08](../30-customization/08-users-roles-permissions.md) |
 | Per-record ACL | Native | Parse ACL | [00/02](../00-overview/02-architecture.md) |
 | 2FA/MFA (WhatsApp OTP) | Native + Custom-Server | toggle + send-2FA-whatsapp fn | verified in production implementations |
-| IP/country login restriction, enforced 2FA, security event log | Config | admin Security screen (observed) | [50/02](../50-ui-walkthrough/02-admin-builder-tour.md) |
+| IP/country login restriction, enforced 2FA, security event log | Config | admin Security screen (verified 2026-10-14) | [50/02](../50-ui-walkthrough/02-admin-builder-tour.md) |
+| Login 2FA by **email** (or SMS) for all users of a tenant, remember-device N days, forget all devices | **Native** | admin → Security → *Choose 2FA method: Email*; **on by default for tenants created since 2026-10-14**; per-tenant only, no per-user exemption | [30/08 §9](../30-customization/08-users-roles-permissions.md) |
 | User deletion; listing >100 users via MCP | **Gap** | deactivate (`active:false`); REST for big lists | [30/08](../30-customization/08-users-roles-permissions.md) |
 | Hard seat enforcement | **Gap** | fleet shows over-assignment tolerated | [00/04](../00-overview/04-environments-and-access.md) |
 
@@ -229,7 +231,7 @@
 | Capability | Level | Notes | Ref |
 |---|---|---|---|
 | Parse REST API: CRUD, queries, batch(50), aggregate, users, files | Native | session-token (CLP-scoped) or master key | [40/01](../40-integrations-api/01-parse-rest-api.md) |
-| MCP server: 63 tools for AI agents | Native | master-key context — no user attribution in audit | [40/02](../40-integrations-api/02-mcp-tools-catalog.md) |
+| MCP server: 69 tools for AI agents (2026-11-01) | Native | master-key context — no user attribution in audit | [40/02](../40-integrations-api/02-mcp-tools-catalog.md) |
 | Bulk insert w/ trigger & timeline suppression | Native | Create-Many skipTriggers/skipTimeline | [40/02](../40-integrations-api/02-mcp-tools-catalog.md) |
 | Deletion via MCP (records/tables/pages/triggers/reports/files) | **Gap** | REST or UI | [40/02](../40-integrations-api/02-mcp-tools-catalog.md) |
 | Per-app server functions (Node, master key injected) | Custom-Server | `/functions/<appId>/<name>` | [40/04](../40-integrations-api/04-cloud-functions.md) |
@@ -255,6 +257,19 @@
 | Customer self-served app installs | Native | app-market installers: MyBooks/MyCampaigns/MyCommerce/MyInbox only | [10/07](../10-modules/07-myinbox-and-misc.md) |
 
 ---
+
+## 19. AI agents — MyAgents
+
+| Capability | Level | Notes | Ref |
+|---|---|---|---|
+| AI agent in the CRM: chat, reads and writes CRM data through MCP under the agent's roles | Native (beta) + Config | Admin users only. Installed from the app market. Judge a run by its conversation, not the HTTP answer. | [10/09](../10-modules/09-myagents.md) |
+| Choose the model per agent (intelligence level) | Config | 4 levels: עוזר זוטר, מתמחה, מקצוען, מומחה. Audio only on מתמחה. | [10/09](../10-modules/09-myagents.md) §2 |
+| Agent business hours, with a queue for requests outside them | Config ⚠️ | Applies to webhook, trigger, job and campaign runs; chat always runs. Arrival order is not kept, and there is no queue view. Webhook data must be in the JSON body. Overnight hours are not supported. | [10/09](../10-modules/09-myagents.md) §5 |
+| Agent started by a record change (create/update) | Native | Not on delete. A scheduled (date-field) trigger cannot run an agent → use a scheduled job. | [10/09](../10-modules/09-myagents.md) §4 |
+| Agent started by an external system (webhook) | Native | Key and data in the JSON body. | [10/09](../10-modules/09-myagents.md) §4 |
+| Agent reads a file from a table (text/image/PDF) and fills CRM fields | Native | Every level. A new table needs access for the agent's role. | [10/09](../10-modules/09-myagents.md) §8 |
+| Transcribe call recordings | Native + Config | מתמחה level only. M4A and AMR are not supported. | [10/09](../10-modules/09-myagents.md) §8 |
+| Conversation names, rename, filter conversations by agent | Native ⚠️ | Some conversations get no name. | [10/09](../10-modules/09-myagents.md) §6 |
 
 ## How to use this matrix in fit-gap
 

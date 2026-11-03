@@ -8,7 +8,7 @@
 
 <div dir="ltr">
 
-![AI agents](https://img.shields.io/badge/AI_agents-plugin-d97757) ![Agent Plugins](https://img.shields.io/badge/Agent_Plugins-1.0-24292e) ![version](https://img.shields.io/badge/version-1.5.2-007ec6) ![skills](https://img.shields.io/badge/skills-24-007ec6) ![ISO 27001](https://img.shields.io/badge/security-ISO_27001-2ea44f)
+![AI agents](https://img.shields.io/badge/AI_agents-plugin-d97757) ![Agent Plugins](https://img.shields.io/badge/Agent_Plugins-1.0-24292e) ![version](https://img.shields.io/badge/version-1.6.0-007ec6) ![skills](https://img.shields.io/badge/skills-25-007ec6) ![ISO 27001](https://img.shields.io/badge/security-ISO_27001-2ea44f)
 
 </div>
 
@@ -79,6 +79,7 @@ The plugin supplies skills; configure the personal MCP separately in Codex Setti
 | מודל נתונים | `myb-p-create-entity` (ישות חדשה מקצה לקצה) · `myb-p-multi-select-field` · `myb-p-parent-child-fields` · `myb-p-timestamp-field` · `myb-p-record-timeline` (ציר זמן ותיעוד שינויים ברשומה) · `myb-p-rename-terms` (התאמת מונחים לעסק) |
 | דפים וממשק | `myb-p-card-design` (דפי כרטיס, עיצוב ואסתטיקה) · `myb-p-page-tables` (טבלאות) · `myb-p-create-settings-page` · `myb-p-dashboards` · `myb-p-create-update-reports` |
 | אוטומציה | `myb-p-trigger-setup` (טריגרים) · `myb-p-form-rules` · `myb-p-sla-configuration` · `myb-p-chatbots` (בוטים ב-MyChat) |
+| סוכני AI | `myb-p-myagents` (סוכני AI במערכת: הגדרה, הרשאות, הפעלה מוובהוק, מטריגר או מעבודה מתוזמנת, שעות פעילות, קריאת מסמכים ותמלול שיחות) |
 | נתונים ואינטגרציות | `myb-p-data-import` (יבוא נתונים) · `myb-p-public-forms` (טפסים פומביים: מהאתר, בדף CRM, בלחיצה אחת) |
 | איכות שירות | `myb-p-public-forms` → `csat/` (סקר שביעות רצון בסגירת פנייה) |
 | חיובים והצעות מחיר | `myb-p-mybooks-setup` · `myb-p-price-quote-template` |
@@ -153,7 +154,7 @@ plugins/mybusiness-implementor/
 ├── mcp.json                         Agent Plugins MCP config     ← other clients
 ├── .claude-plugin/plugin.json       Claude Code manifest (+ its two configuration fields)
 ├── .mcp.json                        Claude Code MCP config
-└── skills/                          23 skills, each a folder with SKILL.md + references/
+└── skills/                          25 skills, each a folder with SKILL.md + references/
 ```
 
 </div>

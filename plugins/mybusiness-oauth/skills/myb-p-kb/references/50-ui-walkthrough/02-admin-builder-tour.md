@@ -1,7 +1,7 @@
 # Admin / Builder Tour — MyBusiness CRM (Simbla Development Environment)
 
 > **Purpose:** Visual walkthrough of the administration & no-code builder environment that sits behind every MyBusiness CRM tenant — project admin, page editor, database manager, triggers, users/roles/permissions, security, integrations and templates — and a map of what implementers can do in this UI vs. what requires MCP/API.
-> **Last updated:** 2026-06-10 · **Status:** draft
+> **Last updated:** 2026-10-14 (§4.7 Security — 2FA method SMS/Email, new-tenant default, re-captured screenshot) · previously 2026-06-10 · **Status:** draft
 
 ---
 
@@ -45,7 +45,7 @@ siteadmin.mbapps.co.il
     ├── Workflows      (empty in Playground, Create new Workflow)
     ├── Triggers       (all automations; per-trigger editor)
     ├── Templates      (PDF templates: quotes, invoices, receipts)
-    ├── Security       (event log, IP/country restriction, enforced 2FA)
+    ├── Security       (event log, IP/country restriction, 2FA by SMS or email)
     ├── Integrations   (Mailgun, Plivo, Twilio credentials)
     └── Settings       (database-level settings)
 ```
@@ -170,7 +170,7 @@ PDF template list (quote templates incl. Hebrew-branded ones, Invoice / Invoice-
 
 ### 4.7 Security
 
-Database-level security: **Log security events to database** (+ Event log dashboard link), **Restrict login by IP ranges**, **Restrict login by location** (country list), **2-factor authentication** (enforce toggle + SMS verification message template).
+Database-level security: **Event log dashboard** link, **Restrict login by IP ranges**, **Restrict login by location** (country list), **2 factor authentication** (enforce toggle · remember device for N days · method **SMS or Email** · SMS message/prefix/sender fields in SMS mode · *Forget all Authorized devices*), **Require Both IP Range Restriction and 2FA**, **Require password reset after (days)**, **Enable one time password (OTP)** (portal OTP: SMS / Email / Both), **Add access-control-allow-origins header**, **Delete all Users Sessions**, and one **Save** button at the bottom. Since 2026-10-14 new tenants start with email 2FA switched on. Full 2FA behaviour, defaults and API impact: [30/08 §9](../30-customization/08-users-roles-permissions.md). Screenshot re-captured 2026-10-14 (the *Log security events to database* checkbox of the older screen is gone).
 
 ![Security](assets/admin-security-screen.png)
 

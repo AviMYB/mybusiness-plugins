@@ -53,7 +53,7 @@ Insert `_Dictionary` rows for every field across the SLA tables so the UI and re
 ### Step 3 — Configure Business Hours
 `references/business-hours.md`
 
-Create the single `BusinessHours` row describing the weekly schedule, Israeli holidays flag, and any special dates.
+Create (or update) the one `BusinessHours` row named `SLA` — the row the SLA hours screen reads — describing the weekly schedule, Israeli holidays flag, and any special dates, in the screen's element shape.
 
 ### Step 4 — Define SLA targets
 `references/sla-settings.md`

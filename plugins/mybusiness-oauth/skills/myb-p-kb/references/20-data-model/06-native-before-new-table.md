@@ -2,8 +2,8 @@
 
 > **Purpose:** The rule table every solution design passes before it adds an entity. It is the data-model sibling of the page-JS gate ([../30-customization/03-pages-and-layouts.md](../30-customization/03-pages-and-layouts.md) §10): stable rule IDs (`D-##`) that a solution model, a fit-gap row or a review can cite.
 > **Audience:** Implementers and AI agents designing a customer solution (solution-model stage, fit-gap, functional spec), and reviewers of those designs.
-> **Sources:** The vanilla ERD ([01-data-model-overview.md](01-data-model-overview.md)), core tables ([02-core-tables.md](02-core-tables.md)), field patterns ([../30-customization/11-field-patterns.md](../30-customization/11-field-patterns.md)), tables & fields ([../30-customization/02-tables-and-fields.md](../30-customization/02-tables-and-fields.md)); a 2026-09 implementation, where a first design with ~15 new entities was rebuilt as a renamed vanilla entity + one new table + lookups, and the result was simpler, stable and cheaper to maintain.
-> **Last updated:** 2026-09-28 · **Status:** active
+> **Sources:** The vanilla ERD ([01-data-model-overview.md](01-data-model-overview.md)), core tables ([02-core-tables.md](02-core-tables.md)), field patterns ([../30-customization/11-field-patterns.md](../30-customization/11-field-patterns.md)), tables & fields ([../30-customization/02-tables-and-fields.md](../30-customization/02-tables-and-fields.md)); a 2026-09 implementation, where a first design with ~15 new entities was rebuilt as a renamed vanilla entity + one new table + lookups, and the result was simpler, stable and cheaper to maintain. A 2026-10 voice campaign added D-13–D-15: call results first built as nine fields and three triggers on the customer card, then as a new outcomes table with five fields, were rebuilt as one Activity per call, with a Task only where a person must act.
+> **Last updated:** 2026-10-29 · **Status:** active
 
 ---
 
@@ -41,6 +41,9 @@ A new table (rung 4) needs a **written justification** (§4) and counts against 
 | **D-10** | Separate fields per role/person for a repeating structure (Competitor1…N beyond 3, Contact1…N) | ≤3 fixed fields when the customer really thinks in "up to 3"; otherwise pointers to Contacts with a role lookup |
 | **D-11** | A new status model per entity by default | Reuse the vanilla status tables; add or rename values; add a per-type status list only when types truly differ (parent-child statuses, 30/11) |
 | **D-12** | Keeping a legacy field or table because it exists in the old system | Keep it only with **usage evidence** (fill-rate, who fills / who reads) — "a migration source is not a target schema" |
+| **D-13** | Columns on the parent for the result of an event that repeats (a call outcome, a visit result, "last contacted") | One **child record per event**: an Activity of the right type (e.g. "שיחת טלפון") with a status and a summary; a Task only when a person must act. The parent's activities tab is the history |
+| **D-14** | A lookup table for one campaign's or one process's own vocabulary (its outcomes) | The outcome in the child record's title (`<prefix>: <outcome>`) or a text field, the list kept in the campaign's own instructions. D-05 is for stable lists that every campaign reuses |
+| **D-15** | A field whose only job is to fire a trigger (a "result" field a trigger turns into a task or a sale) | The actor that knows the value creates the target record directly (the agent or the process opens the Task); drop the field |
 
 ## 4. Justification checklist for a new table (rung 4)
 

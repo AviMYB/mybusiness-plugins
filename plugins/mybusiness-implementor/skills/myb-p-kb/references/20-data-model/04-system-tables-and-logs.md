@@ -1,7 +1,7 @@
 # System Tables & Logs
 
 > **Purpose:** Reference for the platform's internal tables — audit timeline, automation logs, sessions/roles, configuration and SLA tables — including the exact query patterns used in support investigations.
-> **Last updated:** 2026-08-23 (_Timeline §1.11 added: the display layer — the shared `apps/mybusiness/Timeline` page, its 6-class host whitelist, the query-form pointer contract, the `<li>` template, the CSS type palette, the history toggle and the Hebrew-gender heuristic, all read from `timeline4.7.js` + `unified-master.css` and measured on a vanilla tenant) · **Status:** draft
+> **Last updated:** 2026-11-01 (§6 `BusinessHours` element shapes — `WeeklyHours` `{d, openTime, closeTime, isOpen}`, `SpecialDates`, the `SLA` row name and `StartMaxTime`, read from the SLA hours screen) · previously 2026-08-23 (_Timeline §1.11 added: the display layer — the shared `apps/mybusiness/Timeline` page, its 6-class host whitelist, the query-form pointer contract, the `<li>` template, the CSS type palette, the history toggle and the Hebrew-gender heuristic, all read from `timeline4.7.js` + `unified-master.css` and measured on a vanilla tenant) · **Status:** draft
 
 Underscore-prefixed classes are system classes (Parse reserves `_` for built-ins; MyBusiness adds its own `_Timeline`, `_syslog*`, etc. server-side). They are queryable through `Get-Data`/`Count-Data` like any table (master key bypasses CLP).
 
@@ -410,11 +410,21 @@ Site pages, page content, and menus are stored on the **Simbla site side (MongoD
 |---|---|---|
 | `SLASettings` | `CaseTypeId:P→CaseTypes` (סוג פניה), `CaseSubTypeId:P→CaseSubTypes` (תת-סוג פניה), `CaseStatusId:P→CaseStatuses` (סטטוס פניה), `SLAHours:Number` (תקציב שעות), `SLADays:Number` (תקציב ימים) | SLA target matrix: budget per type/subtype/status combination |
 | `CaseSLAProcess` (live) / `CasesSlaProcess` (dump — note different spelling per tenant!) | `CaseId:P→Cases` (פניה), `StatusId:P→CaseStatuses` (סטטוס), `StatusEnteredAt` (נכנס לסטטוס ב), `StatusExitedAt` (עזב את הסטטוס ב), `DeadlineForStatus:Date` (דד-ליין לסטטוס), `SLAHoursAllowed`/`SLADaysAllowed:Number`, `IsCurrent:Boolean` (פעיל), `IsBreached:Boolean` (חריגה), `IsPaused:Boolean` (מושהה), `updatedByTrigger` | per-status SLA tracking rows; one row per status the case passes through; rendered as a widget on the case card |
-| `BusinessHours` | `Name`, `WeeklyHours:Array`, `SpecialDates:Array`, `ConsiderIsraeliHolidays:Boolean` | working-hours calendar for SLA clock |
+| `BusinessHours` | `Name`, `WeeklyHours:Array`, `SpecialDates:Array`, `ConsiderIsraeliHolidays:Boolean`, `StartMaxTime:String` | working-hours calendar for the SLA clock (the row `Name = "SLA"`) and for MyChat chatbot schedules (other rows) — element shapes below |
 | `Holidays` | `Name`, `FromTime`/`ToTime:Date`, `Remark` | explicit holiday rows |
 | `CaseStates` | `Name` | open/closed semantics behind `CaseStatuses.StateId` — SLA clock typically stops on closed-state statuses |
 
 SLA fields on `Cases` itself are listed in [02-core-tables.md](02-core-tables.md) §4. The whole mechanism is trigger-driven (scheduled + on-update triggers populate `CaseSLAProcess` and the Case fields) — configuration recipe lives in the `myb-p-sla-configuration` skill.
+
+### `BusinessHours` element shapes
+
+These are the keys the SLA hours screen (`apps/mybusiness/System-SLA-BusinessHours`) reads and writes; MyChat's chatbot schedules in the same table use the same shape. `Get-Schema` shows both arrays only as `Array`, so a wrong shape saves without an error.
+
+- **Row selection.** The SLA screen reads the first row whose `Name` is `SLA`; it locks its name field and always saves under `SLA`, creating the row if none has that name. A MyChat bot refers to its schedule by row id, under any name. Vanilla ships no row.
+- **`WeeklyHours`** — 7 elements `{ d, openTime, closeTime, isOpen }`. `d` is the day number, `0` Sunday … `6` Saturday, and elements are matched by `d`. Times are `"HH:MM"` (24-hour). `isOpen` is a Boolean; the screen stores a closed day as `isOpen:false` with both times `"00:00"`, and its defaults are Sunday–Thursday 08:00–17:00. Elements saved by the screen may also carry a Hebrew `day` label, which nothing reads.
+- **`SpecialDates`** — `{ id, name, date, openTime, closeTime, isOpen }`. `date` is `"YYYY-MM-DD"`; `isOpen:false` = closed all day, `isOpen:true` with shorter hours = a partial day; `id` is a millisecond timestamp the screen adds.
+- **`StartMaxTime`** — optional `"HH:MM"`, written by the screen's field "פניות שיפתחו לאחר שעה זו ישוייכו ליום העסקים הבא (עבור SLA לפי ימים)" (cases opened after this time belong to the next business day, for day-based SLA); the screen removes it when the field is left empty.
+- **Other keys** (e.g. `{day, active, from, to}`): the screen lists 0 active days and shows its own defaults in the form.
 
 ---
 
